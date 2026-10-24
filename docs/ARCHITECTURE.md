@@ -109,7 +109,29 @@ Configured in [`src/features/mfa/MfaPage.tsx`](../src/features/mfa/MfaPage.tsx) 
 
 ---
 
-## 6. UX & Design Principles
+## 6. Passkeys & WebAuthn Level 3 Integration
+
+Configured in [`src/features/passkeys/PasskeysPage.tsx`](../src/features/passkeys/PasskeysPage.tsx) using `@simplewebauthn/browser`:
+
+### Registration Flow
+1. **Challenge Options**: User clicks **Create Passkey**; frontend calls `POST /auth/webauthn/register/options`.
+2. **Authenticator Ceremony**: Invokes `startRegistration({ optionsJSON })` to prompt Touch ID, Face ID, Windows Hello, or USB security keys.
+3. **Attestation Submission**: Submits credential attestation to `POST /auth/webauthn/register`. Backend validates cryptographic signature via Spring Security WebAuthn, registers the credential in PostgreSQL, and updates `user.passkey_enabled = true`.
+4. **Label Customization**: Updates passkey nickname via `PATCH /auth/mfa/passkeys/{id}`.
+
+### Passwordless Login Flow
+1. **Assertion Options**: On the login page (`/login`), user clicks **Sign in with a passkey**; frontend calls `POST /auth/webauthn/authenticate/options`.
+2. **Biometric Verification**: Invokes `startAuthentication({ optionsJSON })` to obtain biometric signature assertion.
+3. **Session Issuance**: Submits assertion to `POST /auth/login/webauthn`. Backend `WebAuthnAuthenticationSuccessHandler` validates the assertion, sets the `HttpOnly` refresh cookie, and returns the standard `AuthResponse` access token payload.
+
+### Passkey Lifecycle Management
+- **List Credentials**: Fetches authorized passkeys via `GET /auth/mfa/passkeys`.
+- **Rename**: Allows renaming passkey labels anytime (`PATCH /auth/mfa/passkeys/{id}`).
+- **Revocation**: Safely removes passkeys with confirmation (`DELETE /auth/mfa/passkeys/{id}`). If all passkeys are deleted, the backend automatically synchronizes `user.passkey_enabled = false`.
+
+---
+
+## 7. UX & Design Principles
 
 - **Clerk-Inspired Aesthetics**: High contrast typography, dark/light mode parity, glassmorphic cards, rounded-2xl containers, and subtle micro-animations.
 - **Contextual Inline Errors**: In accordance with enterprise form UX, error messages render directly below the relevant input field with red border outlines, eliminating bulky top notification banners.

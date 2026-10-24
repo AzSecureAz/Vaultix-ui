@@ -1,5 +1,11 @@
 import { apiClient } from '@/lib/api-client'
-import type { ApiResponse, AuthTokens, UserProfile, TotpSetupData, TotpActivationData } from '@/types/api'
+import type { ApiResponse, AuthTokens, UserProfile, TotpSetupData, TotpActivationData, PasskeyItem } from '@/types/api'
+import type {
+  PublicKeyCredentialCreationOptionsJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+  RegistrationResponseJSON,
+  AuthenticationResponseJSON,
+} from '@simplewebauthn/browser'
 
 export interface LoginPayload {
   identifier: string
@@ -175,6 +181,41 @@ export const authApi = {
 
   regenerateRecoveryCodes: async (): Promise<ApiResponse<TotpActivationData>> => {
     const res = await apiClient.post<ApiResponse<TotpActivationData>>('/auth/totp/recovery-codes/regenerate')
+    return res.data
+  },
+
+  getPasskeys: async (): Promise<ApiResponse<PasskeyItem[]>> => {
+    const res = await apiClient.get<ApiResponse<PasskeyItem[]>>('/auth/mfa/passkeys')
+    return res.data
+  },
+
+  getPasskeyRegistrationOptions: async (): Promise<PublicKeyCredentialCreationOptionsJSON> => {
+    const res = await apiClient.post<PublicKeyCredentialCreationOptionsJSON>('/auth/webauthn/register/options', {})
+    return res.data
+  },
+
+  registerPasskey: async (attestation: RegistrationResponseJSON): Promise<ApiResponse<unknown>> => {
+    const res = await apiClient.post<ApiResponse<unknown>>('/auth/webauthn/register', attestation)
+    return res.data
+  },
+
+  updatePasskeyLabel: async (id: string, label: string): Promise<ApiResponse<PasskeyItem>> => {
+    const res = await apiClient.patch<ApiResponse<PasskeyItem>>(`/auth/mfa/passkeys/${id}`, { label })
+    return res.data
+  },
+
+  deletePasskey: async (id: string): Promise<ApiResponse<void>> => {
+    const res = await apiClient.delete<ApiResponse<void>>(`/auth/mfa/passkeys/${id}`)
+    return res.data
+  },
+
+  getPasskeyAuthOptions: async (): Promise<PublicKeyCredentialRequestOptionsJSON> => {
+    const res = await apiClient.post<PublicKeyCredentialRequestOptionsJSON>('/auth/webauthn/authenticate/options', {})
+    return res.data
+  },
+
+  loginWithPasskey: async (assertion: AuthenticationResponseJSON): Promise<ApiResponse<AuthTokens>> => {
+    const res = await apiClient.post<ApiResponse<AuthTokens>>('/auth/login/webauthn', assertion)
     return res.data
   },
 }

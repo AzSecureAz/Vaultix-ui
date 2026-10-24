@@ -12,10 +12,12 @@ import {
   ArrowLeft,
   Shield,
   AlertCircle,
+  Fingerprint,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/stores/authStore'
+import { startAuthentication, browserSupportsWebAuthn } from '@simplewebauthn/browser'
 import { authApi } from '../api/authApi'
 
 type MfaFactor = 'totp' | 'recovery'
@@ -28,6 +30,7 @@ export function LoginForm() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [passkeyLoading, setPasskeyLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
@@ -47,6 +50,44 @@ export function LoginForm() {
       navigate('/dashboard', { replace: true })
     }
   }, [isAuthenticated, isInitializing, navigate])
+
+  const handlePasskeyLogin = async () => {
+    setError(null)
+    setFieldErrors({})
+
+    if (!browserSupportsWebAuthn()) {
+      setError('Passkeys are not supported by this browser.')
+      return
+    }
+
+    setPasskeyLoading(true)
+
+    try {
+      const options = await authApi.getPasskeyAuthOptions()
+      const assertion = await startAuthentication({ optionsJSON: options })
+      const response = await authApi.loginWithPasskey(assertion)
+
+      if (response.success && response.data) {
+        await setAuth(response.data)
+        navigate('/dashboard')
+      } else {
+        setError(response.message || 'Passkey authentication failed.')
+      }
+    } catch (err: any) {
+      console.error('Passkey authentication error:', err)
+      if (err.name === 'NotAllowedError') {
+        setError('Passkey prompt was cancelled.')
+      } else {
+        const msg =
+          err?.response?.data?.message ||
+          err?.message ||
+          'Failed to sign in with passkey.'
+        setError(msg)
+      }
+    } finally {
+      setPasskeyLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -161,11 +202,40 @@ export function LoginForm() {
             )}
 
             {!mfaChallenge ? (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                    Username or email
-                  </label>
+              <div className="space-y-4">
+                {/* Sign in with Passkey Button */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handlePasskeyLogin}
+                  disabled={passkeyLoading || loading}
+                  className="w-full h-10 font-medium text-xs sm:text-sm rounded-lg border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50"
+                >
+                  {passkeyLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-zinc-500" />
+                  ) : (
+                    <Fingerprint className="h-4 w-4 text-zinc-700 dark:text-zinc-300" />
+                  )}
+                  <span>{passkeyLoading ? 'Verifying with passkey...' : 'Sign in with a passkey'}</span>
+                </Button>
+
+                {/* Divider */}
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white dark:bg-zinc-900 px-2 text-zinc-400 text-[10px] font-medium tracking-wider">
+                      or continue with password
+                    </span>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                      Username or email
+                    </label>
                   <Input
                     type="text"
                     required
@@ -269,7 +339,8 @@ export function LoginForm() {
                   )}
                 </Button>
               </form>
-            ) : (
+            </div>
+          ) : (
               <div className="space-y-4">
                 {/* Method Switcher Tabs */}
                 <div className="grid grid-cols-2 gap-1 bg-zinc-100 dark:bg-zinc-950 p-1 rounded-lg border border-zinc-200 dark:border-zinc-800 text-xs">

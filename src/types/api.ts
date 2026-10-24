@@ -76,3 +76,15 @@ export interface TotpActivationData {
   recovery_codes?: string[]
   recoveryCodes?: string[]
 }
+
+export interface PasskeyItem {
+  id: string
+  credential_id: string
+  label: string
+  public_key_credential_type?: string
+  transports?: string[]
+  backup_eligible?: boolean
+  backup_state?: boolean
+  created_at: string
+  last_used_at?: string
+}

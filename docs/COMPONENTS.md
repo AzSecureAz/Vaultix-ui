@@ -83,3 +83,23 @@ Located in [`src/features/dashboard/components/`](../src/features/dashboard/comp
 ### `ChangeUsernameModal`
 - Validates alphanumeric constraints and lowercase formatting.
 - Instant feedback on username collision or reservation.
+
+---
+
+## 5. Passkey & WebAuthn Dialogs
+
+Located in [`src/features/passkeys/components/`](../src/features/passkeys/components/):
+
+### `RegisterPasskeyModal`
+- Prompts for an optional device nickname (e.g., "MacBook Pro", "YubiKey 5C").
+- Communicates with `@simplewebauthn/browser`'s `startRegistration` ceremony to interface with browser biometrics.
+- Dispatches public key attestation to `POST /auth/webauthn/register`.
+- Automatically refreshes the passkey list and updates `user.passkey_enabled`.
+
+### `RenamePasskeyModal`
+- Allows modifying existing passkey labels via `PATCH /auth/mfa/passkeys/{id}`.
+- Inline validation with 128-character limits.
+
+### `DeletePasskeyModal`
+- Safety confirmation modal before permanently deleting a registered credential (`DELETE /auth/mfa/passkeys/{id}`).
+- Highlights security consequences and automatically updates account status if zero passkeys remain.

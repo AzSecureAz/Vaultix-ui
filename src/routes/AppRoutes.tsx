@@ -9,6 +9,7 @@ import { ForgotPasswordPage } from '@/features/auth/components/ForgotPasswordPag
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { SessionsPage } from '@/features/sessions/SessionsPage'
 import { MfaPage } from '@/features/mfa/MfaPage'
+import { PasskeysPage } from '@/features/passkeys/PasskeysPage'
 import { SigningKeysPage } from '@/features/signing-keys/SigningKeysPage'
 import { UsersPage } from '@/features/admin-users/UsersPage'
 import { RolesPage } from '@/features/admin-roles/RolesPage'
@@ -84,6 +85,7 @@ export function AppRoutes() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/sessions" element={<SessionsPage />} />
         <Route path="/mfa" element={<MfaPage />} />
+        <Route path="/passkeys" element={<PasskeysPage />} />
         <Route path="/admin/signing-keys" element={<SigningKeysPage />} />
         <Route path="/admin/users" element={<UsersPage />} />
         <Route path="/admin/roles" element={<RolesPage />} />

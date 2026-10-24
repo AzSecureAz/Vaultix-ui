@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   User,
   Mail,
@@ -26,6 +27,7 @@ import { ChangeEmailModal } from './components/ChangeEmailModal'
 import { ChangePhoneNumberModal } from './components/ChangePhoneNumberModal'
 
 export function DashboardPage() {
+  const navigate = useNavigate()
   const { user } = useAuthStore()
   const [copiedId, setCopiedId] = useState(false)
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false)
@@ -348,11 +350,33 @@ export function DashboardPage() {
               <Fingerprint className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
               Passkeys / WebAuthn
             </span>
-            <div>
+            <div className="flex items-center gap-2.5">
               {user.passkey_enabled ? (
-                <Badge variant="success" className="text-xs">Active</Badge>
+                <>
+                  <Badge variant="success" className="text-xs">Active</Badge>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/passkeys')}
+                    className="h-6 text-[11px] px-2 py-0 cursor-pointer text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white"
+                  >
+                    Manage passkeys
+                  </Button>
+                </>
               ) : (
-                <span className="text-zinc-500 dark:text-zinc-400">None registered</span>
+                <>
+                  <span className="text-zinc-500 dark:text-zinc-400 text-xs">None registered</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/passkeys')}
+                    className="h-6 text-[11px] px-2 py-0 cursor-pointer text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white"
+                  >
+                    Add passkey
+                  </Button>
+                </>
               )}
             </div>
           </div>

@@ -98,8 +98,14 @@ ui/
     │   │       ├── ChangePhoneNumberModal.tsx
     │   │       ├── ChangePasswordModal.tsx
     │   │       └── ChangeUsernameModal.tsx
-    │   └── mfa/
-    │       └── MfaPage.tsx
+    │   ├── mfa/
+    │   │   └── MfaPage.tsx
+    │   └── passkeys/
+    │       ├── PasskeysPage.tsx
+    │       └── components/
+    │           ├── RegisterPasskeyModal.tsx
+    │           ├── RenamePasskeyModal.tsx
+    │           └── DeletePasskeyModal.tsx
     ├── lib/
     │   ├── api-client.ts
     │   └── utils.ts

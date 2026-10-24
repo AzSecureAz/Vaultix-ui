@@ -31,6 +31,8 @@ const processQueue = (error: unknown, token: string | null = null) => {
 const PUBLIC_ENDPOINTS = [
   '/auth/public/',
   '/public/',
+  '/auth/webauthn/authenticate/options',
+  '/auth/login/webauthn',
   '/jwks.json',
   '/actuator/health',
 ]
