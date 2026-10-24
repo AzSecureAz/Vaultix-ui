@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { ShieldAlert, Loader2, AlertTriangle, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -15,7 +16,7 @@ export function LogoutAllModal({ isOpen, onClose }: LogoutAllModalProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  if (!isOpen) return null
+  if (!isOpen || typeof document === 'undefined') return null
 
   const handleLogoutAll = async () => {
     setError(null)
@@ -38,9 +39,9 @@ export function LogoutAllModal({ isOpen, onClose }: LogoutAllModalProps) {
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="relative w-full max-w-md p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl space-y-4 animate-in zoom-in-95 duration-150 text-zinc-900 dark:text-zinc-100">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="relative w-full max-w-md p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150 text-zinc-900 dark:text-zinc-100">
         <button
           type="button"
           onClick={handleClose}
@@ -106,6 +107,7 @@ export function LogoutAllModal({ isOpen, onClose }: LogoutAllModalProps) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
