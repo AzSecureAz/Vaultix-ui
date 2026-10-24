@@ -13,6 +13,7 @@ interface AuthState {
   setAccessToken: (token: string) => void
   fetchProfile: () => Promise<UserProfile | null>
   logout: () => Promise<void>
+  logoutAll: () => Promise<void>
   checkAuthOnBoot: () => Promise<boolean>
   hasRole: (role: string) => boolean
   hasPermission: (permission: string) => boolean
@@ -90,6 +91,34 @@ export const useAuthStore = create<AuthState>()(
           }
         } catch (err) {
           console.warn('Backend logout failed or session already expired:', err)
+        } finally {
+          set({
+            accessToken: null,
+            refreshToken: null,
+            user: null,
+            isAuthenticated: false,
+            isInitializing: false,
+          })
+        }
+      },
+
+      logoutAll: async () => {
+        const token = get().accessToken
+        try {
+          if (token) {
+            await axios.post(
+              '/api/v1/auth/logout-all',
+              {},
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+                withCredentials: true,
+              }
+            )
+          }
+        } catch (err) {
+          console.warn('Backend logout-all failed or session already expired:', err)
         } finally {
           set({
             accessToken: null,

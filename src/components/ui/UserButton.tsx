@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LogOut, User as UserIcon, Shield, CheckCircle2 } from 'lucide-react'
+import { LogOut, User as UserIcon, Shield, CheckCircle2, ShieldAlert } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { Badge } from '@/components/ui/badge'
+import { LogoutAllModal } from '@/components/ui/LogoutAllModal'
 
 export function UserButton() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
+  const [isLogoutAllOpen, setIsLogoutAllOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   // Close when clicking outside
@@ -108,6 +110,18 @@ export function UserButton() {
               <LogOut className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
               <span>Sign out</span>
             </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false)
+                setIsLogoutAllOpen(true)
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50/70 dark:hover:bg-red-500/10 transition-colors cursor-pointer text-left"
+            >
+              <ShieldAlert className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
+              <span>Sign out from everywhere</span>
+            </button>
           </div>
 
           <div className="h-px bg-zinc-100 dark:bg-zinc-800/70 my-1" />
@@ -119,6 +133,12 @@ export function UserButton() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal for Sign out everywhere */}
+      <LogoutAllModal
+        isOpen={isLogoutAllOpen}
+        onClose={() => setIsLogoutAllOpen(false)}
+      />
     </div>
   )
 }

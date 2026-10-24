@@ -25,6 +25,7 @@ import { ChangePasswordModal } from './components/ChangePasswordModal'
 import { ChangeUsernameModal } from './components/ChangeUsernameModal'
 import { ChangeEmailModal } from './components/ChangeEmailModal'
 import { ChangePhoneNumberModal } from './components/ChangePhoneNumberModal'
+import { LogoutAllModal } from '@/components/ui/LogoutAllModal'
 
 export function DashboardPage() {
   const navigate = useNavigate()
@@ -36,6 +37,7 @@ export function DashboardPage() {
   const [isChangeUsernameOpen, setIsChangeUsernameOpen] = useState(false)
   const [isChangeEmailOpen, setIsChangeEmailOpen] = useState(false)
   const [isChangePhoneOpen, setIsChangePhoneOpen] = useState(false)
+  const [isLogoutAllOpen, setIsLogoutAllOpen] = useState(false)
 
   const handleCopyId = () => {
     if (user?.id) {
@@ -409,6 +411,27 @@ export function DashboardPage() {
               {formatDate(user.last_login_at)}
             </span>
           </div>
+
+          <div className="px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-4 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
+            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:w-44 shrink-0 flex items-center gap-1.5">
+              <ShieldAlert className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+              Active Sessions
+            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-zinc-500 dark:text-zinc-400 text-xs">
+                Revoke all active tokens &amp; devices
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsLogoutAllOpen(true)}
+                className="h-7 text-xs px-2.5 cursor-pointer text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50/60 dark:hover:bg-red-950/20 border-red-200/60 dark:border-red-900/40"
+              >
+                Sign out everywhere
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -498,6 +521,11 @@ export function DashboardPage() {
         isOpen={isChangePhoneOpen}
         onClose={() => setIsChangePhoneOpen(false)}
         currentPhoneNumber={user.phone_number}
+      />
+
+      <LogoutAllModal
+        isOpen={isLogoutAllOpen}
+        onClose={() => setIsLogoutAllOpen(false)}
       />
     </div>
   )
