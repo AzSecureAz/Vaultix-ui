@@ -37,27 +37,9 @@ export function RegisterPasskeyModal({
       // 2. Trigger browser authenticator ceremony (Touch ID / Face ID / Windows Hello / YubiKey)
       const attestation = await startRegistration({ optionsJSON: options })
 
-      // 3. Submit attestation back to Spring Security
-      await authApi.registerPasskey(attestation)
-
-      // 4. If user provided a custom label, fetch passkeys and update the newest one's label
-      const desiredLabel = label.trim()
-      if (desiredLabel) {
-        try {
-          const passkeysRes = await authApi.getPasskeys()
-          if (passkeysRes.success && passkeysRes.data && passkeysRes.data.length > 0) {
-            const sorted = [...passkeysRes.data].sort(
-              (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-            )
-            const newest = sorted[0]
-            if (newest && newest.label !== desiredLabel) {
-              await authApi.updatePasskeyLabel(newest.id, desiredLabel)
-            }
-          }
-        } catch (labelErr) {
-          console.warn('Could not update custom label:', labelErr)
-        }
-      }
+      // 3. Submit attestation and passkey label back to Spring Security
+      const desiredLabel = label.trim() || 'Passkey'
+      await authApi.registerPasskey(attestation, desiredLabel)
 
       // 5. Refresh profile state (passkey_enabled -> true)
       await fetchProfile()

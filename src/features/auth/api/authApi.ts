@@ -194,8 +194,13 @@ export const authApi = {
     return res.data
   },
 
-  registerPasskey: async (attestation: RegistrationResponseJSON): Promise<ApiResponse<unknown>> => {
-    const res = await apiClient.post<ApiResponse<unknown>>('/auth/webauthn/register', attestation)
+  registerPasskey: async (attestation: RegistrationResponseJSON, label?: string): Promise<unknown> => {
+    const res = await apiClient.post<unknown>('/auth/webauthn/register', {
+      publicKey: {
+        credential: attestation,
+        label: label?.trim() || 'Passkey',
+      },
+    })
     return res.data
   },
 
