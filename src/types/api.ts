@@ -14,6 +14,9 @@ export interface AuthTokens {
   mfa_required?: boolean
   mfa_token?: string
   has_recovery_codes?: boolean
+  totp_enabled?: boolean
+  sms_mfa_enabled?: boolean
+  masked_phone_number?: string
 }
 
 export interface JwtPayload {
@@ -38,6 +41,7 @@ export interface UserProfile {
   phone_number_verified?: boolean
   mfa_enabled?: boolean
   passkey_enabled?: boolean
+  sms_mfa_enabled?: boolean
   has_social_accounts?: boolean
   last_login_at?: string
   created_at?: string

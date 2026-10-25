@@ -10,6 +10,8 @@ import {
   X,
   RefreshCw,
   AlertTriangle,
+  MessageSquare,
+  Phone,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -17,6 +19,8 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { useAuthStore } from '@/stores/authStore'
 import { authApi } from '@/features/auth/api/authApi'
+import { VerifyPhoneModal } from '@/features/dashboard/components/VerifyPhoneModal'
+import { ChangePhoneNumberModal } from '@/features/dashboard/components/ChangePhoneNumberModal'
 import type { TotpSetupData } from '@/types/api'
 
 export function MfaPage() {
@@ -39,14 +43,35 @@ export function MfaPage() {
   const [isDisableDialogOpen, setIsDisableDialogOpen] = useState(false)
   const [isRegenerateDialogOpen, setIsRegenerateDialogOpen] = useState(false)
 
-  // Fetch remaining recovery codes count when MFA is active
+  // SMS MFA States
+  const [isSmsSetupOpen, setIsSmsSetupOpen] = useState(false)
+  const [smsVerificationCode, setSmsVerificationCode] = useState('')
+  const [smsSending, setSmsSending] = useState(false)
+  const [smsActivating, setSmsActivating] = useState(false)
+  const [smsDisabling, setSmsDisabling] = useState(false)
+  const [smsError, setSmsError] = useState<string | null>(null)
+  const [smsCountdown, setSmsCountdown] = useState(0)
+  const [isDisableSmsDialogOpen, setIsDisableSmsDialogOpen] = useState(false)
+  const [isVerifyPhoneOpen, setIsVerifyPhoneOpen] = useState(false)
+  const [isAddPhoneOpen, setIsAddPhoneOpen] = useState(false)
+
+  // Countdown timer for SMS setup resend
   useEffect(() => {
-    if (user?.mfa_enabled) {
+    if (smsCountdown <= 0) return
+    const timer = setInterval(() => {
+      setSmsCountdown((prev) => prev - 1)
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [smsCountdown])
+
+  // Fetch remaining recovery codes count when any MFA factor is active
+  useEffect(() => {
+    if (user?.mfa_enabled || user?.sms_mfa_enabled) {
       loadRecoveryCodesCount()
     } else {
       setRemainingCodes(null)
     }
-  }, [user?.mfa_enabled])
+  }, [user?.mfa_enabled, user?.sms_mfa_enabled])
 
   const loadRecoveryCodesCount = async () => {
     try {
@@ -115,7 +140,91 @@ export function MfaPage() {
     }
   }
 
-  // Step 3: Disable TOTP
+  // SMS MFA Handlers
+  const handleInitiateSmsSetup = async () => {
+    setSmsSending(true)
+    setStatusMsg(null)
+    setSmsError(null)
+    try {
+      const res = await authApi.sendSmsMfaSetupOtp()
+      if (res.success) {
+        setIsSmsSetupOpen(true)
+        setSmsVerificationCode('')
+        setSmsCountdown(60)
+      }
+    } catch (err: any) {
+      const errMsg = err?.response?.data?.message || 'Failed to dispatch SMS setup code. Please try again.'
+      setStatusMsg({ text: errMsg, type: 'error' })
+    } finally {
+      setSmsSending(false)
+    }
+  }
+
+  const handleActivateSmsMfa = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const cleanCode = smsVerificationCode.trim().replace(/\D/g, '')
+    if (cleanCode.length !== 6) {
+      setSmsError('Please enter a valid 6-digit verification code')
+      return
+    }
+
+    setSmsActivating(true)
+    setStatusMsg(null)
+    setSmsError(null)
+
+    try {
+      const res = await authApi.enableSmsMfa(cleanCode)
+      if (res.success) {
+        setStatusMsg({
+          text: 'SMS two-factor authentication is now active on your account.',
+          type: 'success',
+        })
+        const codes = res.data?.recovery_codes || res.data?.recoveryCodes || []
+        if (codes.length > 0) {
+          setRecoveryCodes(codes)
+          setRemainingCodes(codes.length)
+        }
+        setIsSmsSetupOpen(false)
+        setSmsVerificationCode('')
+        await fetchProfile()
+      }
+    } catch (err: any) {
+      const errMsg = err?.response?.data?.message || 'Invalid 6-digit code. Please verify the code in your SMS.'
+      setSmsError(errMsg)
+    } finally {
+      setSmsActivating(false)
+    }
+  }
+
+  const handleDisableSmsMfa = async () => {
+    setSmsDisabling(true)
+    setStatusMsg(null)
+    try {
+      const res = await authApi.disableSmsMfa()
+      if (res.success) {
+        setStatusMsg({
+          text: 'SMS two-factor authentication has been disabled.',
+          type: 'success',
+        })
+        setIsDisableSmsDialogOpen(false)
+        await fetchProfile()
+      }
+    } catch (err: any) {
+      setStatusMsg({
+        text: err?.response?.data?.message || 'Failed to disable SMS 2FA. Please try again.',
+        type: 'error',
+      })
+    } finally {
+      setSmsDisabling(false)
+    }
+  }
+
+  const maskPhoneNumber = (phone?: string) => {
+    if (!phone) return ''
+    const clean = phone.trim()
+    if (clean.length <= 4) return clean
+    return '••••••' + clean.slice(-4)
+  }
   const handleDisableTotp = async () => {
     setDisabling(true)
     setStatusMsg(null)
@@ -407,6 +516,125 @@ export function MfaPage() {
         </Card>
       )}
 
+      {/* Active SMS MFA Setup Flow */}
+      {isSmsSetupOpen && (
+        <Card className="border-zinc-200 dark:border-zinc-800/80 animate-in fade-in-0 zoom-in-95 duration-150">
+          <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-zinc-500" />
+                <CardTitle className="text-sm font-semibold">Set Up SMS Two-Factor Authentication</CardTitle>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSmsSetupOpen(false)
+                  setSmsVerificationCode('')
+                  setSmsError(null)
+                }}
+                className="p-1 rounded text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <CardDescription>
+              We sent a 6-digit verification code to {maskPhoneNumber(user?.phone_number)}. Enter the code below to enable SMS 2FA.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6 space-y-6">
+            <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-xl bg-zinc-50/70 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80">
+              <div className="h-10 w-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-300 shrink-0">
+                <Phone className="h-5 w-5" />
+              </div>
+              <div className="flex-1 text-xs text-zinc-600 dark:text-zinc-400">
+                <span>Verification code dispatched to </span>
+                <strong className="text-zinc-900 dark:text-zinc-100 font-mono">
+                  {user?.phone_number || 'your phone number'}
+                </strong>
+                . Code expires in 5 minutes.
+              </div>
+              {smsCountdown > 0 ? (
+                <span className="text-xs text-zinc-400 font-mono shrink-0">
+                  Resend in {smsCountdown}s
+                </span>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleInitiateSmsSetup}
+                  disabled={smsSending}
+                  className="text-xs h-8 px-3 rounded-lg shrink-0 cursor-pointer"
+                >
+                  {smsSending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                  <span>Resend Code</span>
+                </Button>
+              )}
+            </div>
+
+            <form onSubmit={handleActivateSmsMfa} className="space-y-4 max-w-sm">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                  6-Digit SMS Verification Code
+                </label>
+                <Input
+                  type="text"
+                  maxLength={6}
+                  placeholder="000000"
+                  value={smsVerificationCode}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '')
+                    setSmsVerificationCode(val)
+                    if (smsError) setSmsError(null)
+                  }}
+                  autoFocus
+                  className={`font-mono text-center tracking-[0.4em] text-lg font-semibold h-12 rounded-lg bg-zinc-50/50 dark:bg-zinc-950/40 transition-all ${
+                    smsError
+                      ? 'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
+                      : 'border-zinc-200 dark:border-zinc-800'
+                  }`}
+                />
+                {smsError && (
+                  <p className="text-xs text-red-600 dark:text-red-400 font-medium flex items-center justify-center gap-1.5 pt-1 animate-in fade-in-0 duration-150">
+                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                    <span>{smsError}</span>
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-2.5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsSmsSetupOpen(false)
+                    setSmsVerificationCode('')
+                    setSmsError(null)
+                  }}
+                  className="w-1/3 text-xs h-10 rounded-lg cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={smsActivating || smsVerificationCode.length < 6}
+                  className="flex-1 text-xs h-10 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-sm cursor-pointer"
+                >
+                  {smsActivating ? (
+                    <span className="flex items-center gap-1.5">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <span>Activating...</span>
+                    </span>
+                  ) : (
+                    <span>Verify &amp; Activate</span>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Available Verification Factors (Clerk Style) */}
       <Card>
         <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
@@ -471,8 +699,87 @@ export function MfaPage() {
             </div>
           </div>
 
-          {/* Factor 2: Emergency Recovery Codes (Visible when MFA is Active) */}
-          {user?.mfa_enabled && (
+          {/* Factor 2: SMS Text Message */}
+          <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
+            <div className="flex items-start gap-3.5">
+              <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-300 shrink-0 mt-0.5">
+                <MessageSquare className="h-4 w-4" />
+              </div>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs sm:text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                    SMS text message
+                  </span>
+                  {user?.sms_mfa_enabled ? (
+                    <Badge variant="success" className="text-[10px] py-0 px-1.5 h-4.5">
+                      <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
+                      Active
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="text-[10px] py-0 px-1.5 h-4.5">
+                      Disabled
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {user?.sms_mfa_enabled
+                    ? `Verification codes are sent to ${maskPhoneNumber(user?.phone_number)}`
+                    : user?.phone_number && user?.phone_number_verified
+                    ? `Send one-time passcodes to ${maskPhoneNumber(user?.phone_number)} upon sign-in`
+                    : user?.phone_number && !user?.phone_number_verified
+                    ? `Phone number ${maskPhoneNumber(user?.phone_number)} is unverified. Verify it first to enable SMS 2FA.`
+                    : 'No phone number registered. Add and verify a phone number first to enable SMS 2FA.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              {user?.sms_mfa_enabled ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsDisableSmsDialogOpen(true)}
+                  disabled={smsDisabling}
+                  className="text-xs h-8 px-3 rounded-lg text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-200 dark:border-red-900/40 cursor-pointer"
+                >
+                  {smsDisabling ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : null}
+                  <span>Disable</span>
+                </Button>
+              ) : user?.phone_number && user?.phone_number_verified ? (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={handleInitiateSmsSetup}
+                  disabled={smsSending || isSmsSetupOpen}
+                  className="text-xs h-8 px-3.5 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-sm cursor-pointer"
+                >
+                  {smsSending ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : null}
+                  <span>Set Up</span>
+                </Button>
+              ) : user?.phone_number && !user?.phone_number_verified ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsVerifyPhoneOpen(true)}
+                  className="text-xs h-8 px-3.5 rounded-lg border-amber-300 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/20 cursor-pointer"
+                >
+                  <span>Verify Phone</span>
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAddPhoneOpen(true)}
+                  className="text-xs h-8 px-3.5 rounded-lg cursor-pointer"
+                >
+                  <span>Add Phone</span>
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Factor 3: Emergency Recovery Codes (Visible when any MFA is Active) */}
+          {(user?.mfa_enabled || user?.sms_mfa_enabled) && (
             <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
               <div className="flex items-start gap-3.5">
                 <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-300 shrink-0 mt-0.5">
@@ -490,7 +797,7 @@ export function MfaPage() {
                     )}
                   </div>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Use one-time backup codes if you lose access to your authenticator app
+                    Use one-time backup codes if you lose access to your primary 2FA method
                   </p>
                 </div>
               </div>
@@ -609,6 +916,68 @@ export function MfaPage() {
           </div>
         </div>
       )}
+      {/* Disable SMS MFA Confirmation Modal */}
+      {isDisableSmsDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+            onClick={() => !smsDisabling && setIsDisableSmsDialogOpen(false)}
+          />
+          <div className="relative w-full max-w-md rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl p-6 sm:p-7 z-10 animate-in fade-in-0 zoom-in-95 duration-150">
+            <div className="text-center space-y-3">
+              <div className="h-12 w-12 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto border border-red-500/20">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+                Disable SMS Two-Factor Authentication?
+              </h2>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                This will remove SMS one-time passcodes as a second factor for your account.
+              </p>
+            </div>
+
+            <div className="flex gap-2.5 pt-6">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={smsDisabling}
+                onClick={() => setIsDisableSmsDialogOpen(false)}
+                className="w-1/2 text-xs h-10 rounded-lg cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                disabled={smsDisabling}
+                onClick={handleDisableSmsMfa}
+                className="w-1/2 text-xs h-10 rounded-lg bg-red-600 hover:bg-red-700 text-white shadow-sm cursor-pointer"
+              >
+                {smsDisabling ? (
+                  <span className="flex items-center gap-1.5">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Disabling...</span>
+                  </span>
+                ) : (
+                  <span>Disable SMS 2FA</span>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Phone Management Modals */}
+      <VerifyPhoneModal
+        isOpen={isVerifyPhoneOpen}
+        onClose={() => setIsVerifyPhoneOpen(false)}
+        phoneNumber={user?.phone_number || ''}
+      />
+
+      <ChangePhoneNumberModal
+        isOpen={isAddPhoneOpen}
+        onClose={() => setIsAddPhoneOpen(false)}
+        currentPhoneNumber={user?.phone_number}
+      />
     </div>
   )
 }

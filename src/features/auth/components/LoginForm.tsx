@@ -13,6 +13,7 @@ import {
   Shield,
   AlertCircle,
   Fingerprint,
+  MessageSquare,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,7 +21,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { startAuthentication, browserSupportsWebAuthn } from '@simplewebauthn/browser'
 import { authApi } from '../api/authApi'
 
-type MfaFactor = 'totp' | 'recovery'
+type MfaFactor = 'totp' | 'recovery' | 'sms'
 
 export function LoginForm() {
   const navigate = useNavigate()
@@ -38,11 +39,42 @@ export function LoginForm() {
   const [mfaChallenge, setMfaChallenge] = useState<{
     mfaToken: string
     hasRecoveryCodes?: boolean
+    totpEnabled?: boolean
+    smsMfaEnabled?: boolean
+    maskedPhoneNumber?: string
   } | null>(null)
 
   const [mfaMethod, setMfaMethod] = useState<MfaFactor>('totp')
   const [mfaCode, setMfaCode] = useState('')
   const [mfaLoading, setMfaLoading] = useState(false)
+  const [smsSending, setSmsSending] = useState(false)
+  const [smsCountdown, setSmsCountdown] = useState(0)
+  const [smsSent, setSmsSent] = useState(false)
+
+  // Countdown timer for login SMS OTP resend
+  useEffect(() => {
+    if (smsCountdown <= 0) return
+    const timer = setInterval(() => {
+      setSmsCountdown((prev) => prev - 1)
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [smsCountdown])
+
+  const handleSendLoginSmsOtp = async () => {
+    if (!mfaChallenge?.mfaToken || smsSending || smsCountdown > 0) return
+    setError(null)
+    setSmsSending(true)
+    try {
+      await authApi.sendLoginSmsOtp(mfaChallenge.mfaToken)
+      setSmsSent(true)
+      setSmsCountdown(60)
+    } catch (err: any) {
+      const errData = err?.response?.data
+      setError(errData?.message || 'Failed to send SMS verification code. Please try again.')
+    } finally {
+      setSmsSending(false)
+    }
+  }
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -106,9 +138,20 @@ export function LoginForm() {
           setMfaChallenge({
             mfaToken: response.data.mfa_token,
             hasRecoveryCodes: response.data.has_recovery_codes,
+            totpEnabled: response.data.totp_enabled,
+            smsMfaEnabled: response.data.sms_mfa_enabled,
+            maskedPhoneNumber: response.data.masked_phone_number,
           })
-          setMfaMethod('totp')
+          if (response.data.totp_enabled !== false) {
+            setMfaMethod('totp')
+          } else if (response.data.sms_mfa_enabled) {
+            setMfaMethod('sms')
+          } else {
+            setMfaMethod('recovery')
+          }
           setMfaCode('')
+          setSmsSent(false)
+          setSmsCountdown(0)
         } else {
           await setAuth(response.data)
           navigate('/dashboard')
@@ -343,23 +386,47 @@ export function LoginForm() {
           ) : (
               <div className="space-y-4">
                 {/* Method Switcher Tabs */}
-                <div className="grid grid-cols-2 gap-1 bg-zinc-100 dark:bg-zinc-950 p-1 rounded-lg border border-zinc-200 dark:border-zinc-800 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMfaMethod('totp')
-                      setMfaCode('')
-                      setError(null)
-                    }}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md transition-all cursor-pointer ${
-                      mfaMethod === 'totp'
-                        ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white font-medium shadow-xs'
-                        : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
-                    }`}
-                  >
-                    <Smartphone className="h-3.5 w-3.5" />
-                    <span>App</span>
-                  </button>
+                <div className={`grid ${mfaChallenge?.smsMfaEnabled && mfaChallenge?.totpEnabled !== false ? 'grid-cols-3' : 'grid-cols-2'} gap-1 bg-zinc-100 dark:bg-zinc-950 p-1 rounded-lg border border-zinc-200 dark:border-zinc-800 text-xs`}>
+                  {mfaChallenge?.totpEnabled !== false && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMfaMethod('totp')
+                        setMfaCode('')
+                        setError(null)
+                      }}
+                      className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md transition-all cursor-pointer ${
+                        mfaMethod === 'totp'
+                          ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white font-medium shadow-xs'
+                          : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
+                      }`}
+                    >
+                      <Smartphone className="h-3.5 w-3.5" />
+                      <span>App</span>
+                    </button>
+                  )}
+
+                  {mfaChallenge?.smsMfaEnabled && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMfaMethod('sms')
+                        setMfaCode('')
+                        setError(null)
+                        if (!smsSent && smsCountdown === 0) {
+                          handleSendLoginSmsOtp()
+                        }
+                      }}
+                      className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md transition-all cursor-pointer ${
+                        mfaMethod === 'sms'
+                          ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white font-medium shadow-xs'
+                          : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
+                      }`}
+                    >
+                      <MessageSquare className="h-3.5 w-3.5" />
+                      <span>SMS</span>
+                    </button>
+                  )}
 
                   <button
                     type="button"
@@ -427,6 +494,76 @@ export function LoginForm() {
                       >
                         {mfaLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
                         <span>Verify Code</span>
+                      </Button>
+                    </div>
+                  </form>
+                )}
+
+                {mfaMethod === 'sms' && (
+                  <form onSubmit={handleMfaSubmit} className="space-y-4">
+                    <div className="p-3 bg-zinc-50 dark:bg-zinc-950/80 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs text-zinc-700 dark:text-zinc-300 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 font-medium text-zinc-900 dark:text-zinc-200">
+                          <MessageSquare className="h-3.5 w-3.5 text-zinc-500" />
+                          <span>SMS Text Message</span>
+                        </div>
+                        {smsCountdown > 0 ? (
+                          <span className="text-[11px] text-zinc-400 font-mono">
+                            Resend in {smsCountdown}s
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleSendLoginSmsOtp}
+                            disabled={smsSending}
+                            className="text-[11px] text-zinc-900 dark:text-zinc-100 hover:underline font-medium cursor-pointer"
+                          >
+                            {smsSending ? 'Sending...' : smsSent ? 'Resend code' : 'Send code'}
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-zinc-500 dark:text-zinc-400 text-[11px] leading-relaxed">
+                        {smsSent
+                          ? `A 6-digit verification code has been sent to your phone ${mfaChallenge.maskedPhoneNumber ? `(${mfaChallenge.maskedPhoneNumber})` : ''}.`
+                          : `Click above to send a verification code to your phone ${mfaChallenge.maskedPhoneNumber ? `(${mfaChallenge.maskedPhoneNumber})` : ''}.`}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                        Verification Code
+                      </label>
+                      <Input
+                        type="text"
+                        required
+                        placeholder="000 000"
+                        value={mfaCode}
+                        onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
+                        autoFocus
+                        maxLength={6}
+                        className="text-center tracking-widest font-mono text-base h-11 rounded-lg"
+                      />
+                    </div>
+
+                    <div className="flex gap-2 pt-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setMfaChallenge(null)
+                          setMfaCode('')
+                        }}
+                        className="w-1/3 text-xs h-10 rounded-lg cursor-pointer"
+                      >
+                        <ArrowLeft className="h-3 w-3 mr-1" /> Back
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={mfaLoading || mfaCode.length < 6}
+                        className="flex-1 text-xs h-10 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 cursor-pointer"
+                      >
+                        {mfaLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
+                        <span>Verify SMS Code</span>
                       </Button>
                     </div>
                   </form>

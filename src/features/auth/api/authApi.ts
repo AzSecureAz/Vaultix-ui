@@ -23,7 +23,7 @@ export interface RegisterPayload {
 export interface MfaVerifyPayload {
   mfa_token: string
   code: string
-  factor?: 'totp' | 'recovery'
+  factor?: 'totp' | 'recovery' | 'sms'
 }
 
 export interface PasswordResetRequestPayload {
@@ -221,6 +221,29 @@ export const authApi = {
 
   loginWithPasskey: async (assertion: AuthenticationResponseJSON): Promise<ApiResponse<AuthTokens>> => {
     const res = await apiClient.post<ApiResponse<AuthTokens>>('/auth/login/webauthn', assertion)
+    return res.data
+  },
+
+  sendSmsMfaSetupOtp: async (): Promise<ApiResponse<void>> => {
+    const res = await apiClient.post<ApiResponse<void>>('/auth/mfa/sms/send-setup-otp')
+    return res.data
+  },
+
+  enableSmsMfa: async (code: string): Promise<ApiResponse<{ recovery_codes?: string[]; recoveryCodes?: string[] }>> => {
+    const res = await apiClient.post<ApiResponse<{ recovery_codes?: string[]; recoveryCodes?: string[] }>>('/auth/mfa/sms/enable', { code })
+    return res.data
+  },
+
+  disableSmsMfa: async (): Promise<ApiResponse<void>> => {
+    const res = await apiClient.post<ApiResponse<void>>('/auth/mfa/sms/disable')
+    return res.data
+  },
+
+  sendLoginSmsOtp: async (mfaToken: string): Promise<ApiResponse<void>> => {
+    const res = await apiClient.post<ApiResponse<void>>('/auth/public/login/mfa/sms/send-otp', {
+      mfa_token: mfaToken,
+      mfaToken,
+    })
     return res.data
   },
 }
