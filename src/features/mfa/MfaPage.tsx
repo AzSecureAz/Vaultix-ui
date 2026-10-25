@@ -535,8 +535,25 @@ export function MfaPage() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <CardDescription>
-              We sent a 6-digit verification code to {maskPhoneNumber(user?.phone_number)}. Enter the code below to enable SMS 2FA.
+            <CardDescription className="flex items-center gap-1.5 flex-wrap">
+              <span>We sent a 6-digit verification code to</span>
+              <span className="inline-flex items-center gap-1 font-mono font-medium text-zinc-800 dark:text-zinc-200">
+                <span>{showSmsPhone ? user?.phone_number : maskPhoneNumber(user?.phone_number)}</span>
+                <button
+                  type="button"
+                  onClick={() => setShowSmsPhone(!showSmsPhone)}
+                  className="p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  title={showSmsPhone ? 'Hide phone number' : 'Show phone number'}
+                  aria-label={showSmsPhone ? 'Hide phone number' : 'Show phone number'}
+                >
+                  {showSmsPhone ? (
+                    <EyeOff className="h-3 w-3" />
+                  ) : (
+                    <Eye className="h-3 w-3" />
+                  )}
+                </button>
+              </span>
+              <span>. Enter the code below to enable SMS 2FA.</span>
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
@@ -544,12 +561,25 @@ export function MfaPage() {
               <div className="h-10 w-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-300 shrink-0">
                 <Phone className="h-5 w-5" />
               </div>
-              <div className="flex-1 text-xs text-zinc-600 dark:text-zinc-400">
-                <span>Verification code dispatched to </span>
-                <strong className="text-zinc-900 dark:text-zinc-100 font-mono">
-                  {user?.phone_number || 'your phone number'}
-                </strong>
-                . Code expires in 5 minutes.
+              <div className="flex-1 text-xs text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5 flex-wrap">
+                <span>Verification code dispatched to</span>
+                <span className="inline-flex items-center gap-1 font-mono font-medium text-zinc-900 dark:text-zinc-100">
+                  <span>{showSmsPhone ? user?.phone_number : maskPhoneNumber(user?.phone_number)}</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowSmsPhone(!showSmsPhone)}
+                    className="p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    title={showSmsPhone ? 'Hide phone number' : 'Show phone number'}
+                    aria-label={showSmsPhone ? 'Hide phone number' : 'Show phone number'}
+                  >
+                    {showSmsPhone ? (
+                      <EyeOff className="h-3.5 w-3.5" />
+                    ) : (
+                      <Eye className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                </span>
+                <span>. Code expires in 5 minutes.</span>
               </div>
               {smsCountdown > 0 ? (
                 <span className="text-xs text-zinc-400 font-mono shrink-0">

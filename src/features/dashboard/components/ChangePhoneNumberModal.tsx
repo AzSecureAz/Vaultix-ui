@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { Phone, CheckCircle2, AlertCircle, Loader2, X, RefreshCw, ArrowLeft } from 'lucide-react'
+import { Phone, CheckCircle2, AlertCircle, Loader2, X, RefreshCw, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PhoneInput } from '@/components/ui/PhoneInput'
 import { authApi } from '@/features/auth/api/authApi'
 import { useAuthStore } from '@/stores/authStore'
+import { maskPhoneNumber } from '@/lib/utils'
 
 interface ChangePhoneNumberModalProps {
   isOpen: boolean
@@ -28,6 +29,7 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [success, setSuccess] = useState(false)
   const [countdown, setCountdown] = useState(60)
+  const [showCurrentPhone, setShowCurrentPhone] = useState(false)
 
   // Countdown timer for resend
   useEffect(() => {
@@ -48,6 +50,7 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
       setFieldErrors({})
       setSuccess(false)
       setCountdown(60)
+      setShowCurrentPhone(false)
     }
   }, [isOpen])
 
@@ -241,12 +244,27 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
                   <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
                     Current Phone Number
                   </label>
-                  <Input
-                    type="text"
-                    disabled
-                    value={currentPhoneNumber}
-                    className="h-10 rounded-lg bg-zinc-100/70 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400 font-mono text-xs border-zinc-200 dark:border-zinc-800 cursor-not-allowed"
-                  />
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      disabled
+                      value={showCurrentPhone ? currentPhoneNumber : maskPhoneNumber(currentPhoneNumber)}
+                      className="h-10 pr-10 rounded-lg bg-zinc-100/70 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400 font-mono text-xs border-zinc-200 dark:border-zinc-800 cursor-not-allowed select-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPhone(!showCurrentPhone)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-700/60"
+                      title={showCurrentPhone ? 'Hide phone number' : 'Show phone number'}
+                      aria-label={showCurrentPhone ? 'Hide phone number' : 'Show phone number'}
+                    >
+                      {showCurrentPhone ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               )}
 

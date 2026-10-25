@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { Phone, CheckCircle2, AlertCircle, Loader2, X, RefreshCw } from 'lucide-react'
+import { Phone, CheckCircle2, AlertCircle, Loader2, X, RefreshCw, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { authApi } from '@/features/auth/api/authApi'
 import { useAuthStore } from '@/stores/authStore'
+import { maskPhoneNumber } from '@/lib/utils'
 
 interface VerifyPhoneModalProps {
   isOpen: boolean
@@ -25,6 +26,7 @@ export const VerifyPhoneModal: React.FC<VerifyPhoneModalProps> = ({
   const [success, setSuccess] = useState(false)
   const [countdown, setCountdown] = useState(60)
   const [initialSent, setInitialSent] = useState(false)
+  const [showPhone, setShowPhone] = useState(false)
 
   // Countdown timer for resend
   useEffect(() => {
@@ -46,6 +48,7 @@ export const VerifyPhoneModal: React.FC<VerifyPhoneModalProps> = ({
       setError(null)
       setSuccess(false)
       setInitialSent(false)
+      setShowPhone(false)
     }
   }, [isOpen])
 
@@ -132,10 +135,26 @@ export const VerifyPhoneModal: React.FC<VerifyPhoneModalProps> = ({
               <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
                 Verify your phone number
               </h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                We sent a 6-digit verification code to{' '}
-                <span className="font-mono font-medium text-zinc-900 dark:text-zinc-200">{phoneNumber}</span>.
-              </p>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed flex items-center justify-center gap-1.5 flex-wrap">
+                <span>We sent a 6-digit verification code to</span>
+                <span className="inline-flex items-center gap-1 font-mono font-medium text-zinc-900 dark:text-zinc-200">
+                  <span>{showPhone ? phoneNumber : maskPhoneNumber(phoneNumber)}</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowPhone(!showPhone)}
+                    className="p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    title={showPhone ? 'Hide phone number' : 'Show phone number'}
+                    aria-label={showPhone ? 'Hide phone number' : 'Show phone number'}
+                  >
+                    {showPhone ? (
+                      <EyeOff className="h-3 w-3" />
+                    ) : (
+                      <Eye className="h-3 w-3" />
+                    )}
+                  </button>
+                </span>
+                <span>.</span>
+              </div>
             </div>
 
             {/* Form */}
