@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LogOut, User as UserIcon, Shield, CheckCircle2, ShieldAlert } from 'lucide-react'
+import { LogOut, User as UserIcon, Shield, CheckCircle2, ShieldAlert, Link2, Fingerprint } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { Badge } from '@/components/ui/badge'
 import { LogoutAllModal } from '@/components/ui/LogoutAllModal'
@@ -93,6 +93,18 @@ export function UserButton() {
             <button
               type="button"
               onClick={() => {
+                navigate('/connected-accounts')
+                setIsOpen(false)
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 transition-colors cursor-pointer text-left"
+            >
+              <Link2 className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
+              <span>Connected accounts</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
                 navigate('/mfa')
                 setIsOpen(false)
               }}
@@ -100,6 +112,18 @@ export function UserButton() {
             >
               <Shield className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
               <span>Two-step verification</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                navigate('/passkeys')
+                setIsOpen(false)
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 transition-colors cursor-pointer text-left"
+            >
+              <Fingerprint className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
+              <span>Passkeys</span>
             </button>
 
             <button

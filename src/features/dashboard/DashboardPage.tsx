@@ -16,6 +16,7 @@ import {
   Shield,
   Eye,
   EyeOff,
+  Link2,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -28,7 +29,6 @@ import { ChangeUsernameModal } from './components/ChangeUsernameModal'
 import { ChangeEmailModal } from './components/ChangeEmailModal'
 import { ChangePhoneNumberModal } from './components/ChangePhoneNumberModal'
 import { LogoutAllModal } from '@/components/ui/LogoutAllModal'
-import { SocialAccountsCard } from './components/SocialAccountsCard'
 import { maskPhoneNumber } from '@/lib/utils'
 
 export function DashboardPage() {
@@ -405,6 +405,29 @@ export function DashboardPage() {
 
           <div className="px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-4 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
             <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:w-44 shrink-0 flex items-center gap-1.5">
+              <Link2 className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+              Connected Accounts
+            </span>
+            <div className="flex items-center gap-2.5">
+              {(user.has_social_accounts || (user as any).hasSocialAccounts) ? (
+                <Badge variant="success" className="text-xs">Connected</Badge>
+              ) : (
+                <span className="text-zinc-500 dark:text-zinc-400 text-xs">None linked</span>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/connected-accounts')}
+                className="h-6 text-[11px] px-2 py-0 cursor-pointer text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white"
+              >
+                Manage accounts
+              </Button>
+            </div>
+          </div>
+
+          <div className="px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-4 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
+            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:w-44 shrink-0 flex items-center gap-1.5">
               <KeyRound className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
               Password
             </span>
@@ -455,10 +478,7 @@ export function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Section 3: Connected Accounts (Social Logins) */}
-      <SocialAccountsCard />
-
-      {/* Section 4: Roles & Permissions */}
+      {/* Section 3: Roles & Permissions */}
       <Card className="overflow-hidden">
         <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
           <div className="flex items-center gap-2">

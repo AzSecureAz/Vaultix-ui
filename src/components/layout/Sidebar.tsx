@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { User, Shield, Fingerprint, X } from 'lucide-react'
+import { User, Link2, Shield, Fingerprint, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
 import { Logo } from '@/components/ui/Logo'
@@ -38,6 +38,22 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
             >
               <User className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
               <span>Profile Details</span>
+            </NavLink>
+
+            <NavLink
+              to="/connected-accounts"
+              onClick={onClose}
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all',
+                  isActive
+                    ? 'bg-zinc-100 dark:bg-zinc-800/90 text-zinc-950 dark:text-white font-semibold shadow-xs'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/60 dark:hover:bg-zinc-900/60'
+                )
+              }
+            >
+              <Link2 className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
+              <span>Connected Accounts</span>
             </NavLink>
 
             <NavLink

@@ -8,6 +8,7 @@ import { RegisterPage } from '@/features/auth/components/RegisterPage'
 import { ForgotPasswordPage } from '@/features/auth/components/ForgotPasswordPage'
 import { EmailRevertPage } from '@/features/auth/components/EmailRevertPage'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
+import { ConnectedAccountsPage } from '@/features/connected-accounts/ConnectedAccountsPage'
 import { SessionsPage } from '@/features/sessions/SessionsPage'
 import { MfaPage } from '@/features/mfa/MfaPage'
 import { PasskeysPage } from '@/features/passkeys/PasskeysPage'
@@ -88,6 +89,8 @@ export function AppRoutes() {
         }
       >
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/connected-accounts" element={<ConnectedAccountsPage />} />
+        <Route path="/social-accounts" element={<Navigate to="/connected-accounts" replace />} />
         <Route path="/sessions" element={<SessionsPage />} />
         <Route path="/mfa" element={<MfaPage />} />
         <Route path="/passkeys" element={<PasskeysPage />} />
