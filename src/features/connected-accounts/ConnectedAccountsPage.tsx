@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useLocation } from 'react-router-dom'
 import {
   Link2,
   Unlink,
@@ -12,10 +13,12 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { authApi } from '@/features/auth/api/authApi'
 import { GoogleIcon, GoogleSignInButton } from '@/features/auth/components/GoogleSignInButton'
+import { GitHubIcon, GitHubSignInButton } from '@/features/auth/components/GitHubSignInButton'
 import type { SocialAccountItem } from '@/types/api'
 import { useAuthStore } from '@/stores/authStore'
 
 export function ConnectedAccountsPage() {
+  const location = useLocation()
   const { fetchProfile } = useAuthStore()
   const [accounts, setAccounts] = useState<SocialAccountItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -23,6 +26,17 @@ export function ConnectedAccountsPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isLinkingGoogle, setIsLinkingGoogle] = useState(false)
+
+  useEffect(() => {
+    if (location.state?.successMessage) {
+      setSuccess(location.state.successMessage)
+      window.history.replaceState({}, document.title)
+    }
+    if (location.state?.errorMessage) {
+      setError(location.state.errorMessage)
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state])
 
   const loadAccounts = useCallback(async () => {
     try {
@@ -281,13 +295,11 @@ export function ConnectedAccountsPage() {
                 </div>
               </div>
 
-              {/* GitHub Account Row (Upcoming) */}
-              <div className="p-3.5 sm:p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 opacity-80">
+              {/* GitHub Account Row */}
+              <div className="p-3.5 sm:p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="h-10 w-10 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center shrink-0 shadow-xs">
-                    <svg className="h-5 w-5 fill-current text-zinc-900 dark:text-white" viewBox="0 0 24 24">
-                      <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-                    </svg>
+                    <GitHubIcon className="h-5 w-5 text-zinc-900 dark:text-white" />
                   </div>
 
                   <div className="space-y-0.5 min-w-0 flex-1">
@@ -301,28 +313,58 @@ export function ConnectedAccountsPage() {
                           Connected
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4.5 text-zinc-500">
-                          Coming Soon
+                        <Badge variant="secondary" className="text-[10px] py-0 px-1.5 h-4.5">
+                          Not Connected
                         </Badge>
                       )}
                     </div>
 
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                      Developer OAuth2 login and repository access integration
-                    </p>
+                    {githubAccount ? (
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                        {githubAccount.email || githubAccount.display_name || githubAccount.provider_user_id}
+                        {githubAccount.created_at && (
+                          <span className="text-zinc-400 dark:text-zinc-500 text-[11px] ml-1.5">
+                            &bull; Linked {formatDate(githubAccount.created_at)}
+                          </span>
+                        )}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                        Sign in and synchronize developer identities with GitHub OAuth2
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 sm:shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-200/60 dark:border-zinc-800/60">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled
-                    className="h-8 text-xs px-3 text-zinc-400 dark:text-zinc-600 border-zinc-200 dark:border-zinc-800"
-                  >
-                    <span>Coming Soon</span>
-                  </Button>
+                  {githubAccount ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleUnlink('GITHUB')}
+                      disabled={actionLoading === 'unlink-GITHUB'}
+                      className="h-8 text-xs px-3 cursor-pointer text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50/60 dark:hover:bg-red-950/20 border-red-200/60 dark:border-red-900/40"
+                    >
+                      {actionLoading === 'unlink-GITHUB' ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                      ) : (
+                        <Unlink className="h-3.5 w-3.5 mr-1.5" />
+                      )}
+                      <span>Disconnect</span>
+                    </Button>
+                  ) : (
+                    <div className="w-44 sm:w-48">
+                      <GitHubSignInButton
+                        action="link"
+                        text="connect"
+                        label="Connect GitHub"
+                        onError={(msg) => setError(msg)}
+                        disabled={actionLoading !== null}
+                        className="h-8 text-xs px-3"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

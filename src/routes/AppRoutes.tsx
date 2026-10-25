@@ -7,6 +7,7 @@ import { LoginForm } from '@/features/auth/components/LoginForm'
 import { RegisterPage } from '@/features/auth/components/RegisterPage'
 import { ForgotPasswordPage } from '@/features/auth/components/ForgotPasswordPage'
 import { EmailRevertPage } from '@/features/auth/components/EmailRevertPage'
+import { GitHubCallbackPage } from '@/features/auth/components/GitHubCallbackPage'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { ConnectedAccountsPage } from '@/features/connected-accounts/ConnectedAccountsPage'
 import { SessionsPage } from '@/features/sessions/SessionsPage'
@@ -78,6 +79,10 @@ export function AppRoutes() {
       <Route
         path="/email-revert"
         element={<EmailRevertPage />}
+      />
+      <Route
+        path="/oauth/callback/github"
+        element={<GitHubCallbackPage />}
       />
 
       {/* Protected Routes wrapped in AppLayout */}

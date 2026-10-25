@@ -271,6 +271,14 @@ export const authApi = {
     return res.data
   },
 
+  loginWithGitHub: async (code: string, redirectUri?: string): Promise<ApiResponse<AuthTokens>> => {
+    const res = await apiClient.post<ApiResponse<AuthTokens>>('/auth/public/login/github', {
+      code,
+      redirect_uri: redirectUri || undefined,
+    })
+    return res.data
+  },
+
   getSocialAccounts: async (): Promise<ApiResponse<SocialAccountItem[]>> => {
     const res = await apiClient.get<ApiResponse<SocialAccountItem[]>>('/auth/social')
     return res.data
@@ -279,6 +287,14 @@ export const authApi = {
   linkGoogleAccount: async (idToken: string): Promise<ApiResponse<SocialAccountItem>> => {
     const res = await apiClient.post<ApiResponse<SocialAccountItem>>('/auth/social/google/link', {
       id_token: idToken,
+    })
+    return res.data
+  },
+
+  linkGitHubAccount: async (code: string, redirectUri?: string): Promise<ApiResponse<SocialAccountItem>> => {
+    const res = await apiClient.post<ApiResponse<SocialAccountItem>>('/auth/social/github/link', {
+      code,
+      redirect_uri: redirectUri || undefined,
     })
     return res.data
   },

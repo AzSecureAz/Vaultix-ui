@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { Logo } from '@/components/ui/Logo'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import {
@@ -21,11 +21,13 @@ import { useAuthStore } from '@/stores/authStore'
 import { startAuthentication, browserSupportsWebAuthn } from '@simplewebauthn/browser'
 import { authApi } from '../api/authApi'
 import { GoogleSignInButton } from './GoogleSignInButton'
+import { GitHubSignInButton } from './GitHubSignInButton'
 
 type MfaFactor = 'totp' | 'recovery' | 'sms'
 
 export function LoginForm() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { setAuth, isAuthenticated, isInitializing } = useAuthStore()
 
   const [usernameOrEmail, setUsernameOrEmail] = useState('')
@@ -52,6 +54,21 @@ export function LoginForm() {
   const [smsSending, setSmsSending] = useState(false)
   const [smsCountdown, setSmsCountdown] = useState(0)
   const [smsSent, setSmsSent] = useState(false)
+
+  // Sync MFA challenge if redirected from OAuth callback
+  useEffect(() => {
+    if (location.state?.mfaChallenge) {
+      const challenge = location.state.mfaChallenge
+      setMfaChallenge(challenge)
+      if (challenge.totpEnabled !== false) {
+        setMfaMethod('totp')
+      } else if (challenge.smsMfaEnabled) {
+        setMfaMethod('sms')
+      } else {
+        setMfaMethod('recovery')
+      }
+    }
+  }, [location.state])
 
   // Countdown timer for login SMS OTP resend
   useEffect(() => {
@@ -300,6 +317,14 @@ export function LoginForm() {
                   onError={(msg) => setError(msg)}
                   disabled={googleLoading || passkeyLoading || loading}
                   isLoading={googleLoading}
+                  text="continue_with"
+                />
+
+                {/* GitHub Sign In */}
+                <GitHubSignInButton
+                  action="login"
+                  onError={(msg) => setError(msg)}
+                  disabled={googleLoading || passkeyLoading || loading}
                   text="continue_with"
                 />
 

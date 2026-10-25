@@ -17,6 +17,7 @@ import { PhoneInput } from '@/components/ui/PhoneInput'
 import { useAuthStore } from '@/stores/authStore'
 import { authApi } from '../api/authApi'
 import { GoogleSignInButton } from './GoogleSignInButton'
+import { GitHubSignInButton } from './GitHubSignInButton'
 
 export function RegisterPage() {
   const navigate = useNavigate()
@@ -196,6 +197,14 @@ export function RegisterPage() {
                   disabled={googleLoading || loading}
                   isLoading={googleLoading}
                   text="signup_with"
+                />
+
+                {/* GitHub Sign Up */}
+                <GitHubSignInButton
+                  action="login"
+                  text="signup_with"
+                  onError={(msg) => setError(msg)}
+                  disabled={googleLoading || loading}
                 />
 
                 {/* Divider */}
