@@ -10,10 +10,8 @@ import {
   Clock,
   Edit2,
   Trash2,
-  ShieldCheck,
   CheckCircle2,
   AlertCircle,
-  HelpCircle,
 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -104,32 +102,6 @@ export function PasskeysPage() {
         </p>
       </div>
 
-      {/* Overview & Information Banner */}
-      <div className="p-4 sm:p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-start gap-3.5 min-w-0">
-          <div className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-900 dark:text-zinc-100 shrink-0 border border-zinc-200 dark:border-zinc-700">
-            <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-          </div>
-          <div className="space-y-0.5 min-w-0">
-            <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-              Phishing-Resistant Authentication
-            </h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-              Passkeys use asymmetric public-key cryptography (FIDO2 / WebAuthn). Your private keys remain safely stored on your device and are never transmitted over the network.
-            </p>
-          </div>
-        </div>
-
-        <Button
-          type="button"
-          onClick={() => setIsRegisterOpen(true)}
-          className="h-9 px-3.5 text-xs font-medium cursor-pointer bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-xs shrink-0 flex items-center gap-1.5"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          <span>Create Passkey</span>
-        </Button>
-      </div>
-
       {/* Main Card: Registered Passkeys */}
       <Card className="overflow-hidden">
         <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-3 border-b border-zinc-100 dark:border-zinc-800/60 flex flex-row items-center justify-between gap-4">
@@ -148,10 +120,8 @@ export function PasskeysPage() {
           </div>
           <Button
             type="button"
-            variant="outline"
-            size="sm"
             onClick={() => setIsRegisterOpen(true)}
-            className="h-8 text-xs px-2.5 cursor-pointer hidden sm:flex items-center gap-1.5 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white"
+            className="h-8 px-3 text-xs font-medium cursor-pointer bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-xs shrink-0 flex items-center gap-1.5"
           >
             <Plus className="h-3.5 w-3.5" />
             <span>Add Passkey</span>
@@ -192,14 +162,6 @@ export function PasskeysPage() {
                   Add your computer, phone, or hardware key to log in without passwords.
                 </p>
               </div>
-              <Button
-                type="button"
-                onClick={() => setIsRegisterOpen(true)}
-                className="text-xs h-9 px-4 cursor-pointer bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 mt-1"
-              >
-                <Plus className="h-3.5 w-3.5 mr-1" />
-                <span>Create your first passkey</span>
-              </Button>
             </div>
           ) : (
             <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
@@ -279,34 +241,6 @@ export function PasskeysPage() {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Helpful FAQ card */}
-      <Card className="overflow-hidden">
-        <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-2 border-b border-zinc-100 dark:border-zinc-800/60">
-          <CardTitle className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5 uppercase tracking-wider">
-            <HelpCircle className="h-3.5 w-3.5 text-zinc-400" />
-            <span>Frequently Asked Questions</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 sm:p-6 space-y-3 text-xs text-zinc-600 dark:text-zinc-400">
-          <div>
-            <h4 className="font-semibold text-zinc-900 dark:text-zinc-200 mb-0.5">
-              What devices can I use as a passkey?
-            </h4>
-            <p className="leading-relaxed">
-              You can use Apple Touch ID/Face ID, Windows Hello, Android fingerprint/face recognition, or hardware FIDO2 security keys (such as YubiKeys).
-            </p>
-          </div>
-          <div>
-            <h4 className="font-semibold text-zinc-900 dark:text-zinc-200 mb-0.5">
-              Can I still use my password?
-            </h4>
-            <p className="leading-relaxed">
-              Yes. Passkeys provide a faster, more secure alternative, but your password and two-factor authentication remain available as backup login methods.
-            </p>
-          </div>
         </CardContent>
       </Card>
 
