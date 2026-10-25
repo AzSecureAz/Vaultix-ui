@@ -14,6 +14,8 @@ import {
   Check,
   CheckCircle2,
   Shield,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -26,6 +28,7 @@ import { ChangeUsernameModal } from './components/ChangeUsernameModal'
 import { ChangeEmailModal } from './components/ChangeEmailModal'
 import { ChangePhoneNumberModal } from './components/ChangePhoneNumberModal'
 import { LogoutAllModal } from '@/components/ui/LogoutAllModal'
+import { maskPhoneNumber } from '@/lib/utils'
 
 export function DashboardPage() {
   const navigate = useNavigate()
@@ -38,6 +41,7 @@ export function DashboardPage() {
   const [isChangeEmailOpen, setIsChangeEmailOpen] = useState(false)
   const [isChangePhoneOpen, setIsChangePhoneOpen] = useState(false)
   const [isLogoutAllOpen, setIsLogoutAllOpen] = useState(false)
+  const [showPhoneNumber, setShowPhoneNumber] = useState(false)
 
   const handleCopyId = () => {
     if (user?.id) {
@@ -228,9 +232,24 @@ export function DashboardPage() {
             </span>
             {user.phone_number ? (
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-zinc-900 dark:text-zinc-100 font-mono text-xs sm:text-sm">
-                  {user.phone_number}
-                </span>
+                <div className="inline-flex items-center gap-1.5">
+                  <span className="text-zinc-900 dark:text-zinc-100 font-mono text-xs sm:text-sm">
+                    {showPhoneNumber ? user.phone_number : maskPhoneNumber(user.phone_number)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowPhoneNumber(!showPhoneNumber)}
+                    className="p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors cursor-pointer"
+                    title={showPhoneNumber ? 'Hide phone number' : 'Show phone number'}
+                    aria-label={showPhoneNumber ? 'Hide phone number' : 'Show phone number'}
+                  >
+                    {showPhoneNumber ? (
+                      <EyeOff className="h-3.5 w-3.5" />
+                    ) : (
+                      <Eye className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                </div>
                 {user.phone_number_verified ? (
                   <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1 shrink-0">
                     <CheckCircle2 className="h-3 w-3" />

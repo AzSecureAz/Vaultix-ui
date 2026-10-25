@@ -12,6 +12,8 @@ import {
   AlertTriangle,
   MessageSquare,
   Phone,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -21,6 +23,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { authApi } from '@/features/auth/api/authApi'
 import { VerifyPhoneModal } from '@/features/dashboard/components/VerifyPhoneModal'
 import { ChangePhoneNumberModal } from '@/features/dashboard/components/ChangePhoneNumberModal'
+import { maskPhoneNumber } from '@/lib/utils'
 import type { TotpSetupData } from '@/types/api'
 
 export function MfaPage() {
@@ -38,6 +41,7 @@ export function MfaPage() {
   const [copiedAllCodes, setCopiedAllCodes] = useState(false)
   const [statusMsg, setStatusMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
   const [activationError, setActivationError] = useState<string | null>(null)
+  const [showSmsPhone, setShowSmsPhone] = useState(false)
 
   // Dialog states
   const [isDisableDialogOpen, setIsDisableDialogOpen] = useState(false)
@@ -219,12 +223,6 @@ export function MfaPage() {
     }
   }
 
-  const maskPhoneNumber = (phone?: string) => {
-    if (!phone) return ''
-    const clean = phone.trim()
-    if (clean.length <= 4) return clean
-    return '••••••' + clean.slice(-4)
-  }
   const handleDisableTotp = async () => {
     setDisabling(true)
     setStatusMsg(null)
@@ -721,15 +719,44 @@ export function MfaPage() {
                     </Badge>
                   )}
                 </div>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  {user?.sms_mfa_enabled
-                    ? `Verification codes are sent to ${maskPhoneNumber(user?.phone_number)}`
-                    : user?.phone_number && user?.phone_number_verified
-                    ? `Send one-time passcodes to ${maskPhoneNumber(user?.phone_number)} upon sign-in`
-                    : user?.phone_number && !user?.phone_number_verified
-                    ? `Phone number ${maskPhoneNumber(user?.phone_number)} is unverified. Verify it first to enable SMS 2FA.`
-                    : 'No phone number registered. Add and verify a phone number first to enable SMS 2FA.'}
-                </p>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 flex-wrap">
+                  <span>
+                    {user?.sms_mfa_enabled
+                      ? 'Verification codes are sent to'
+                      : user?.phone_number && user?.phone_number_verified
+                      ? 'Send one-time passcodes to'
+                      : user?.phone_number && !user?.phone_number_verified
+                      ? 'Phone number'
+                      : 'No phone number registered. Add and verify a phone number first to enable SMS 2FA.'}
+                  </span>
+                  {user?.phone_number && (
+                    <span className="inline-flex items-center gap-1 font-mono text-zinc-800 dark:text-zinc-200">
+                      <span>{showSmsPhone ? user.phone_number : maskPhoneNumber(user.phone_number)}</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowSmsPhone(!showSmsPhone)}
+                        className="p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        title={showSmsPhone ? 'Hide phone number' : 'Show phone number'}
+                        aria-label={showSmsPhone ? 'Hide phone number' : 'Show phone number'}
+                      >
+                        {showSmsPhone ? (
+                          <EyeOff className="h-3 w-3" />
+                        ) : (
+                          <Eye className="h-3 w-3" />
+                        )}
+                      </button>
+                    </span>
+                  )}
+                  {user?.phone_number && (
+                    <span>
+                      {user?.sms_mfa_enabled
+                        ? ''
+                        : user?.phone_number_verified
+                        ? 'upon sign-in'
+                        : 'is unverified. Verify it first to enable SMS 2FA.'}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
