@@ -25,7 +25,6 @@ export function ConnectedAccountsPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [isLinkingGoogle, setIsLinkingGoogle] = useState(false)
 
   useEffect(() => {
     if (location.state?.successMessage) {
@@ -64,7 +63,6 @@ export function ConnectedAccountsPage() {
       const res = await authApi.linkGoogleAccount(idToken)
       if (res.success) {
         setSuccess('Google account successfully connected to your profile.')
-        setIsLinkingGoogle(false)
         await loadAccounts()
         await fetchProfile()
       } else {
@@ -285,43 +283,15 @@ export function ConnectedAccountsPage() {
                       )}
                       <span>Disconnect</span>
                     </Button>
-                  ) : isLinkingGoogle ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-48 sm:w-56">
-                        <GoogleSignInButton
-                          onSuccess={handleLinkGoogle}
-                          onError={(msg) => {
-                            setError(msg)
-                            setIsLinkingGoogle(false)
-                          }}
-                          isLoading={actionLoading === 'link-google'}
-                          disabled={actionLoading !== null}
-                          text="continue_with"
-                          label="Confirm Google Link"
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsLinkingGoogle(false)}
-                        className="h-8 text-xs px-2.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 cursor-pointer"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
                   ) : (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsLinkingGoogle(true)}
-                      disabled={actionLoading === 'link-google'}
-                      className="h-8 text-xs px-3 cursor-pointer text-zinc-800 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white"
-                    >
-                      <Link2 className="h-3.5 w-3.5 mr-1.5 text-zinc-500" />
-                      <span>Connect Google</span>
-                    </Button>
+                    <GoogleSignInButton
+                      onSuccess={handleLinkGoogle}
+                      onError={(msg) => setError(msg)}
+                      isLoading={actionLoading === 'link-google'}
+                      disabled={actionLoading !== null}
+                      label="Connect Google"
+                      mode="compact"
+                    />
                   )}
                 </div>
               </div>

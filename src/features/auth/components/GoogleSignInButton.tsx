@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Link2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 declare global {
@@ -47,7 +47,10 @@ interface GoogleSignInButtonProps {
   disabled?: boolean
   isLoading?: boolean
   className?: string
+  buttonClassName?: string
+  icon?: React.ReactNode
   label?: string
+  mode?: 'full' | 'compact'
 }
 
 export function GoogleSignInButton({
@@ -57,7 +60,10 @@ export function GoogleSignInButton({
   disabled = false,
   isLoading: isLoadingProp,
   className = '',
+  buttonClassName = '',
+  icon,
   label,
+  mode = 'full',
 }: GoogleSignInButtonProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isRendered, setIsRendered] = useState(false)
@@ -106,7 +112,8 @@ export function GoogleSignInButton({
             cancel_on_tap_outside: true,
           })
 
-          const parentWidth = containerRef.current.parentElement?.clientWidth || 360
+          const parentWidth = containerRef.current.parentElement?.clientWidth || 240
+          const renderWidth = Math.max(parentWidth, 240)
 
           containerRef.current.innerHTML = ''
           window.google.accounts.id.renderButton(containerRef.current, {
@@ -116,7 +123,7 @@ export function GoogleSignInButton({
             text: text,
             shape: 'rectangular',
             logo_alignment: 'center',
-            width: parentWidth > 0 ? parentWidth : 360,
+            width: renderWidth,
           })
 
           setIsRendered(true)
@@ -177,20 +184,27 @@ export function GoogleSignInButton({
         ? 'Sign in with Google'
         : 'Continue with Google')
 
+  const isCompact = mode === 'compact'
+
   return (
-    <div className={`w-full relative overflow-hidden rounded-lg group ${className}`}>
-      {/* 1. 100% Custom Vaultix Button - Perfectly matched with Passkey button */}
+    <div className={`relative overflow-hidden rounded-lg group ${isCompact ? 'inline-block' : 'w-full'} ${className}`}>
+      {/* 1. Custom Vaultix Button */}
       <Button
         type="button"
         variant="outline"
+        size={isCompact ? 'sm' : 'default'}
         onClick={handleClickFallback}
         disabled={disabled || isLoading}
-        className="w-full h-10 font-medium text-xs sm:text-sm rounded-lg border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50"
+        className={
+          isCompact
+            ? `h-8 font-medium text-xs rounded-lg border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white flex items-center justify-center px-3 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50 ${buttonClassName}`
+            : `w-full h-10 font-medium text-xs sm:text-sm rounded-lg border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50 ${buttonClassName}`
+        }
       >
         {isLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin text-zinc-500" />
+          <Loader2 className={`${isCompact ? 'h-3.5 w-3.5 mr-1.5' : 'h-4 w-4'} animate-spin text-zinc-500`} />
         ) : (
-          <GoogleIcon className="h-4 w-4 shrink-0" />
+          icon || (isCompact ? <Link2 className="h-3.5 w-3.5 mr-1.5 text-zinc-500" /> : <GoogleIcon className="h-4 w-4 shrink-0" />)
         )}
         <span>{isLoading ? 'Verifying with Google...' : defaultLabel}</span>
       </Button>
