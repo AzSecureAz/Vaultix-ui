@@ -81,6 +81,16 @@ export interface TotpActivationData {
   recoveryCodes?: string[]
 }
 
+export interface SmsMfaActivationData {
+  recovery_codes?: string[]
+  recoveryCodes?: string[]
+}
+
+export interface RecoveryCodesData {
+  recovery_codes?: string[]
+  recoveryCodes?: string[]
+}
+
 export interface PasskeyItem {
   id: string
   credential_id: string

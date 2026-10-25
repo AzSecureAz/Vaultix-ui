@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Mail, CheckCircle2, AlertCircle, Loader2, X, RefreshCw, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,8 +16,7 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
   onClose,
   currentEmail,
 }) => {
-  const navigate = useNavigate()
-  const { logout } = useAuthStore()
+  const { fetchProfile } = useAuthStore()
 
   const [step, setStep] = useState<'request' | 'verify'>('request')
   const [newEmail, setNewEmail] = useState('')
@@ -134,13 +132,10 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
     try {
       await authApi.confirmEmailChange(cleanOtp)
       setSuccess(true)
-
-      // Since backend revokes active sessions on email change for security,
-      // redirect the user to login after 2 seconds
-      setTimeout(async () => {
-        await logout()
-        navigate('/login', { replace: true })
-      }, 2000)
+      await fetchProfile()
+      setTimeout(() => {
+        handleClose()
+      }, 1500)
     } catch (err: any) {
       const errData = err?.response?.data
       setError(errData?.message || 'Invalid or expired verification code')
@@ -195,12 +190,8 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
               Email Changed Successfully!
             </h2>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-xs mx-auto">
-              Your email has been updated to <span className="font-medium text-zinc-900 dark:text-zinc-200">{newEmail}</span>. For your security, all active sessions were terminated. Redirecting to sign in...
+              Your email has been updated to <span className="font-medium text-zinc-900 dark:text-zinc-200">{newEmail}</span>.
             </p>
-            <div className="pt-2 flex items-center justify-center gap-2 text-xs text-zinc-400">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              <span>Redirecting...</span>
-            </div>
           </div>
         ) : step === 'request' ? (
           <div className="space-y-4">

@@ -1,5 +1,14 @@
 import { apiClient } from '@/lib/api-client'
-import type { ApiResponse, AuthTokens, UserProfile, TotpSetupData, TotpActivationData, PasskeyItem } from '@/types/api'
+import type {
+  ApiResponse,
+  AuthTokens,
+  UserProfile,
+  TotpSetupData,
+  TotpActivationData,
+  SmsMfaActivationData,
+  RecoveryCodesData,
+  PasskeyItem,
+} from '@/types/api'
 import type {
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
@@ -179,8 +188,8 @@ export const authApi = {
     return res.data
   },
 
-  regenerateRecoveryCodes: async (): Promise<ApiResponse<TotpActivationData>> => {
-    const res = await apiClient.post<ApiResponse<TotpActivationData>>('/auth/totp/recovery-codes/regenerate')
+  regenerateRecoveryCodes: async (): Promise<ApiResponse<RecoveryCodesData>> => {
+    const res = await apiClient.post<ApiResponse<RecoveryCodesData>>('/auth/totp/recovery-codes/regenerate')
     return res.data
   },
 
@@ -229,8 +238,8 @@ export const authApi = {
     return res.data
   },
 
-  enableSmsMfa: async (code: string): Promise<ApiResponse<{ recovery_codes?: string[]; recoveryCodes?: string[] }>> => {
-    const res = await apiClient.post<ApiResponse<{ recovery_codes?: string[]; recoveryCodes?: string[] }>>('/auth/mfa/sms/enable', { code })
+  enableSmsMfa: async (code: string): Promise<ApiResponse<SmsMfaActivationData>> => {
+    const res = await apiClient.post<ApiResponse<SmsMfaActivationData>>('/auth/mfa/sms/enable', { code })
     return res.data
   },
 

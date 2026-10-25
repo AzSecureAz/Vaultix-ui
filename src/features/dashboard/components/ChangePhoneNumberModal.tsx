@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Phone, CheckCircle2, AlertCircle, Loader2, X, RefreshCw, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,8 +17,7 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
   onClose,
   currentPhoneNumber,
 }) => {
-  const navigate = useNavigate()
-  const { logout } = useAuthStore()
+  const { fetchProfile } = useAuthStore()
 
   const [step, setStep] = useState<'request' | 'verify'>('request')
   const [newPhoneNumber, setNewPhoneNumber] = useState('')
@@ -145,13 +143,10 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
     try {
       await authApi.confirmPhoneNumberChange(cleanOtp)
       setSuccess(true)
-
-      // Since backend revokes active sessions on phone number change for security,
-      // redirect the user to login after 2 seconds
-      setTimeout(async () => {
-        await logout()
-        navigate('/login', { replace: true })
-      }, 2000)
+      await fetchProfile()
+      setTimeout(() => {
+        handleClose()
+      }, 1500)
     } catch (err: any) {
       const errData = err?.response?.data
       setError(errData?.message || 'Invalid or expired verification code')
@@ -212,11 +207,7 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
             <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
               Your phone number has been updated to{' '}
               <span className="font-mono font-medium text-zinc-900 dark:text-zinc-200">{newPhoneNumber}</span>.
-              Active sessions have been invalidated for security. Redirecting to login...
             </p>
-            <div className="pt-2 flex justify-center">
-              <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
-            </div>
           </div>
         ) : step === 'request' ? (
           <div className="space-y-4">
