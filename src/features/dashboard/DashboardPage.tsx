@@ -432,16 +432,33 @@ export function DashboardPage() {
               Password
             </span>
             <div className="flex items-center gap-3">
-              <span className="font-mono text-zinc-500 tracking-wider">••••••••••••</span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setIsChangePasswordOpen(true)}
-                className="h-7 text-xs px-2.5 cursor-pointer text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white"
-              >
-                Change password
-              </Button>
+              {(user.has_password === false || (user as any).hasPassword === false) ? (
+                <>
+                  <span className="text-zinc-500 dark:text-zinc-400 text-xs">Not set</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsChangePasswordOpen(true)}
+                    className="h-6 text-[11px] px-2 py-0 cursor-pointer text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white"
+                  >
+                    Set password
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <span className="font-mono text-zinc-500 tracking-wider">••••••••••••</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsChangePasswordOpen(true)}
+                    className="h-7 text-xs px-2.5 cursor-pointer text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white"
+                  >
+                    Change password
+                  </Button>
+                </>
+              )}
             </div>
           </div>
 

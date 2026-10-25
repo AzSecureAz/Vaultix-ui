@@ -16,7 +16,8 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
   onClose,
 }) => {
   const navigate = useNavigate()
-  const { logout } = useAuthStore()
+  const { user, logout } = useAuthStore()
+  const isSettingPassword = user?.has_password === false || (user as any)?.hasPassword === false
 
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -134,10 +135,12 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
               <CheckCircle2 className="h-6 w-6" />
             </div>
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-              Password Changed Successfully
+              {isSettingPassword ? 'Password Set Successfully' : 'Password Changed Successfully'}
             </h2>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-xs mx-auto">
-              Your password has been updated. For your security, all existing sessions were cleared. Redirecting to sign in...
+              {isSettingPassword
+                ? 'Your password has been set. For your security, all existing sessions were cleared. Redirecting to sign in...'
+                : 'Your password has been updated. For your security, all existing sessions were cleared. Redirecting to sign in...'}
             </p>
             <div className="pt-2 flex items-center justify-center gap-2 text-xs text-zinc-400">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -152,10 +155,12 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
                 <KeyRound className="h-5 w-5" />
               </div>
               <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-                Change your password
+                {isSettingPassword ? 'Set your password' : 'Change your password'}
               </h2>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                Choose a strong, unique password to protect your account
+                {isSettingPassword
+                  ? 'Choose a strong password to enable direct password sign-in for your account'
+                  : 'Choose a strong, unique password to protect your account'}
               </p>
             </div>
 
@@ -300,10 +305,10 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
                   {loading ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      <span>Updating...</span>
+                      <span>{isSettingPassword ? 'Setting...' : 'Updating...'}</span>
                     </span>
                   ) : (
-                    <span>Update password</span>
+                    <span>{isSettingPassword ? 'Set password' : 'Update password'}</span>
                   )}
                 </Button>
               </div>

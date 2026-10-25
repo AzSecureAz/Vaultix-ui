@@ -43,6 +43,7 @@ export interface UserProfile {
   passkey_enabled?: boolean
   sms_mfa_enabled?: boolean
   has_social_accounts?: boolean
+  has_password?: boolean
   last_login_at?: string
   created_at?: string
   roles: string[]
