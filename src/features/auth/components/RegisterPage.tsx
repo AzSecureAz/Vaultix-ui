@@ -14,10 +14,13 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PhoneInput } from '@/components/ui/PhoneInput'
+import { useAuthStore } from '@/stores/authStore'
 import { authApi } from '../api/authApi'
+import { GoogleSignInButton } from './GoogleSignInButton'
 
 export function RegisterPage() {
   const navigate = useNavigate()
+  const { setAuth } = useAuthStore()
 
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -28,6 +31,7 @@ export function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
 
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [isSuccess, setIsSuccess] = useState(false)
@@ -120,6 +124,36 @@ export function RegisterPage() {
     }
   }
 
+  const handleGoogleSignUp = async (idToken: string) => {
+    setError(null)
+    setFieldErrors({})
+    setGoogleLoading(true)
+
+    try {
+      const response = await authApi.loginWithGoogle(idToken)
+
+      if (response.success && response.data) {
+        if (response.data.mfa_required) {
+          navigate('/login')
+        } else {
+          await setAuth(response.data)
+          navigate('/dashboard')
+        }
+      } else {
+        setError(response.message || 'Google registration failed.')
+      }
+    } catch (err: any) {
+      const errData = err?.response?.data
+      setError(
+        errData?.message ||
+          errData?.error ||
+          'Failed to sign up with Google.'
+      )
+    } finally {
+      setGoogleLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#fafafa] dark:bg-[#0a0a0c] bg-grid-pattern text-zinc-900 dark:text-zinc-100 flex flex-col justify-between p-4 sm:p-6 transition-colors">
       {/* Top Header */}
@@ -154,7 +188,28 @@ export function RegisterPage() {
             )}
 
             {!isSuccess ? (
-              <form onSubmit={handleSubmit} className="space-y-3.5">
+              <div className="space-y-4">
+                {/* Google Sign Up */}
+                <GoogleSignInButton
+                  onSuccess={handleGoogleSignUp}
+                  onError={(msg) => setError(msg)}
+                  disabled={googleLoading || loading}
+                  text="signup_with"
+                />
+
+                {/* Divider */}
+                <div className="relative my-1">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white dark:bg-zinc-900 px-2 text-zinc-400 text-[10px] font-medium tracking-wider">
+                      or register with details
+                    </span>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-3.5">
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
                     Username
@@ -407,7 +462,8 @@ export function RegisterPage() {
                   )}
                 </Button>
               </form>
-            ) : (
+            </div>
+          ) : (
               <div className="text-center py-4 space-y-4">
                 <div className="h-12 w-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
                   <CheckCircle2 className="h-6 w-6" />

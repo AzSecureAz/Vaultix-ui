@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/stores/authStore'
 import { startAuthentication, browserSupportsWebAuthn } from '@simplewebauthn/browser'
 import { authApi } from '../api/authApi'
+import { GoogleSignInButton } from './GoogleSignInButton'
 
 type MfaFactor = 'totp' | 'recovery' | 'sms'
 
@@ -32,6 +33,7 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [passkeyLoading, setPasskeyLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
@@ -118,6 +120,52 @@ export function LoginForm() {
       }
     } finally {
       setPasskeyLoading(false)
+    }
+  }
+
+  const handleGoogleLogin = async (idToken: string) => {
+    setError(null)
+    setFieldErrors({})
+    setGoogleLoading(true)
+
+    try {
+      const response = await authApi.loginWithGoogle(idToken)
+
+      if (response.success && response.data) {
+        if (response.data.mfa_required && response.data.mfa_token) {
+          setMfaChallenge({
+            mfaToken: response.data.mfa_token,
+            hasRecoveryCodes: response.data.has_recovery_codes,
+            totpEnabled: response.data.totp_enabled,
+            smsMfaEnabled: response.data.sms_mfa_enabled,
+            maskedPhoneNumber: response.data.masked_phone_number,
+          })
+          if (response.data.totp_enabled !== false) {
+            setMfaMethod('totp')
+          } else if (response.data.sms_mfa_enabled) {
+            setMfaMethod('sms')
+          } else {
+            setMfaMethod('recovery')
+          }
+          setMfaCode('')
+          setSmsSent(false)
+          setSmsCountdown(0)
+        } else {
+          await setAuth(response.data)
+          navigate('/dashboard')
+        }
+      } else {
+        setError(response.message || 'Google authentication failed.')
+      }
+    } catch (err: any) {
+      const errData = err?.response?.data
+      setError(
+        errData?.message ||
+          errData?.error ||
+          'Failed to authenticate with Google.'
+      )
+    } finally {
+      setGoogleLoading(false)
     }
   }
 
@@ -245,13 +293,21 @@ export function LoginForm() {
             )}
 
             {!mfaChallenge ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
+                {/* Google Sign In */}
+                <GoogleSignInButton
+                  onSuccess={handleGoogleLogin}
+                  onError={(msg) => setError(msg)}
+                  disabled={googleLoading || passkeyLoading || loading}
+                  text="continue_with"
+                />
+
                 {/* Sign in with Passkey Button */}
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handlePasskeyLogin}
-                  disabled={passkeyLoading || loading}
+                  disabled={passkeyLoading || googleLoading || loading}
                   className="w-full h-10 font-medium text-xs sm:text-sm rounded-lg border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50"
                 >
                   {passkeyLoading ? (
@@ -263,7 +319,7 @@ export function LoginForm() {
                 </Button>
 
                 {/* Divider */}
-                <div className="relative">
+                <div className="relative my-1">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
                   </div>

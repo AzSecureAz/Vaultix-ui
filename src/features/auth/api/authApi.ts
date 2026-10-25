@@ -8,6 +8,7 @@ import type {
   SmsMfaActivationData,
   RecoveryCodesData,
   PasskeyItem,
+  SocialAccountItem,
 } from '@/types/api'
 import type {
   PublicKeyCredentialCreationOptionsJSON,
@@ -260,6 +261,30 @@ export const authApi = {
       mfa_token: mfaToken,
       mfaToken,
     })
+    return res.data
+  },
+
+  loginWithGoogle: async (idToken: string): Promise<ApiResponse<AuthTokens>> => {
+    const res = await apiClient.post<ApiResponse<AuthTokens>>('/auth/public/login/google', {
+      id_token: idToken,
+    })
+    return res.data
+  },
+
+  getSocialAccounts: async (): Promise<ApiResponse<SocialAccountItem[]>> => {
+    const res = await apiClient.get<ApiResponse<SocialAccountItem[]>>('/auth/social')
+    return res.data
+  },
+
+  linkGoogleAccount: async (idToken: string): Promise<ApiResponse<SocialAccountItem>> => {
+    const res = await apiClient.post<ApiResponse<SocialAccountItem>>('/auth/social/google/link', {
+      id_token: idToken,
+    })
+    return res.data
+  },
+
+  unlinkSocialAccount: async (provider: 'GOOGLE' | 'GITHUB' | string): Promise<ApiResponse<void>> => {
+    const res = await apiClient.delete<ApiResponse<void>>(`/auth/social/${provider.toLowerCase()}`)
     return res.data
   },
 }

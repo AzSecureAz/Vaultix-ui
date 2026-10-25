@@ -28,6 +28,7 @@ import { ChangeUsernameModal } from './components/ChangeUsernameModal'
 import { ChangeEmailModal } from './components/ChangeEmailModal'
 import { ChangePhoneNumberModal } from './components/ChangePhoneNumberModal'
 import { LogoutAllModal } from '@/components/ui/LogoutAllModal'
+import { SocialAccountsCard } from './components/SocialAccountsCard'
 import { maskPhoneNumber } from '@/lib/utils'
 
 export function DashboardPage() {
@@ -454,7 +455,10 @@ export function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Section 3: Roles & Permissions */}
+      {/* Section 3: Connected Accounts (Social Logins) */}
+      <SocialAccountsCard />
+
+      {/* Section 4: Roles & Permissions */}
       <Card className="overflow-hidden">
         <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
           <div className="flex items-center gap-2">
