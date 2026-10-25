@@ -41,10 +41,11 @@ export function GoogleIcon({ className = 'h-4 w-4' }: { className?: string }) {
 }
 
 interface GoogleSignInButtonProps {
-  onSuccess: (idToken: string) => void
+  onSuccess: (idToken: string) => void | Promise<any>
   onError?: (error: string) => void
   text?: 'signin_with' | 'signup_with' | 'continue_with'
   disabled?: boolean
+  isLoading?: boolean
   className?: string
   label?: string
 }
@@ -54,12 +55,24 @@ export function GoogleSignInButton({
   onError,
   text = 'continue_with',
   disabled = false,
+  isLoading: isLoadingProp,
   className = '',
   label,
 }: GoogleSignInButtonProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isRendered, setIsRendered] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [internalLoading, setInternalLoading] = useState(false)
+
+  // Keep latest callbacks in refs so the GSI button is not needlessly re-rendered
+  const onSuccessRef = useRef(onSuccess)
+  const onErrorRef = useRef(onError)
+  useEffect(() => {
+    onSuccessRef.current = onSuccess
+    onErrorRef.current = onError
+  })
+
+  // Loading is true if controlled prop is true, or internal loading is true
+  const isLoading = isLoadingProp !== undefined ? isLoadingProp : internalLoading
 
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
   const isConfigured = Boolean(clientId && clientId !== 'YOUR_GOOGLE_CLIENT_ID')
@@ -75,13 +88,18 @@ export function GoogleSignInButton({
         try {
           window.google.accounts.id.initialize({
             client_id: clientId,
-            callback: (response: { credential: string }) => {
-              setIsLoading(true)
-              if (response?.credential) {
-                onSuccess(response.credential)
-              } else {
-                setIsLoading(false)
-                onError?.('No credential returned from Google')
+            callback: async (response: { credential: string }) => {
+              setInternalLoading(true)
+              try {
+                if (response?.credential) {
+                  await onSuccessRef.current(response.credential)
+                } else {
+                  onErrorRef.current?.('No credential returned from Google')
+                }
+              } catch (err: any) {
+                onErrorRef.current?.(err?.message || 'Google authentication error')
+              } finally {
+                setInternalLoading(false)
               }
             },
             auto_select: false,
@@ -132,11 +150,11 @@ export function GoogleSignInButton({
     return () => {
       if (checkInterval) clearInterval(checkInterval)
     }
-  }, [clientId, isConfigured, text, onSuccess, onError])
+  }, [clientId, isConfigured, text])
 
   const handleClickFallback = () => {
     if (!isConfigured) {
-      onError?.(
+      onErrorRef.current?.(
         'Google OAuth2 is not configured. Please set VITE_GOOGLE_CLIENT_ID in your .env file or environment.'
       )
       return
@@ -180,8 +198,10 @@ export function GoogleSignInButton({
       {/* 2. Invisible Google Native Iframe overlay capturing clicks directly */}
       <div
         ref={containerRef}
-        className={`absolute inset-0 opacity-0 cursor-pointer overflow-hidden rounded-lg z-10 [&>div]:w-full [&>div]:h-full [&_iframe]:!w-full [&_iframe]:!h-full [&_iframe]:!scale-150 [&_iframe]:cursor-pointer ${
-          isRendered && !isLoading ? 'block' : 'hidden pointer-events-none'
+        className={`absolute inset-0 opacity-0 overflow-hidden rounded-lg z-10 [&>div]:w-full [&>div]:h-full [&_iframe]:!w-full [&_iframe]:!h-full [&_iframe]:!scale-150 ${
+          isRendered ? 'block' : 'hidden'
+        } ${
+          isLoading || disabled ? 'pointer-events-none' : 'cursor-pointer pointer-events-auto'
         }`}
         title="Sign in with Google"
       />

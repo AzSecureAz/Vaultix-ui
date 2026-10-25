@@ -194,6 +194,7 @@ export function RegisterPage() {
                   onSuccess={handleGoogleSignUp}
                   onError={(msg) => setError(msg)}
                   disabled={googleLoading || loading}
+                  isLoading={googleLoading}
                   text="signup_with"
                 />
 

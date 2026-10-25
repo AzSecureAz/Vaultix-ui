@@ -299,6 +299,7 @@ export function LoginForm() {
                   onSuccess={handleGoogleLogin}
                   onError={(msg) => setError(msg)}
                   disabled={googleLoading || passkeyLoading || loading}
+                  isLoading={googleLoading}
                   text="continue_with"
                 />
 

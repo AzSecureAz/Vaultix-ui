@@ -249,6 +249,8 @@ export function ConnectedAccountsPage() {
                             setError(msg)
                             setIsLinkingGoogle(false)
                           }}
+                          isLoading={actionLoading === 'link-google'}
+                          disabled={actionLoading !== null}
                           text="continue_with"
                           label="Confirm Google Link"
                         />
