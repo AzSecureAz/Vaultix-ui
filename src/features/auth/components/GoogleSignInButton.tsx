@@ -88,20 +88,27 @@ export function GoogleSignInButton({
             cancel_on_tap_outside: true,
           })
 
-          const isDark = document.documentElement.classList.contains('dark')
+          const parentWidth = containerRef.current.parentElement?.clientWidth || 360
 
           containerRef.current.innerHTML = ''
           window.google.accounts.id.renderButton(containerRef.current, {
             type: 'standard',
-            theme: isDark ? 'filled_black' : 'outline',
+            theme: 'outline',
             size: 'large',
             text: text,
             shape: 'rectangular',
-            logo_alignment: 'left',
-            width: 380,
+            logo_alignment: 'center',
+            width: parentWidth > 0 ? parentWidth : 360,
           })
 
           setIsRendered(true)
+
+          /* Optional prompt for One-Tap */
+          window.google.accounts.id.prompt((notification: any) => {
+            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+              /* Silently ignore non-display of One Tap */
+            }
+          })
         } catch (err: any) {
           console.warn('Google GSI render error:', err)
         }
@@ -153,30 +160,31 @@ export function GoogleSignInButton({
         : 'Continue with Google')
 
   return (
-    <div className={`w-full relative ${className}`}>
-      {/* Hidden/Mounted GSI iframe container */}
+    <div className={`w-full relative overflow-hidden rounded-lg group ${className}`}>
+      {/* 1. 100% Custom Vaultix Button - Perfectly matched with Passkey button */}
+      <Button
+        type="button"
+        variant="outline"
+        onClick={handleClickFallback}
+        disabled={disabled || isLoading}
+        className="w-full h-10 font-medium text-xs sm:text-sm rounded-lg border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50"
+      >
+        {isLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin text-zinc-500" />
+        ) : (
+          <GoogleIcon className="h-4 w-4 shrink-0" />
+        )}
+        <span>{isLoading ? 'Verifying with Google...' : defaultLabel}</span>
+      </Button>
+
+      {/* 2. Invisible Google Native Iframe overlay capturing clicks directly */}
       <div
         ref={containerRef}
-        className={`w-full flex justify-center [&>div]:w-full ${isRendered && !isLoading ? 'block' : 'hidden'}`}
+        className={`absolute inset-0 opacity-0 cursor-pointer overflow-hidden rounded-lg z-10 [&>div]:w-full [&>div]:h-full [&_iframe]:!w-full [&_iframe]:!h-full [&_iframe]:!scale-150 [&_iframe]:cursor-pointer ${
+          isRendered && !isLoading ? 'block' : 'hidden pointer-events-none'
+        }`}
+        title="Sign in with Google"
       />
-
-      {/* Styled fallback button if GSI not rendered or loading */}
-      {(!isRendered || isLoading) && (
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleClickFallback}
-          disabled={disabled || isLoading}
-          className="w-full h-10 font-medium text-xs sm:text-sm rounded-lg border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2.5 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50"
-        >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin text-zinc-500" />
-          ) : (
-            <GoogleIcon className="h-4 w-4 shrink-0" />
-          )}
-          <span>{isLoading ? 'Verifying with Google...' : defaultLabel}</span>
-        </Button>
-      )}
     </div>
   )
 }
