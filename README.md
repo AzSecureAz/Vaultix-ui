@@ -12,7 +12,8 @@ Modern, high-performance **Identity & Access Management (IAM)** Single Page Appl
 | **Framework** | React 19.3 + TypeScript 6.0 + Vite 8.3 |
 | **Styling** | Tailwind CSS v4 + Radix UI Primitives + Lucide Icons |
 | **State Management** | Zustand 5 (Global Auth & Theme Stores) + TanStack React Query 5 |
-| **API Client** | Axios with automatic JWT rotation, concurrency queues, and credential cookies |
+| **Authentication** | Passkeys (FIDO2/WebAuthn Level 3), TOTP & SMS MFA, Google OIDC & GitHub OAuth2 |
+| **API Client** | Axios with automatic JWT rotation, concurrency refresh queues, and credential cookies |
 | **Gateway Route** | All `/api/v1/**` requests route through Spring Cloud Gateway (`http://localhost:8085`) |
 
 ---
@@ -23,7 +24,7 @@ Detailed architectural breakdowns, state management specifications, and design s
 
 | Document | Description |
 | :--- | :--- |
-| 📖 [**Frontend Architecture & Design**](docs/ARCHITECTURE.md) | In-depth breakdown of client-side security architecture: React Router access guards, Axios token rotation concurrency queues, Zustand global stores, identity credential lifecycles, TOTP two-factor authentication, and inline error UX principles. |
+| 📖 [**Frontend Architecture & Design**](docs/ARCHITECTURE.md) | In-depth breakdown of client-side security architecture: React Router access guards, Axios token rotation concurrency queues, Zustand global stores, passkeys (@simplewebauthn), TOTP & SMS MFA lifecycles, Social Accounts (Google OIDC & GitHub OAuth2 1-click connect), and phone privacy controls. |
 | 🎨 [**UI Components & Design System**](docs/COMPONENTS.md) | Comprehensive reference for design tokens, monochrome color palettes, Radix UI primitives, the 245+ country `PhoneInput` selector, credential modals, and Clerk-inspired design patterns. |
 
 ---
@@ -69,51 +70,25 @@ ui/
     ├── main.tsx
     ├── index.css
     ├── components/
-    │   ├── layout/
-    │   │   ├── Header.tsx
-    │   │   ├── Sidebar.tsx
-    │   │   └── MainLayout.tsx
-    │   └── ui/
-    │       ├── button.tsx
-    │       ├── card.tsx
-    │       ├── input.tsx
-    │       ├── badge.tsx
-    │       ├── PhoneInput.tsx
-    │       ├── countries.ts
-    │       └── ThemeToggle.tsx
+    │   ├── layout/ (Header.tsx, Sidebar.tsx, MainLayout.tsx, UserButton.tsx)
+    │   └── ui/ (button.tsx, card.tsx, input.tsx, badge.tsx, PhoneInput.tsx, countries.ts, ThemeToggle.tsx)
     ├── features/
     │   ├── auth/
-    │   │   ├── api/
-    │   │   │   └── authApi.ts
-    │   │   └── components/
-    │   │       ├── LoginForm.tsx
-    │   │       ├── RegisterPage.tsx
-    │   │       └── ForgotPasswordPage.tsx
+    │   │   ├── api/authApi.ts
+    │   │   └── components/ (LoginForm.tsx, RegisterPage.tsx, ForgotPasswordPage.tsx, GoogleSignInButton.tsx, GitHubSignInButton.tsx)
+    │   ├── connected-accounts/
+    │   │   └── ConnectedAccountsPage.tsx (Google & GitHub 1-click connect and unlink management)
     │   ├── dashboard/
-    │   │   ├── DashboardPage.tsx
-    │   │   └── components/
-    │   │       ├── VerifyEmailModal.tsx
-    │   │       ├── VerifyPhoneModal.tsx
-    │   │       ├── ChangeEmailModal.tsx
-    │   │       ├── ChangePhoneNumberModal.tsx
-    │   │       ├── ChangePasswordModal.tsx
-    │   │       └── ChangeUsernameModal.tsx
+    │   │   ├── DashboardPage.tsx (Profile details, privacy toggles, connected accounts summary)
+    │   │   └── components/ (VerifyEmailModal.tsx, VerifyPhoneModal.tsx, ChangeEmailModal.tsx, ChangePhoneNumberModal.tsx, ChangePasswordModal.tsx, ChangeUsernameModal.tsx)
     │   ├── mfa/
-    │   │   └── MfaPage.tsx
+    │   │   └── MfaPage.tsx (TOTP authenticator app, SMS MFA verification, and Emergency Recovery Codes)
     │   └── passkeys/
-    │       ├── PasskeysPage.tsx
-    │       └── components/
-    │           ├── RegisterPasskeyModal.tsx
-    │           ├── RenamePasskeyModal.tsx
-    │           └── DeletePasskeyModal.tsx
-    ├── lib/
-    │   ├── api-client.ts
-    │   └── utils.ts
-    ├── stores/
-    │   ├── authStore.ts
-    │   └── themeStore.ts
-    └── types/
-        └── api.ts
+    │       ├── PasskeysPage.tsx (WebAuthn passkeys list and biometric ceremonies)
+    │       └── components/ (RegisterPasskeyModal.tsx, RenamePasskeyModal.tsx, DeletePasskeyModal.tsx)
+    ├── lib/ (api-client.ts, utils.ts)
+    ├── stores/ (authStore.ts, themeStore.ts)
+    └── types/ (api.ts)
 ```
 
 ---
@@ -141,7 +116,7 @@ preview: {
 ```
 
 ### 2. Production Chunking
-Production bundles are automatically code-split into discrete vendor chunks to optimize browser caching:
+Production bundles are automatically code-split into discrete vendor chunks:
 - `vendor-react`: React 19, React DOM, and React Router.
 - `vendor-tanstack`: TanStack React Query and TanStack Table.
 - `vendor-charts`: Recharts charting dependencies.
@@ -156,14 +131,12 @@ npm install
 ```
 
 ### 2. Run in Development Mode
-Starts the Vite dev server with Hot Module Replacement (HMR) and API reverse-proxying:
 ```powershell
 npm run dev
 ```
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ### 3. Production Build & Preview
-Type-checks the entire TypeScript codebase and compiles optimized production chunks:
 ```powershell
 npm run build
 npm run preview
