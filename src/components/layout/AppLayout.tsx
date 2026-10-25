@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { TopNav } from './TopNav'
+import { SudoModal } from '@/features/sudo/SudoModal'
 
 export function AppLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -24,6 +25,7 @@ export function AppLayout() {
           <Outlet />
         </main>
       </div>
+      <SudoModal />
     </div>
   )
 }

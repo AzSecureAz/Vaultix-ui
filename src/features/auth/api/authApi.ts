@@ -10,6 +10,7 @@ import type {
   PasskeyItem,
   SocialAccountItem,
   SudoResponse,
+  SudoVerifyRequest,
 } from '@/types/api'
 import type {
   PublicKeyCredentialCreationOptionsJSON,
@@ -319,6 +320,16 @@ export const authApi = {
     assertion: AuthenticationResponseJSON
   ): Promise<ApiResponse<SudoResponse>> => {
     const res = await apiClient.post<ApiResponse<SudoResponse>>('/auth/sudo/passkey/verify', assertion)
+    return res.data
+  },
+
+  verifySudo: async (payload: SudoVerifyRequest): Promise<ApiResponse<SudoResponse>> => {
+    const res = await apiClient.post<ApiResponse<SudoResponse>>('/auth/sudo/verify', payload)
+    return res.data
+  },
+
+  sendSudoSmsOtp: async (): Promise<ApiResponse<void>> => {
+    const res = await apiClient.post<ApiResponse<void>>('/auth/sudo/send-sms-otp')
     return res.data
   },
 

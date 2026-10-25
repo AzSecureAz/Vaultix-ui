@@ -13,7 +13,7 @@ export function GitHubCallbackPage() {
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [action, setAction] = useState<'login' | 'link'>('login')
+  const [action, setAction] = useState<'login' | 'link' | 'sudo'>('login')
 
   useEffect(() => {
     const processOAuthCallback = async () => {
@@ -22,7 +22,7 @@ export function GitHubCallbackPage() {
       const oauthError = searchParams.get('error')
       const oauthErrorDesc = searchParams.get('error_description')
 
-      const storedAction = (sessionStorage.getItem('vaultix_github_oauth_action') as 'login' | 'link') || 'login'
+      const storedAction = (sessionStorage.getItem('vaultix_github_oauth_action') as 'login' | 'link' | 'sudo') || 'login'
       setAction(storedAction)
 
       const storedState = sessionStorage.getItem('vaultix_github_oauth_state')
@@ -30,21 +30,56 @@ export function GitHubCallbackPage() {
       sessionStorage.removeItem('vaultix_github_oauth_action')
 
       if (oauthError) {
+        if (window.opener) {
+          window.opener.postMessage(
+            { type: 'VAULTIX_GITHUB_SUDO_CALLBACK', error: oauthErrorDesc || oauthError },
+            window.location.origin
+          )
+          window.close()
+          return
+        }
         setLoading(false)
         setError(oauthErrorDesc || 'GitHub authorization was denied or canceled.')
         return
       }
 
       if (!code) {
+        if (window.opener) {
+          window.opener.postMessage(
+            { type: 'VAULTIX_GITHUB_SUDO_CALLBACK', error: 'Missing authorization code from GitHub callback.' },
+            window.location.origin
+          )
+          window.close()
+          return
+        }
         setLoading(false)
         setError('Missing authorization code from GitHub callback.')
         return
       }
 
       if (storedState && state && storedState !== state) {
+        if (window.opener) {
+          window.opener.postMessage(
+            { type: 'VAULTIX_GITHUB_SUDO_CALLBACK', error: 'Security check failed: OAuth state mismatch.' },
+            window.location.origin
+          )
+          window.close()
+          return
+        }
         setLoading(false)
         setError('Security check failed: OAuth state mismatch. Please try again.')
         return
+      }
+
+      if (storedAction === 'sudo') {
+        if (window.opener) {
+          window.opener.postMessage(
+            { type: 'VAULTIX_GITHUB_SUDO_CALLBACK', code, state },
+            window.location.origin
+          )
+          window.close()
+          return
+        }
       }
 
       const redirectUri = `${window.location.origin}/oauth/callback/github`

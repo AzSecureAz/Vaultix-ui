@@ -1,5 +1,6 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios'
 import { useAuthStore } from '@/stores/authStore'
+import { useSudoStore } from '@/stores/sudoStore'
 import type { ApiResponse, AuthTokens } from '@/types/api'
 
 export const apiClient = axios.create({
@@ -116,6 +117,25 @@ apiClient.interceptors.response.use(
         return Promise.reject(refreshErr)
       } finally {
         isRefreshing = false
+      }
+    }
+
+    // Response Interceptor: 403 Sudo Elevation Interception & Auto-Replay
+    if (error.response?.status === 403 && !originalRequest._sudoRetried) {
+      const isSudoRequired =
+        error.response.headers?.['x-sudo-required'] === 'true' ||
+        error.response.data?.data?.code === 'SUDO_REQUIRED' ||
+        error.response.data?.code === 'SUDO_REQUIRED' ||
+        error.response.data?.errors?.code === 'SUDO_REQUIRED'
+
+      if (isSudoRequired) {
+        originalRequest._sudoRetried = true
+        return useSudoStore
+          .getState()
+          .requestElevation()
+          .then(() => {
+            return apiClient(originalRequest)
+          })
       }
     }
 

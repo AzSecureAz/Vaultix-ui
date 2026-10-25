@@ -120,3 +120,13 @@ export interface SudoResponse {
   remainingSeconds?: number | null
 }
 
+export interface SudoVerifyRequest {
+  password?: string
+  totp_code?: string
+  sms_code?: string
+  recovery_code?: string
+  google_id_token?: string
+  github_code?: string
+  github_redirect_uri?: string
+}
+
