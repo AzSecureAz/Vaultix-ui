@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { authApi } from '@/features/auth/api/authApi'
 import { GoogleIcon, GoogleSignInButton } from '@/features/auth/components/GoogleSignInButton'
-import { GitHubIcon, GitHubSignInButton } from '@/features/auth/components/GitHubSignInButton'
+import { GitHubIcon } from '@/features/auth/components/GitHubSignInButton'
 import type { SocialAccountItem } from '@/types/api'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -100,6 +100,37 @@ export function ConnectedAccountsPage() {
       )
     } finally {
       setActionLoading(null)
+    }
+  }
+
+  const handleLinkGitHub = () => {
+    setError(null)
+    setSuccess(null)
+
+    const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID
+    if (!clientId || clientId === 'YOUR_GITHUB_CLIENT_ID' || clientId === 'your_github_client_id_here' || clientId.trim() === '') {
+      setError('GitHub OAuth is not configured. Please set VITE_GITHUB_CLIENT_ID.')
+      return
+    }
+
+    setActionLoading('link-github')
+
+    try {
+      const state = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2)
+      sessionStorage.setItem('vaultix_github_oauth_state', state)
+      sessionStorage.setItem('vaultix_github_oauth_action', 'link')
+
+      const redirectUri = `${window.location.origin}/oauth/callback/github`
+      const githubUrl = `https://github.com/login/oauth/authorize?client_id=${encodeURIComponent(
+        clientId
+      )}&scope=read:user%20user:email&redirect_uri=${encodeURIComponent(
+        redirectUri
+      )}&state=${encodeURIComponent(state)}`
+
+      window.location.href = githubUrl
+    } catch (err: any) {
+      setActionLoading(null)
+      setError(err?.message || 'Failed to initiate GitHub authentication.')
     }
   }
 
@@ -354,16 +385,21 @@ export function ConnectedAccountsPage() {
                       <span>Disconnect</span>
                     </Button>
                   ) : (
-                    <div className="w-44 sm:w-48">
-                      <GitHubSignInButton
-                        action="link"
-                        text="connect"
-                        label="Connect GitHub"
-                        onError={(msg) => setError(msg)}
-                        disabled={actionLoading !== null}
-                        className="h-8 text-xs px-3"
-                      />
-                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleLinkGitHub}
+                      disabled={actionLoading !== null}
+                      className="h-8 text-xs px-3 cursor-pointer text-zinc-800 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white"
+                    >
+                      {actionLoading === 'link-github' ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                      ) : (
+                        <Link2 className="h-3.5 w-3.5 mr-1.5 text-zinc-500" />
+                      )}
+                      <span>Connect GitHub</span>
+                    </Button>
                   )}
                 </div>
               </div>
