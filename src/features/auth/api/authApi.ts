@@ -143,6 +143,13 @@ export const authApi = {
     return res.data
   },
 
+  revertEmail: async (token: string): Promise<ApiResponse<void>> => {
+    const res = await apiClient.post<ApiResponse<void>>('/auth/public/email-revert', {
+      token,
+    })
+    return res.data
+  },
+
   sendPhoneNumberVerification: async (): Promise<ApiResponse<void>> => {
     const res = await apiClient.post<ApiResponse<void>>('/auth/phone/send-verification')
     return res.data

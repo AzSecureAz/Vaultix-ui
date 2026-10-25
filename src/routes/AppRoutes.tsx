@@ -6,6 +6,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { LoginForm } from '@/features/auth/components/LoginForm'
 import { RegisterPage } from '@/features/auth/components/RegisterPage'
 import { ForgotPasswordPage } from '@/features/auth/components/ForgotPasswordPage'
+import { EmailRevertPage } from '@/features/auth/components/EmailRevertPage'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { SessionsPage } from '@/features/sessions/SessionsPage'
 import { MfaPage } from '@/features/mfa/MfaPage'
@@ -72,6 +73,10 @@ export function AppRoutes() {
       <Route
         path="/forgot-password"
         element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <ForgotPasswordPage />}
+      />
+      <Route
+        path="/email-revert"
+        element={<EmailRevertPage />}
       />
 
       {/* Protected Routes wrapped in AppLayout */}
