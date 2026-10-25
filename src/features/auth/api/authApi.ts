@@ -9,6 +9,7 @@ import type {
   RecoveryCodesData,
   PasskeyItem,
   SocialAccountItem,
+  SudoResponse,
 } from '@/types/api'
 import type {
   PublicKeyCredentialCreationOptionsJSON,
@@ -301,6 +302,34 @@ export const authApi = {
 
   unlinkSocialAccount: async (provider: 'GOOGLE' | 'GITHUB' | string): Promise<ApiResponse<void>> => {
     const res = await apiClient.delete<ApiResponse<void>>(`/auth/social/${provider.toLowerCase()}`)
+    return res.data
+  },
+
+  getSudoStatus: async (): Promise<ApiResponse<SudoResponse>> => {
+    const res = await apiClient.get<ApiResponse<SudoResponse>>('/auth/sudo/status')
+    return res.data
+  },
+
+  getSudoPasskeyOptions: async (): Promise<PublicKeyCredentialRequestOptionsJSON> => {
+    const res = await apiClient.post<ApiResponse<PublicKeyCredentialRequestOptionsJSON>>('/auth/sudo/passkey/options')
+    return (res.data as any).data || res.data
+  },
+
+  verifySudoPasskey: async (
+    assertion: AuthenticationResponseJSON
+  ): Promise<ApiResponse<SudoResponse>> => {
+    const res = await apiClient.post<ApiResponse<SudoResponse>>('/auth/sudo/passkey/verify', assertion)
+    return res.data
+  },
+
+  revokeSudo: async (): Promise<ApiResponse<void>> => {
+    const res = await apiClient.delete<ApiResponse<void>>('/auth/sudo')
+    return res.data
+  },
+
+  triggerSudoProtectedTest: async (): Promise<ApiResponse<any>> => {
+    /* Calls /auth/mfa/recovery-codes (POST regenerate) which is protected by @RequireSudo */
+    const res = await apiClient.post<ApiResponse<any>>('/auth/mfa/recovery-codes')
     return res.data
   },
 }

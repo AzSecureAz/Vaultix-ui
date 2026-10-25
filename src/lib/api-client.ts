@@ -63,9 +63,20 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // 1. Do not auto-refresh or logout if the 401 is a credential verification failure (e.g. wrong passkey/password/TOTP)
+      const isSudoVerification = originalRequest.url?.includes('/auth/sudo/verify') || originalRequest.url?.includes('/auth/sudo/passkey/verify')
+      const isCredentialError = isSudoVerification && 
+        error.response?.data?.message && 
+        !error.response.data.message.toLowerCase().includes('token') && 
+        !error.response.data.message.toLowerCase().includes('jwt')
+
+      if (isCredentialError) {
+        return Promise.reject(error)
+      }
+
       const refreshToken = useAuthStore.getState().refreshToken
 
-      // If no refresh token or trying to refresh itself, log out
+      // 2. If no refresh token or trying to refresh itself, log out
       if (!refreshToken || originalRequest.url?.includes('/auth/public/refresh') || originalRequest.url?.includes('/auth/public/login')) {
         useAuthStore.getState().logout()
         return Promise.reject(error)

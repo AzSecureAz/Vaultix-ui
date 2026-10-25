@@ -113,3 +113,10 @@ export interface SocialAccountItem {
   avatar_url?: string
   created_at: string
 }
+
+export interface SudoResponse {
+  active: boolean
+  remaining_seconds?: number | null
+  remainingSeconds?: number | null
+}
+
