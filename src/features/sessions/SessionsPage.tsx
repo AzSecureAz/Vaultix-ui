@@ -16,23 +16,25 @@ import { Badge } from '@/components/ui/badge'
 import { useAuthStore } from '@/stores/authStore'
 import { apiClient } from '@/lib/api-client'
 import { useNavigate } from 'react-router-dom'
+import { LogoutAllModal } from '@/components/ui/LogoutAllModal'
 
 export function SessionsPage() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
-  const [loggingOutAll, setLoggingOutAll] = useState(false)
+  const [loggingOutOther, setLoggingOutOther] = useState(false)
+  const [isLogoutAllOpen, setIsLogoutAllOpen] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
 
-  const handleLogoutAll = async () => {
-    setLoggingOutAll(true)
+  const handleLogoutOther = async () => {
+    setLoggingOutOther(true)
     setNotice(null)
     try {
       await apiClient.post('/auth/logout-other')
-      setNotice('All other sessions and refresh tokens have been revoked across the cluster.')
+      setNotice('Signed out of all other devices successfully. Your current device remains active.')
     } catch {
       setNotice('Session revocation requested. Other active tokens terminated.')
     } finally {
-      setLoggingOutAll(false)
+      setLoggingOutOther(false)
     }
   }
 
@@ -60,16 +62,26 @@ export function SessionsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleLogoutOther}
+            disabled={loggingOutOther}
+            className="gap-2 text-xs"
+          >
+            <Smartphone className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+            <span>{loggingOutOther ? 'Signing out others...' : 'Sign out other devices'}</span>
+          </Button>
+
           <Button
             variant="destructive"
             size="sm"
-            onClick={handleLogoutAll}
-            disabled={loggingOutAll}
-            className="gap-2"
+            onClick={() => setIsLogoutAllOpen(true)}
+            className="gap-2 text-xs bg-red-600 hover:bg-red-700 text-white"
           >
-            <ShieldAlert className="h-4 w-4" />
-            <span>Revoke All Other Sessions</span>
+            <ShieldAlert className="h-3.5 w-3.5" />
+            <span>Sign out everywhere</span>
           </Button>
         </div>
       </div>
@@ -169,6 +181,12 @@ export function SessionsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Confirmation Modal for Sign out everywhere */}
+      <LogoutAllModal
+        isOpen={isLogoutAllOpen}
+        onClose={() => setIsLogoutAllOpen(false)}
+      />
     </div>
   )
 }

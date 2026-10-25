@@ -1,14 +1,16 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LogOut, User as UserIcon, Shield, CheckCircle2, ShieldAlert, Link2, Fingerprint } from 'lucide-react'
+import { LogOut, User as UserIcon, Shield, CheckCircle2, ShieldAlert, Link2, Fingerprint, Smartphone } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { Badge } from '@/components/ui/badge'
 import { LogoutAllModal } from '@/components/ui/LogoutAllModal'
+import { LogoutOtherModal } from '@/components/ui/LogoutOtherModal'
 
 export function UserButton() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
+  const [isLogoutOtherOpen, setIsLogoutOtherOpen] = useState(false)
   const [isLogoutAllOpen, setIsLogoutAllOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -139,6 +141,18 @@ export function UserButton() {
               type="button"
               onClick={() => {
                 setIsOpen(false)
+                setIsLogoutOtherOpen(true)
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/70 dark:hover:bg-blue-500/10 transition-colors cursor-pointer text-left"
+            >
+              <Smartphone className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
+              <span>Sign out from other devices</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false)
                 setIsLogoutAllOpen(true)
               }}
               className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50/70 dark:hover:bg-red-500/10 transition-colors cursor-pointer text-left"
@@ -157,6 +171,12 @@ export function UserButton() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal for Sign out other devices */}
+      <LogoutOtherModal
+        isOpen={isLogoutOtherOpen}
+        onClose={() => setIsLogoutOtherOpen(false)}
+      />
 
       {/* Confirmation Modal for Sign out everywhere */}
       <LogoutAllModal

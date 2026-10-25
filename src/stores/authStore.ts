@@ -13,6 +13,7 @@ interface AuthState {
   setAccessToken: (token: string) => void
   fetchProfile: () => Promise<UserProfile | null>
   logout: () => Promise<void>
+  logoutOther: () => Promise<void>
   logoutAll: () => Promise<void>
   checkAuthOnBoot: () => Promise<boolean>
   hasRole: (role: string) => boolean
@@ -100,6 +101,21 @@ export const useAuthStore = create<AuthState>()(
             isInitializing: false,
           })
         }
+      },
+
+      logoutOther: async () => {
+        const token = get().accessToken
+        if (!token) return
+        await axios.post(
+          '/api/v1/auth/logout-other',
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            withCredentials: true,
+          }
+        )
       },
 
       logoutAll: async () => {
