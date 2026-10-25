@@ -27,7 +27,7 @@ export function SessionsPage() {
     setLoggingOutAll(true)
     setNotice(null)
     try {
-      await apiClient.post('/auth/logout-all')
+      await apiClient.post('/auth/logout-other')
       setNotice('All other sessions and refresh tokens have been revoked across the cluster.')
     } catch {
       setNotice('Session revocation requested. Other active tokens terminated.')

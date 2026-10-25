@@ -87,6 +87,11 @@ export const authApi = {
     return res.data
   },
 
+  logoutOther: async (): Promise<ApiResponse<void>> => {
+    const res = await apiClient.post<ApiResponse<void>>('/auth/logout-other')
+    return res.data
+  },
+
   requestPasswordReset: async (payload: PasswordResetRequestPayload): Promise<ApiResponse<void>> => {
     const res = await apiClient.post<ApiResponse<void>>('/auth/public/password-reset/request', {
       identifier: payload.identifier,
