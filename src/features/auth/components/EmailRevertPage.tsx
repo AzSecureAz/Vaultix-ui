@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { authApi } from '../api/authApi'
+import { useAuthStore } from '@/stores/authStore'
 
 export function EmailRevertPage() {
   const navigate = useNavigate()
@@ -38,6 +39,15 @@ export function EmailRevertPage() {
 
     try {
       await authApi.revertEmail(cleanToken)
+      // When email is reverted, backend wipes password and invalidates all sessions.
+      // Reset local frontend auth state immediately.
+      useAuthStore.setState({
+        accessToken: null,
+        refreshToken: null,
+        user: null,
+        isAuthenticated: false,
+        isInitializing: false,
+      })
       setSuccess(true)
     } catch (err: any) {
       const errData = err?.response?.data
@@ -97,8 +107,17 @@ export function EmailRevertPage() {
 
               <div className="pt-2 space-y-3">
                 <Button
-                  onClick={() => navigate('/forgot-password')}
-                  className="w-full h-11 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 font-medium rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
+                  onClick={() => {
+                    useAuthStore.setState({
+                      accessToken: null,
+                      refreshToken: null,
+                      user: null,
+                      isAuthenticated: false,
+                      isInitializing: false,
+                    })
+                    navigate('/forgot-password')
+                  }}
+                  className="w-full h-11 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 font-medium rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <KeyRound className="h-4 w-4" />
                   <span>Set New Password Now</span>

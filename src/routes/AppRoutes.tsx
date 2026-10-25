@@ -72,7 +72,7 @@ export function AppRoutes() {
       />
       <Route
         path="/forgot-password"
-        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <ForgotPasswordPage />}
+        element={<ForgotPasswordPage />}
       />
       <Route
         path="/email-revert"

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Logo } from '@/components/ui/Logo'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import {
@@ -20,9 +20,11 @@ import { authApi } from '../api/authApi'
 
 export function ForgotPasswordPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
+  const initialIdentifier = searchParams.get('identifier') || searchParams.get('email') || ''
   const [step, setStep] = useState<'request' | 'confirm' | 'success'>('request')
-  const [identifier, setIdentifier] = useState('')
+  const [identifier, setIdentifier] = useState(initialIdentifier)
   const [otp, setOtp] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
