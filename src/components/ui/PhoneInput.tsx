@@ -61,7 +61,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
     if (value && value.startsWith('+')) {
       const matched = ALL_COUNTRIES.find((c) => value.startsWith(c.dial));
       if (matched) {
-        return value.slice(matched.dial.length).trim();
+        return value.slice(matched.dial.length).replace(/\D/g, '');
       }
     }
     return '';
@@ -80,9 +80,11 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
     }
     if (value.startsWith('+')) {
       const matched = ALL_COUNTRIES.find((c) => value.startsWith(c.dial));
-      if (matched && matched.code !== selectedCountry.code) {
-        setSelectedCountry(matched);
-        setLocalNumber(value.slice(matched.dial.length).trim());
+      if (matched) {
+        if (matched.code !== selectedCountry.code) {
+          setSelectedCountry(matched);
+        }
+        setLocalNumber(value.slice(matched.dial.length).replace(/\D/g, ''));
       }
     }
   }, [value]);
@@ -130,10 +132,35 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
     updatePhoneNumber(country, localNumber);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Allow keyboard navigation, deletion, shortcuts
+    if (
+      e.key === 'Backspace' ||
+      e.key === 'Delete' ||
+      e.key === 'Tab' ||
+      e.key === 'Escape' ||
+      e.key === 'Enter' ||
+      e.key === 'ArrowLeft' ||
+      e.key === 'ArrowRight' ||
+      e.key === 'ArrowUp' ||
+      e.key === 'ArrowDown' ||
+      e.key === 'Home' ||
+      e.key === 'End' ||
+      e.ctrlKey ||
+      e.metaKey
+    ) {
+      return;
+    }
+    // Block any key that is not a numeric digit 0-9
+    if (!/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setLocalNumber(val);
-    updatePhoneNumber(selectedCountry, val);
+    const digitsOnly = e.target.value.replace(/\D/g, '');
+    setLocalNumber(digitsOnly);
+    updatePhoneNumber(selectedCountry, digitsOnly);
   };
 
   return (
@@ -168,10 +195,13 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
         {/* Local Number Input */}
         <input
           type="tel"
+          inputMode="numeric"
+          pattern="[0-9]*"
           disabled={disabled}
           placeholder={placeholder}
           value={localNumber}
           onChange={handleNumberChange}
+          onKeyDown={handleKeyDown}
           autoComplete="tel-national"
           className="w-full h-10 px-3 bg-transparent text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none font-mono"
         />
