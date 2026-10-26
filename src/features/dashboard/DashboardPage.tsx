@@ -17,6 +17,8 @@ import {
   Eye,
   EyeOff,
   Link2,
+  AlertTriangle,
+  Trash2,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -29,6 +31,7 @@ import { ChangeUsernameModal } from './components/ChangeUsernameModal'
 import { ChangeFullNameModal } from './components/ChangeFullNameModal'
 import { ChangeEmailModal } from './components/ChangeEmailModal'
 import { ChangePhoneNumberModal } from './components/ChangePhoneNumberModal'
+import { DeleteAccountModal } from './components/DeleteAccountModal'
 import { LogoutAllModal } from '@/components/ui/LogoutAllModal'
 import { maskPhoneNumber } from '@/lib/utils'
 
@@ -44,6 +47,7 @@ export function DashboardPage() {
   const [isChangeEmailOpen, setIsChangeEmailOpen] = useState(false)
   const [isChangePhoneOpen, setIsChangePhoneOpen] = useState(false)
   const [isLogoutAllOpen, setIsLogoutAllOpen] = useState(false)
+  const [isDeleteAccountOpen, setIsDeleteAccountOpen] = useState(false)
   const [showPhoneNumber, setShowPhoneNumber] = useState(false)
 
   const handleCopyId = () => {
@@ -574,6 +578,41 @@ export function DashboardPage() {
         </CardContent>
       </Card>
 
+      {/* Section 4: Danger Zone */}
+      <Card className="overflow-hidden border-red-200/60 dark:border-red-950/40 bg-white/40 dark:bg-red-950/10 backdrop-blur-sm">
+        <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-3 border-b border-red-100 dark:border-red-900/30">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+            <CardTitle className="text-sm font-semibold text-red-600 dark:text-red-400">Danger Zone</CardTitle>
+          </div>
+          <CardDescription className="text-zinc-500 dark:text-zinc-400">
+            Irreversible actions that affect your entire account and data access
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0 divide-y divide-red-100 dark:divide-red-900/20 text-xs sm:text-sm">
+          <div className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:bg-red-50/30 dark:hover:bg-red-950/20 transition-colors">
+            <div className="space-y-0.5">
+              <span className="font-medium text-zinc-900 dark:text-zinc-100 block">
+                Delete Account
+              </span>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Permanently mark your account for deletion, revoke all active sessions, and initiate the 90-day retention grace period.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsDeleteAccountOpen(true)}
+              className="shrink-0 text-xs px-3 h-8 cursor-pointer text-red-600 dark:text-red-400 hover:text-white hover:bg-red-600 dark:hover:bg-red-600 border-red-300 dark:border-red-800/80 transition-colors"
+            >
+              <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+              Delete Account
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {user.email && (
         <VerifyEmailModal
           isOpen={isVerifyModalOpen}
@@ -623,6 +662,14 @@ export function DashboardPage() {
         isOpen={isLogoutAllOpen}
         onClose={() => setIsLogoutAllOpen(false)}
       />
+
+      {user.username && (
+        <DeleteAccountModal
+          isOpen={isDeleteAccountOpen}
+          onClose={() => setIsDeleteAccountOpen(false)}
+          username={user.username}
+        />
+      )}
     </div>
   )
 }

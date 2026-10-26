@@ -137,6 +137,11 @@ export const authApi = {
     return res.data
   },
 
+  deleteAccount: async (): Promise<ApiResponse<void>> => {
+    const res = await apiClient.delete<ApiResponse<void>>('/auth/account')
+    return res.data
+  },
+
   changeUsername: async (username: string): Promise<ApiResponse<void>> => {
     const res = await apiClient.post<ApiResponse<void>>('/auth/username', {
       username,
