@@ -26,6 +26,7 @@ import { VerifyEmailModal } from './components/VerifyEmailModal'
 import { VerifyPhoneModal } from './components/VerifyPhoneModal'
 import { ChangePasswordModal } from './components/ChangePasswordModal'
 import { ChangeUsernameModal } from './components/ChangeUsernameModal'
+import { ChangeFullNameModal } from './components/ChangeFullNameModal'
 import { ChangeEmailModal } from './components/ChangeEmailModal'
 import { ChangePhoneNumberModal } from './components/ChangePhoneNumberModal'
 import { LogoutAllModal } from '@/components/ui/LogoutAllModal'
@@ -39,6 +40,7 @@ export function DashboardPage() {
   const [isVerifyPhoneOpen, setIsVerifyPhoneOpen] = useState(false)
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
   const [isChangeUsernameOpen, setIsChangeUsernameOpen] = useState(false)
+  const [isChangeFullNameOpen, setIsChangeFullNameOpen] = useState(false)
   const [isChangeEmailOpen, setIsChangeEmailOpen] = useState(false)
   const [isChangePhoneOpen, setIsChangePhoneOpen] = useState(false)
   const [isLogoutAllOpen, setIsLogoutAllOpen] = useState(false)
@@ -161,9 +163,37 @@ export function DashboardPage() {
             <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:w-44 shrink-0">
               Full Name
             </span>
-            <span className="text-zinc-900 dark:text-zinc-100 font-medium break-all">
-              {user.full_name || 'Not provided'}
-            </span>
+            {user.full_name ? (
+              <div className="flex items-center gap-2.5">
+                <span className="text-zinc-900 dark:text-zinc-100 font-medium break-all">
+                  {user.full_name}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsChangeFullNameOpen(true)}
+                  className="h-6 text-[11px] px-2 py-0 cursor-pointer text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white"
+                >
+                  Change name
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-zinc-500 dark:text-zinc-400 text-xs">
+                  Not provided
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsChangeFullNameOpen(true)}
+                  className="h-6 text-[11px] px-2 py-0 cursor-pointer text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white"
+                >
+                  Add name
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
@@ -569,6 +599,12 @@ export function DashboardPage() {
         isOpen={isChangeUsernameOpen}
         onClose={() => setIsChangeUsernameOpen(false)}
         currentUsername={user.username}
+      />
+
+      <ChangeFullNameModal
+        isOpen={isChangeFullNameOpen}
+        onClose={() => setIsChangeFullNameOpen(false)}
+        currentFullName={user.full_name}
       />
 
       <ChangeEmailModal

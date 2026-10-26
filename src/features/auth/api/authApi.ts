@@ -130,6 +130,13 @@ export const authApi = {
     return res.data
   },
 
+  updateFullName: async (fullName: string): Promise<ApiResponse<UserProfile>> => {
+    const res = await apiClient.put<ApiResponse<UserProfile>>('/auth/full-name', {
+      full_name: fullName,
+    })
+    return res.data
+  },
+
   changeUsername: async (username: string): Promise<ApiResponse<void>> => {
     const res = await apiClient.post<ApiResponse<void>>('/auth/username', {
       username,
