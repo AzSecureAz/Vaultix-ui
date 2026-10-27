@@ -46,6 +46,7 @@ export interface UserProfile {
   has_password?: boolean
   last_login_at?: string
   created_at?: string
+  level?: number
   roles: string[]
   permissions: string[]
 }

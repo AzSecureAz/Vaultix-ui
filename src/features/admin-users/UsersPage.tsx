@@ -10,6 +10,7 @@ interface UserItem {
   username: string
   email: string
   roles: string[]
+  level?: number
   hierarchy_level?: number
   enabled: boolean
   created_at: string
@@ -112,11 +113,11 @@ export function UsersPage() {
                             {r.replace('ROLE_', '')}
                           </Badge>
                         ))}
-                        {u.hierarchy_level && (
+                        {(u.level !== undefined && u.level !== null) || u.hierarchy_level !== undefined ? (
                           <span className="text-[10px] text-amber-600 dark:text-amber-400 font-mono font-semibold">
-                            Lvl {u.hierarchy_level}
+                            Lvl {u.level ?? u.hierarchy_level}
                           </span>
-                        )}
+                        ) : null}
                       </div>
                     </td>
                     <td className="py-3 px-4">
