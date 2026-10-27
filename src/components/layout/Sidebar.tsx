@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { User, Link2, Shield, Fingerprint, X } from 'lucide-react'
+import { User, Link2, Shield, Fingerprint, X, Users, ShieldCheck, Lock, KeyRound } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
 import { Logo } from '@/components/ui/Logo'
@@ -10,15 +10,21 @@ interface SidebarProps {
 }
 
 export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
-  const { user } = useAuthStore()
+  const { user, hasPermission, hasRole } = useAuthStore()
 
   const initials = user?.username ? user.username.slice(0, 2).toUpperCase() : 'VX'
   const primaryRole = user?.roles?.[0]?.replace('ROLE_', '') || 'USER'
 
+  const canReadUsers = hasPermission('user:read') || hasRole('ADMIN') || hasRole('SUPER_ADMIN')
+  const canReadRoles = hasPermission('role:read') || hasRole('ADMIN') || hasRole('SUPER_ADMIN')
+  const canReadPermissions = hasPermission('permission:read') || hasRole('ADMIN') || hasRole('SUPER_ADMIN')
+  const canReadKeys = hasPermission('key:read') || hasRole('ADMIN') || hasRole('SUPER_ADMIN')
+  const hasAdminAccess = canReadUsers || canReadRoles || canReadPermissions || canReadKeys
+
   const navContent = (
     <>
       {/* Navigation Links */}
-      <div className="flex-1 overflow-y-auto px-3 py-5 space-y-4">
+      <div className="flex-1 overflow-y-auto px-3 py-5 space-y-5">
         <div>
           <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1.5">
             Account Management
@@ -89,6 +95,88 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
             </NavLink>
           </nav>
         </div>
+
+        {/* Administration Section (Visible when user has admin permissions) */}
+        {hasAdminAccess && (
+          <div>
+            <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1.5">
+              Administration
+            </p>
+            <nav className="space-y-0.5">
+              {canReadUsers && (
+                <NavLink
+                  to="/admin/users"
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all',
+                      isActive
+                        ? 'bg-zinc-100 dark:bg-zinc-800/90 text-zinc-950 dark:text-white font-semibold shadow-xs'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/60 dark:hover:bg-zinc-900/60'
+                    )
+                  }
+                >
+                  <Users className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
+                  <span>Users Directory</span>
+                </NavLink>
+              )}
+
+              {canReadRoles && (
+                <NavLink
+                  to="/admin/roles"
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all',
+                      isActive
+                        ? 'bg-zinc-100 dark:bg-zinc-800/90 text-zinc-950 dark:text-white font-semibold shadow-xs'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/60 dark:hover:bg-zinc-900/60'
+                    )
+                  }
+                >
+                  <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
+                  <span>Roles &amp; RBAC</span>
+                </NavLink>
+              )}
+
+              {canReadPermissions && (
+                <NavLink
+                  to="/admin/permissions"
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all',
+                      isActive
+                        ? 'bg-zinc-100 dark:bg-zinc-800/90 text-zinc-950 dark:text-white font-semibold shadow-xs'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/60 dark:hover:bg-zinc-900/60'
+                    )
+                  }
+                >
+                  <Lock className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
+                  <span>Permissions Catalog</span>
+                </NavLink>
+              )}
+
+              {canReadKeys && (
+                <NavLink
+                  to="/admin/signing-keys"
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all',
+                      isActive
+                        ? 'bg-zinc-100 dark:bg-zinc-800/90 text-zinc-950 dark:text-white font-semibold shadow-xs'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/60 dark:hover:bg-zinc-900/60'
+                    )
+                  }
+                >
+                  <KeyRound className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
+                  <span>Signing Keys</span>
+                </NavLink>
+              )}
+            </nav>
+          </div>
+        )}
       </div>
 
       {/* Clerk-Style Sidebar Profile Widget */}

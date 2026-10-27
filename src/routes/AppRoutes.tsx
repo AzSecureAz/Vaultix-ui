@@ -16,6 +16,7 @@ import { PasskeysPage } from '@/features/passkeys/PasskeysPage'
 import { SigningKeysPage } from '@/features/signing-keys/SigningKeysPage'
 import { UsersPage } from '@/features/admin-users/UsersPage'
 import { RolesPage } from '@/features/admin-roles/RolesPage'
+import { PermissionsPage } from '@/features/admin-permissions/PermissionsPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isInitializing } = useAuthStore()
@@ -102,6 +103,7 @@ export function AppRoutes() {
         <Route path="/admin/signing-keys" element={<SigningKeysPage />} />
         <Route path="/admin/users" element={<UsersPage />} />
         <Route path="/admin/roles" element={<RolesPage />} />
+        <Route path="/admin/permissions" element={<PermissionsPage />} />
       </Route>
 
       {/* Root & Catch-all: Directs authenticated users to /dashboard, otherwise /login */}

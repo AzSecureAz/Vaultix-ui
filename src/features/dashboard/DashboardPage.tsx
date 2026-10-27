@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   User,
@@ -19,6 +19,7 @@ import {
   Link2,
   AlertTriangle,
   Trash2,
+  ExternalLink,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -37,7 +38,7 @@ import { maskPhoneNumber } from '@/lib/utils'
 
 export function DashboardPage() {
   const navigate = useNavigate()
-  const { user } = useAuthStore()
+  const { user, hasPermission } = useAuthStore()
   const [copiedId, setCopiedId] = useState(false)
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false)
   const [isVerifyPhoneOpen, setIsVerifyPhoneOpen] = useState(false)
@@ -57,6 +58,56 @@ export function DashboardPage() {
       setTimeout(() => setCopiedId(false), 2000)
     }
   }
+
+  // Group effective permissions by domain prefix (e.g. user, role, key, permission)
+  const groupedPermissions = useMemo(() => {
+    if (!user?.permissions || user.permissions.length === 0) return []
+
+    const domainMeta: Record<string, { label: string; icon: React.ElementType; color: string; badgeBg: string }> = {
+      user: {
+        label: 'Users Management',
+        icon: User,
+        color: 'text-blue-600 dark:text-blue-400',
+        badgeBg: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20',
+      },
+      role: {
+        label: 'Role Governance',
+        icon: ShieldCheck,
+        color: 'text-purple-600 dark:text-purple-400',
+        badgeBg: 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20',
+      },
+      key: {
+        label: 'Cryptographic Keys',
+        icon: KeyRound,
+        color: 'text-amber-600 dark:text-amber-400',
+        badgeBg: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20',
+      },
+      permission: {
+        label: 'Permissions Catalog',
+        icon: Shield,
+        color: 'text-emerald-600 dark:text-emerald-400',
+        badgeBg: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20',
+      },
+    }
+
+    const groups: Record<string, { domain: string; label: string; icon: React.ElementType; color: string; badgeBg: string; actions: string[] }> = {}
+
+    user.permissions.forEach((perm) => {
+      const [domain, action] = perm.includes(':') ? perm.split(':', 2) : ['general', perm]
+      if (!groups[domain]) {
+        const meta = domainMeta[domain] || {
+          label: domain.charAt(0).toUpperCase() + domain.slice(1),
+          icon: Shield,
+          color: 'text-zinc-600 dark:text-zinc-400',
+          badgeBg: 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/20',
+        }
+        groups[domain] = { domain, ...meta, actions: [] }
+      }
+      groups[domain].actions.push(action)
+    })
+
+    return Object.values(groups)
+  }, [user?.permissions])
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '—'
@@ -560,18 +611,54 @@ export function DashboardPage() {
 
           {user.permissions && user.permissions.length > 0 && (
             <div>
-              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 block mb-2">
-                Effective Permissions ({user.permissions.length})
-              </span>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {user.permissions.map((perm: string) => (
-                  <span
-                    key={perm}
-                    className="text-[11px] font-mono px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800/70 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800"
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 block">
+                  Effective Permissions ({user.permissions.length})
+                </span>
+                {(hasPermission('permission:read') || user.roles?.includes('ROLE_ADMIN')) && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/admin/permissions')}
+                    className="h-6 text-[11px] px-2 py-0 cursor-pointer text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 gap-1 font-medium"
                   >
-                    {perm}
-                  </span>
-                ))}
+                    <span>Manage in Catalog</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {groupedPermissions.map((group) => {
+                  const GroupIcon = group.icon
+                  return (
+                    <div
+                      key={group.domain}
+                      className="p-3 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/30 space-y-2"
+                    >
+                      <div className="flex items-center gap-2">
+                        <GroupIcon className={`h-3.5 w-3.5 ${group.color}`} />
+                        <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                          {group.label}
+                        </span>
+                        <span className="text-[10px] text-zinc-400 font-mono ml-auto">
+                          {group.actions.length} action{group.actions.length > 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {group.actions.map((act) => (
+                          <span
+                            key={act}
+                            className={`text-[11px] font-mono font-medium px-2 py-0.5 rounded-md border ${group.badgeBg}`}
+                          >
+                            {act}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}
