@@ -15,11 +15,11 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   const initials = user?.username ? user.username.slice(0, 2).toUpperCase() : 'VX'
   const primaryRole = user?.roles?.[0]?.replace('ROLE_', '') || 'USER'
 
-  const canReadUsers = hasPermission('user:read') || hasRole('ADMIN') || hasRole('SUPER_ADMIN')
-  const canReadRoles = hasPermission('role:read') || hasRole('ADMIN') || hasRole('SUPER_ADMIN')
-  const canReadPermissions = hasPermission('permission:read') || hasRole('ADMIN') || hasRole('SUPER_ADMIN')
-  const canReadKeys = hasPermission('key:read') || hasRole('ADMIN') || hasRole('SUPER_ADMIN')
-  const hasAdminAccess = canReadUsers || canReadRoles || canReadPermissions || canReadKeys
+  const hasUserAccess = hasPermission('user:*')
+  const hasRoleAccess = hasPermission('role:*')
+  const hasPermissionAccess = hasPermission('permission:*') || hasRole('ADMIN')
+  const hasKeyAccess = hasPermission('key:*')
+  const hasAdminAccess = hasUserAccess || hasRoleAccess || hasPermissionAccess || hasKeyAccess
 
   const navContent = (
     <>
@@ -103,7 +103,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
               Administration
             </p>
             <nav className="space-y-0.5">
-              {canReadUsers && (
+              {hasUserAccess && (
                 <NavLink
                   to="/admin/users"
                   onClick={onClose}
@@ -121,7 +121,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                 </NavLink>
               )}
 
-              {canReadRoles && (
+              {hasRoleAccess && (
                 <NavLink
                   to="/admin/roles"
                   onClick={onClose}
@@ -139,7 +139,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                 </NavLink>
               )}
 
-              {canReadPermissions && (
+              {hasPermissionAccess && (
                 <NavLink
                   to="/admin/permissions"
                   onClick={onClose}
@@ -157,7 +157,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                 </NavLink>
               )}
 
-              {canReadKeys && (
+              {hasKeyAccess && (
                 <NavLink
                   to="/admin/signing-keys"
                   onClick={onClose}

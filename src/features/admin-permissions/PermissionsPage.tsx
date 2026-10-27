@@ -13,6 +13,7 @@ import {
   Power,
   Loader2,
   AlertCircle,
+  ShieldAlert,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
@@ -53,13 +54,15 @@ const DOMAIN_CONFIG: Record<
 }
 
 export function PermissionsPage() {
-  const { hasRole } = useAuthStore()
-  const isAdmin = hasRole('ADMIN') || hasRole('SUPER_ADMIN')
+  const { hasRole, hasPermission } = useAuthStore()
+  const isAdmin = hasRole('ADMIN')
+  const canRead = hasPermission('permission:read') || isAdmin
 
   const [permissions, setPermissions] = useState<PermissionItem[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
   const [bannerMessage, setBannerMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
+  const [fetchError, setFetchError] = useState<{ status?: number; message: string } | null>(null)
 
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -77,11 +80,27 @@ export function PermissionsPage() {
   const [isLast, setIsLast] = useState(true)
 
   const fetchPermissions = async (page = currentPage, size = pageSize) => {
+    if (!canRead) {
+      setLoading(false)
+      setFetchError({
+        status: 403,
+        message: 'Access denied: You do not have permission to view system permissions (requires permission:read or ADMIN role).',
+      })
+      setPermissions([])
+      setTotalElements(0)
+      setTotalPages(1)
+      setIsFirst(true)
+      setIsLast(true)
+      return
+    }
+
     setLoading(true)
     setBannerMessage(null)
+    setFetchError(null)
     try {
       const res = await permissionsApi.getPermissions(page, size)
       if (res.success && res.data) {
+        setFetchError(null)
         const data = res.data
         const items = data.content || []
         setPermissions(items)
@@ -105,31 +124,31 @@ export function PermissionsPage() {
             return next
           }, { replace: true })
         }
+      } else {
+        const errorMsg = res.message || 'Failed to retrieve system permissions.'
+        setFetchError({ message: errorMsg })
+        setPermissions([])
+        setTotalElements(0)
+        setTotalPages(1)
+        setIsFirst(true)
+        setIsLast(true)
       }
-    } catch {
-      // Fallback catalog based on standard database seed
-      const fallback = [
-        { id: '1', name: 'user:create', description: 'Create new user accounts', status: 'ENABLED' as const },
-        { id: '2', name: 'user:read', description: 'Read user profiles and directory listings', status: 'ENABLED' as const },
-        { id: '3', name: 'user:update', description: 'Modify user properties, status and metadata', status: 'ENABLED' as const },
-        { id: '4', name: 'user:delete', description: 'Soft-delete and purge user accounts', status: 'ENABLED' as const },
-        { id: '5', name: 'user:restore', description: 'Restore soft-deleted user accounts', status: 'ENABLED' as const },
-        { id: '6', name: 'role:create', description: 'Define new roles and permissions mappings', status: 'ENABLED' as const },
-        { id: '7', name: 'role:read', description: 'View role definitions and hierarchy levels', status: 'ENABLED' as const },
-        { id: '8', name: 'role:update', description: 'Update role metadata and permission sets', status: 'ENABLED' as const },
-        { id: '9', name: 'role:delete', description: 'Delete custom roles', status: 'ENABLED' as const },
-        { id: '10', name: 'role:restore', description: 'Restore deleted roles', status: 'ENABLED' as const },
-        { id: '11', name: 'key:read', description: 'View cryptographic signing keys and metadata', status: 'ENABLED' as const },
-        { id: '12', name: 'key:rotate', description: 'Trigger asymmetric RSA key rotation', status: 'ENABLED' as const },
-        { id: '13', name: 'permission:read', description: 'Inspect available permissions in catalog', status: 'ENABLED' as const },
-      ]
-      const start = page * size
-      const pagedFallback = fallback.slice(start, start + size)
-      setPermissions(pagedFallback)
-      setTotalElements(fallback.length)
-      setTotalPages(Math.ceil(fallback.length / size))
-      setIsFirst(page === 0)
-      setIsLast(page >= Math.ceil(fallback.length / size) - 1)
+    } catch (err: any) {
+      const errorMsg =
+        err?.response?.data?.message ||
+        err?.message ||
+        'Failed to retrieve system permissions.'
+      const status = err?.response?.status
+
+      setFetchError({
+        message: errorMsg,
+        status,
+      })
+      setPermissions([])
+      setTotalElements(0)
+      setTotalPages(1)
+      setIsFirst(true)
+      setIsLast(true)
     } finally {
       setLoading(false)
     }
@@ -137,7 +156,7 @@ export function PermissionsPage() {
 
   useEffect(() => {
     fetchPermissions(currentPage, pageSize)
-  }, [currentPage, pageSize])
+  }, [currentPage, pageSize, canRead])
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 0 && newPage < totalPages && !loading) {
@@ -240,7 +259,7 @@ export function PermissionsPage() {
             variant="outline"
             size="sm"
             onClick={() => fetchPermissions(currentPage, pageSize)}
-            disabled={loading}
+            disabled={loading || !canRead}
             className="h-9 gap-2 text-xs font-medium cursor-pointer"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -284,7 +303,7 @@ export function PermissionsPage() {
               Total Permissions
             </p>
             <p className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-0.5">
-              {totalElements}
+              {fetchError ? '—' : totalElements}
             </p>
           </div>
           <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400">
@@ -298,7 +317,7 @@ export function PermissionsPage() {
               Page Active (Enabled)
             </p>
             <p className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-              {enabledCount}
+              {fetchError ? '0' : enabledCount}
             </p>
           </div>
           <div className="h-9 w-9 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
@@ -312,7 +331,7 @@ export function PermissionsPage() {
               Page Disabled
             </p>
             <p className="text-xl sm:text-2xl font-bold text-zinc-500 dark:text-zinc-400 mt-0.5">
-              {disabledCount}
+              {fetchError ? '0' : disabledCount}
             </p>
           </div>
           <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
@@ -360,8 +379,35 @@ export function PermissionsPage() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          {/* Desktop Table View (visible on tablet and desktop screens) */}
-          <div className="hidden sm:block overflow-x-auto">
+          {fetchError ? (
+            <div className="py-14 px-6 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 mb-3 shadow-xs">
+                <ShieldAlert className="h-6 w-6" />
+              </div>
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                {fetchError.status === 403 ? 'Access Restricted' : 'Unable to Retrieve Permissions'}
+              </h3>
+              <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400 max-w-md mx-auto leading-relaxed">
+                {fetchError.message}
+              </p>
+              <div className="mt-4 flex items-center justify-center gap-2">
+                {fetchError.status !== 403 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fetchPermissions(currentPage, pageSize)}
+                    className="h-8 gap-1.5 text-xs font-medium cursor-pointer"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    <span>Retry</span>
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table View (visible on tablet and desktop screens) */}
+              <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/70 text-zinc-500 dark:text-zinc-400 font-semibold uppercase tracking-wider text-[10px]">
                 <tr>
@@ -591,48 +637,52 @@ export function PermissionsPage() {
                 )
               })
             )}
-          </div>
+            </div>
+            </>
+          )}
 
           {/* Bottom Pagination Bar */}
-          <div className="p-3.5 sm:px-6 border-t border-zinc-200/90 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-950/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <div className="text-zinc-500 dark:text-zinc-400 text-xs">
-              Showing <span className="font-semibold text-zinc-900 dark:text-zinc-100">{startRecord}</span> to{' '}
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{endRecord}</span> of{' '}
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{totalElements}</span> permissions
-            </div>
+          {!fetchError && totalElements > 0 && (
+            <div className="p-3.5 sm:px-6 border-t border-zinc-200/90 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-950/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="text-zinc-500 dark:text-zinc-400 text-xs">
+                Showing <span className="font-semibold text-zinc-900 dark:text-zinc-100">{startRecord}</span> to{' '}
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">{endRecord}</span> of{' '}
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">{totalElements}</span> permissions
+              </div>
 
-            <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
-              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono mr-1">
-                Page {currentPage + 1} of {Math.max(1, totalPages)}
-              </span>
+              <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+                <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono mr-1">
+                  Page {currentPage + 1} of {Math.max(1, totalPages)}
+                </span>
 
-              <div className="flex items-center gap-1.5">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={isFirst || loading}
-                  className="h-8 px-2.5 text-xs cursor-pointer gap-1"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                  <span>Prev</span>
-                </Button>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={isFirst || loading}
+                    className="h-8 px-2.5 text-xs cursor-pointer gap-1"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                    <span>Prev</span>
+                  </Button>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={isLast || loading}
-                  className="h-8 px-2.5 text-xs cursor-pointer gap-1"
-                >
-                  <span>Next</span>
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={isLast || loading}
+                    className="h-8 px-2.5 text-xs cursor-pointer gap-1"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>

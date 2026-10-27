@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { apiClient } from '@/lib/api-client'
 import { useAuthStore } from '@/stores/authStore'
+import { cn } from '@/lib/utils'
 
 interface SigningKey {
   id?: string
@@ -39,8 +40,10 @@ interface SigningKey {
 }
 
 export function SigningKeysPage() {
-  const { hasRole } = useAuthStore()
-  const isAdmin = hasRole('ADMIN') || hasRole('SUPER_ADMIN')
+  const { hasRole, hasPermission } = useAuthStore()
+  const canRead = hasPermission('key:read')
+  const canRotate = hasPermission('key:rotate')
+  const canRevoke = hasRole('ADMIN')
 
   const [keys, setKeys] = useState<SigningKey[]>([])
   const [loading, setLoading] = useState(true)
@@ -71,6 +74,22 @@ export function SigningKeysPage() {
   const [revoking, setRevoking] = useState(false)
 
   const fetchKeys = async (page = currentPage, size = pageSize, isSilent = false) => {
+    if (!canRead) {
+      if (!isSilent) {
+        setLoading(false)
+      }
+      setFetchError({
+        status: 403,
+        message: 'Access denied: You do not have permission to view registered signing keys (requires key:read).',
+      })
+      setKeys([])
+      setTotalElements(0)
+      setTotalPages(1)
+      setIsFirst(true)
+      setIsLast(true)
+      return
+    }
+
     try {
       if (!isSilent) {
         setLoading(true)
@@ -136,7 +155,7 @@ export function SigningKeysPage() {
 
   useEffect(() => {
     fetchKeys(currentPage, pageSize)
-  }, [currentPage, pageSize])
+  }, [currentPage, pageSize, canRead])
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 0 && newPage < totalPages && !loading) {
@@ -279,7 +298,7 @@ export function SigningKeysPage() {
             variant="outline"
             size="sm"
             onClick={() => fetchKeys(currentPage, pageSize)}
-            disabled={loading}
+            disabled={loading || !canRead}
             className="h-9 gap-2 text-xs font-medium cursor-pointer"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -289,8 +308,14 @@ export function SigningKeysPage() {
           <Button
             size="sm"
             onClick={handleRotate}
-            disabled={rotating}
-            className="h-9 gap-2 text-xs font-medium bg-amber-600 hover:bg-amber-700 text-white cursor-pointer shadow-xs"
+            disabled={rotating || !canRotate}
+            title={!canRotate ? 'Insufficient permission: requires key:rotate' : 'Generate and activate new RSA-2048 key'}
+            className={cn(
+              'h-9 gap-2 text-xs font-medium shadow-xs transition-all',
+              canRotate
+                ? 'bg-amber-600 hover:bg-amber-700 text-white cursor-pointer'
+                : 'opacity-50 cursor-not-allowed bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 border border-zinc-200 dark:border-zinc-700'
+            )}
           >
             <RefreshCw className={`h-3.5 w-3.5 ${rotating ? 'animate-spin' : ''}`} />
             <span>Rotate Key Immediately</span>
@@ -441,15 +466,17 @@ export function SigningKeysPage() {
                 {fetchError.message}
               </p>
               <div className="mt-4 flex items-center justify-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fetchKeys(currentPage, pageSize)}
-                  className="h-8 gap-1.5 text-xs font-medium cursor-pointer"
-                >
-                  <RefreshCw className="h-3.5 w-3.5" />
-                  <span>Retry</span>
-                </Button>
+                {fetchError.status !== 403 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fetchKeys(currentPage, pageSize)}
+                    className="h-8 gap-1.5 text-xs font-medium cursor-pointer"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    <span>Retry</span>
+                  </Button>
+                )}
               </div>
             </div>
           ) : keys.length === 0 ? (
@@ -543,7 +570,7 @@ export function SigningKeysPage() {
                         </Button>
                       )}
 
-                      {isAdmin && !isRevoked && (
+                      {canRevoke && !isRevoked && (
                         <Button
                           type="button"
                           variant="outline"

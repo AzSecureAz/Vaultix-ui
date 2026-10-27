@@ -186,7 +186,28 @@ export const useAuthStore = create<AuthState>()(
 
       hasPermission: (permission: string) => {
         const user = get().user
-        return user?.permissions?.includes(permission) || false
+        if (!user || !user.permissions || user.permissions.length === 0) return false
+        const cleanPerm = permission.trim().toLowerCase()
+
+        if (cleanPerm === '*') {
+          return true
+        }
+
+        // Domain wildcard query, e.g. "key:*" matches any permission starting with "key:" or "*"
+        if (cleanPerm.endsWith(':*')) {
+          const domainPrefix = cleanPerm.slice(0, -1) // e.g. "key:"
+          return user.permissions.some((p) => {
+            const cleanP = p.trim().toLowerCase()
+            return cleanP === '*' || cleanP.startsWith(domainPrefix)
+          })
+        }
+
+        // Specific permission query, e.g. "key:read" matches "key:read", "key:*", or "*"
+        const domain = cleanPerm.split(':')[0]
+        return user.permissions.some((p) => {
+          const cleanP = p.trim().toLowerCase()
+          return cleanP === '*' || cleanP === `${domain}:*` || cleanP === cleanPerm
+        })
       },
     }),
     {
