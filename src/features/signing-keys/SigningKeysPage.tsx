@@ -48,6 +48,7 @@ export function SigningKeysPage() {
   const [copiedKid, setCopiedKid] = useState<string | null>(null)
   const [copiedPem, setCopiedPem] = useState(false)
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
+  const [fetchError, setFetchError] = useState<{ status?: number; message: string } | null>(null)
 
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -74,6 +75,7 @@ export function SigningKeysPage() {
       if (!isSilent) {
         setLoading(true)
       }
+      setFetchError(null)
       const res = await apiClient.get(`/auth/admin/signing-keys?page=${page}&size=${size}`)
       if (res.data?.success && res.data.data) {
         const data = res.data.data
@@ -100,20 +102,28 @@ export function SigningKeysPage() {
             return next
           }, { replace: true })
         }
+      } else {
+        const errorMsg = res.data?.message || 'Failed to retrieve cryptographic signing keys.'
+        setFetchError({ message: errorMsg, status: res.status })
+        setKeys([])
+        setTotalElements(0)
+        setTotalPages(1)
+        setIsFirst(true)
+        setIsLast(true)
       }
-    } catch {
-      // Mock fallback if keys API needs special permissions
-      const fallback: SigningKey[] = [
-        {
-          kid: 'vaultix-rsa-key-active-01',
-          algorithm: 'RS256',
-          status: 'ACTIVE',
-          created_at: new Date().toISOString(),
-          public_key_pem: '-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...\n-----END PUBLIC KEY-----',
-        },
-      ]
-      setKeys(fallback)
-      setTotalElements(fallback.length)
+    } catch (err: any) {
+      const errorMsg =
+        err?.response?.data?.message ||
+        err?.message ||
+        'Failed to retrieve cryptographic signing keys.'
+      const status = err?.response?.status
+
+      setFetchError({
+        message: errorMsg,
+        status,
+      })
+      setKeys([])
+      setTotalElements(0)
       setTotalPages(1)
       setIsFirst(true)
       setIsLast(true)
@@ -323,7 +333,7 @@ export function SigningKeysPage() {
               Total Managed Keys
             </p>
             <p className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-0.5">
-              {totalElements}
+              {fetchError ? '—' : totalElements}
             </p>
           </div>
           <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400">
@@ -336,11 +346,25 @@ export function SigningKeysPage() {
             <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
               Active Signing Key
             </p>
-            <p className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 truncate mt-1">
-              {activeKey ? activeKey.kid : 'None active'}
+            <p
+              className={`text-xs font-mono font-bold truncate mt-1 ${
+                fetchError
+                  ? 'text-zinc-400 dark:text-zinc-500'
+                  : activeKey
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-zinc-500 dark:text-zinc-400'
+              }`}
+            >
+              {fetchError ? 'Unavailable' : activeKey ? activeKey.kid : 'None active'}
             </p>
           </div>
-          <div className="h-9 w-9 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+          <div
+            className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
+              fetchError
+                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500'
+                : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+            }`}
+          >
             <ShieldCheck className="h-4 w-4" />
           </div>
         </div>
@@ -351,7 +375,8 @@ export function SigningKeysPage() {
               Page Items
             </p>
             <p className="text-xl sm:text-2xl font-bold text-zinc-800 dark:text-zinc-200 mt-0.5">
-              {keys.length} <span className="text-xs font-normal text-zinc-400">/ {pageSize}</span>
+              {fetchError ? '0' : keys.length}{' '}
+              <span className="text-xs font-normal text-zinc-400">/ {pageSize}</span>
             </p>
           </div>
           <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
@@ -402,6 +427,29 @@ export function SigningKeysPage() {
               <div className="flex items-center justify-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
                 <span>Loading signing keys...</span>
+              </div>
+            </div>
+          ) : fetchError ? (
+            <div className="py-14 px-6 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 mb-3 shadow-xs">
+                <ShieldAlert className="h-6 w-6" />
+              </div>
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                {fetchError.status === 403 ? 'Access Restricted' : 'Unable to Retrieve Signing Keys'}
+              </h3>
+              <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400 max-w-md mx-auto leading-relaxed">
+                {fetchError.message}
+              </p>
+              <div className="mt-4 flex items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fetchKeys(currentPage, pageSize)}
+                  className="h-8 gap-1.5 text-xs font-medium cursor-pointer"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  <span>Retry</span>
+                </Button>
               </div>
             </div>
           ) : keys.length === 0 ? (
@@ -521,45 +569,47 @@ export function SigningKeysPage() {
           )}
 
           {/* Bottom Pagination Bar */}
-          <div className="p-3.5 sm:px-6 border-t border-zinc-200/90 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-950/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <div className="text-zinc-500 dark:text-zinc-400 text-xs">
-              Showing <span className="font-semibold text-zinc-900 dark:text-zinc-100">{startRecord}</span> to{' '}
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{endRecord}</span> of{' '}
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{totalElements}</span> keys
-            </div>
+          {!fetchError && totalElements > 0 && (
+            <div className="p-3.5 sm:px-6 border-t border-zinc-200/90 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-950/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="text-zinc-500 dark:text-zinc-400 text-xs">
+                Showing <span className="font-semibold text-zinc-900 dark:text-zinc-100">{startRecord}</span> to{' '}
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">{endRecord}</span> of{' '}
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">{totalElements}</span> keys
+              </div>
 
-            <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
-              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono mr-1">
-                Page {currentPage + 1} of {Math.max(1, totalPages)}
-              </span>
+              <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+                <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono mr-1">
+                  Page {currentPage + 1} of {Math.max(1, totalPages)}
+                </span>
 
-              <div className="flex items-center gap-1.5">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={isFirst || loading}
-                  className="h-8 px-2.5 text-xs cursor-pointer gap-1"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                  <span>Prev</span>
-                </Button>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={isFirst || loading}
+                    className="h-8 px-2.5 text-xs cursor-pointer gap-1"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                    <span>Prev</span>
+                  </Button>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={isLast || loading}
-                  className="h-8 px-2.5 text-xs cursor-pointer gap-1"
-                >
-                  <span>Next</span>
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={isLast || loading}
+                    className="h-8 px-2.5 text-xs cursor-pointer gap-1"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
