@@ -256,64 +256,68 @@ export function PermissionsPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 self-start sm:self-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => fetchPermissions(currentPage, pageSize)}
-            disabled={loading || !canRead}
-            className="h-9 gap-2 text-xs font-medium cursor-pointer"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
-          </Button>
-        </div>
+        {canRead && (
+          <div className="flex items-center gap-2.5 self-start sm:self-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchPermissions(currentPage, pageSize)}
+              disabled={loading}
+              className="h-9 gap-2 text-xs font-medium cursor-pointer"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Stats Counter Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-        <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-              Total Permissions
-            </p>
-            <p className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-0.5">
-              {fetchError ? '—' : totalElements}
-            </p>
+      {canRead && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+          <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                Total Permissions
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-0.5">
+                {fetchError ? '—' : totalElements}
+              </p>
+            </div>
+            <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400">
+              <Layers className="h-4 w-4" />
+            </div>
           </div>
-          <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400">
-            <Layers className="h-4 w-4" />
-          </div>
-        </div>
 
-        <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-              Page Active (Enabled)
-            </p>
-            <p className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-              {fetchError ? '0' : enabledCount}
-            </p>
+          <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                Page Active (Enabled)
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                {fetchError ? '0' : enabledCount}
+              </p>
+            </div>
+            <div className="h-9 w-9 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <CheckCircle2 className="h-4 w-4" />
+            </div>
           </div>
-          <div className="h-9 w-9 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-            <CheckCircle2 className="h-4 w-4" />
-          </div>
-        </div>
 
-        <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-              Page Disabled
-            </p>
-            <p className="text-xl sm:text-2xl font-bold text-zinc-500 dark:text-zinc-400 mt-0.5">
-              {fetchError ? '0' : disabledCount}
-            </p>
-          </div>
-          <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
-            <XCircle className="h-4 w-4" />
+          <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                Page Disabled
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-zinc-500 dark:text-zinc-400 mt-0.5">
+                {fetchError ? '0' : disabledCount}
+              </p>
+            </div>
+            <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
+              <XCircle className="h-4 w-4" />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Permissions Table Card with Pagination */}
       <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 overflow-hidden">
@@ -331,27 +335,29 @@ export function PermissionsPage() {
           </div>
 
           {/* Page size selector in header */}
-          <div className="flex items-center gap-2 self-start sm:self-auto">
-            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-              Rows per page:
-            </span>
-            <div className="inline-flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800 p-0.5 bg-zinc-50 dark:bg-zinc-900/80">
-              {[10, 20, 50].map((sizeOption) => (
-                <button
-                  key={sizeOption}
-                  type="button"
-                  onClick={() => handlePageSizeChange(sizeOption)}
-                  className={`text-[11px] px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
-                    pageSize === sizeOption
-                      ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs font-semibold'
-                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                  }`}
-                >
-                  {sizeOption}
-                </button>
-              ))}
+          {canRead && (
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
+                Rows per page:
+              </span>
+              <div className="inline-flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800 p-0.5 bg-zinc-50 dark:bg-zinc-900/80">
+                {[10, 20, 50].map((sizeOption) => (
+                  <button
+                    key={sizeOption}
+                    type="button"
+                    onClick={() => handlePageSizeChange(sizeOption)}
+                    className={`text-[11px] px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
+                      pageSize === sizeOption
+                        ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs font-semibold'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {sizeOption}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </CardHeader>
         <CardContent className="p-0">
           {fetchError ? (
@@ -379,173 +385,20 @@ export function PermissionsPage() {
                 )}
               </div>
             </div>
+          ) : loading ? (
+            <div className="py-14 text-center text-zinc-500 text-xs">
+              <div className="flex items-center justify-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                <span>Loading permissions...</span>
+              </div>
+            </div>
+          ) : permissions.length === 0 ? (
+            <div className="py-14 text-center text-zinc-500 dark:text-zinc-400 text-xs">
+              No permissions found.
+            </div>
           ) : (
-            <>
-              {/* Desktop Table View (visible on tablet and desktop screens) */}
-              <div className="hidden sm:block overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/70 text-zinc-500 dark:text-zinc-400 font-semibold uppercase tracking-wider text-[10px]">
-                <tr>
-                  <th className="py-3 px-4 sm:px-6">Permission Token</th>
-                  <th className="py-3 px-4">Domain</th>
-                  <th className="py-3 px-4">Description</th>
-                  <th className="py-3 px-4">Status</th>
-                  {isAdmin && <th className="py-3 px-4 sm:px-6 text-right">Action</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
-                {loading ? (
-                  <tr>
-                    <td colSpan={isAdmin ? 5 : 4} className="py-12 text-center text-zinc-500 text-xs">
-                      <div className="flex items-center justify-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
-                        <span>Loading permissions...</span>
-                      </div>
-                    </td>
-                  </tr>
-                ) : permissions.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={isAdmin ? 5 : 4}
-                      className="py-12 text-center text-zinc-500 dark:text-zinc-400 text-xs"
-                    >
-                      No permissions found.
-                    </td>
-                  </tr>
-                ) : (
-                  permissions.map((perm) => {
-                    const domain = getDomainFromPermission(perm.name)
-                    const action = getActionFromPermission(perm.name)
-                    const config = DOMAIN_CONFIG[domain] || {
-                      label: domain.toUpperCase(),
-                      icon: Shield,
-                      bg: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
-                      border: 'border-zinc-200 dark:border-zinc-700',
-                    }
-                    const DomainIcon = config.icon
-                    const isBusy = actionLoadingId === perm.id
-
-                    return (
-                      <tr
-                        key={perm.id || perm.name}
-                        className="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30 transition-colors"
-                      >
-                        {/* Token & Granular action */}
-                        <td className="py-3.5 px-4 sm:px-6">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100 text-xs">
-                                {perm.name}
-                              </span>
-                              <Badge
-                                variant="outline"
-                                className="text-[10px] px-1.5 py-0 font-mono tracking-tight text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/50"
-                              >
-                                {action}
-                              </Badge>
-                            </div>
-                            {perm.id && (
-                              <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 dark:text-zinc-500 font-mono">
-                                <span>id: {perm.id}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => copyToClipboard(perm.id)}
-                                  title="Copy permission UUID"
-                                  className="hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors p-0.5 cursor-pointer inline-flex items-center"
-                                >
-                                  {copiedId === perm.id ? (
-                                    <Check className="h-3 w-3 text-emerald-500" />
-                                  ) : (
-                                    <Copy className="h-3 w-3" />
-                                  )}
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* Domain Group */}
-                        <td className="py-3.5 px-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full border ${config.bg} ${config.border}`}
-                          >
-                            <DomainIcon className="h-3 w-3" />
-                            <span>{config.label}</span>
-                          </span>
-                        </td>
-
-                        {/* Description */}
-                        <td className="py-3.5 px-4 text-zinc-600 dark:text-zinc-400 max-w-md">
-                          {perm.description || '—'}
-                        </td>
-
-                        {/* Status */}
-                        <td className="py-3.5 px-4 whitespace-nowrap">
-                          {perm.status === 'ENABLED' ? (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                              Enabled
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 bg-zinc-500/10 px-2 py-0.5 rounded-full border border-zinc-500/20">
-                              <span className="h-1.5 w-1.5 rounded-full bg-zinc-400" />
-                              Disabled
-                            </span>
-                          )}
-                        </td>
-
-                        {/* Admin Action Toggle */}
-                        {isAdmin && (
-                          <td className="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              disabled={isBusy}
-                              onClick={() => handleToggleStatus(perm)}
-                              className={`h-7 text-[11px] px-2.5 cursor-pointer font-medium transition-all ${
-                                perm.status === 'ENABLED'
-                                  ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-200 dark:border-red-900/40'
-                                  : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40'
-                              }`}
-                              title={
-                                perm.status === 'ENABLED'
-                                  ? 'Disable this permission'
-                                  : 'Enable this permission'
-                              }
-                            >
-                              {isBusy ? (
-                                <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                              ) : (
-                                <Power className="h-3 w-3 mr-1" />
-                              )}
-                              <span>{perm.status === 'ENABLED' ? 'Disable' : 'Enable'}</span>
-                            </Button>
-                          </td>
-                        )}
-                      </tr>
-                    )
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile Card List View (visible on mobile screens, zero horizontal scroll) */}
-          <div className="sm:hidden divide-y divide-zinc-100 dark:divide-zinc-800/60">
-            {loading ? (
-              <div className="py-12 text-center text-zinc-500 text-xs">
-                <div className="flex items-center justify-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
-                  <span>Loading permissions...</span>
-                </div>
-              </div>
-            ) : permissions.length === 0 ? (
-              <div className="py-12 text-center text-zinc-500 dark:text-zinc-400 text-xs">
-                No permissions found.
-              </div>
-            ) : (
-              permissions.map((perm) => {
+            <div className="divide-y divide-zinc-200 dark:divide-zinc-800/80">
+              {permissions.map((perm) => {
                 const domain = getDomainFromPermission(perm.name)
                 const action = getActionFromPermission(perm.name)
                 const config = DOMAIN_CONFIG[domain] || {
@@ -556,101 +409,111 @@ export function PermissionsPage() {
                 }
                 const DomainIcon = config.icon
                 const isBusy = actionLoadingId === perm.id
+                const isEnabled = perm.status === 'ENABLED'
 
                 return (
-                  <div key={perm.id || perm.name} className="p-4 space-y-2.5">
-                    {/* Top Row: Token, Action Badge & Status */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100 text-xs break-all">
-                            {perm.name}
-                          </span>
-                          <Badge
-                            variant="outline"
-                            className="text-[9px] px-1 py-0 font-mono text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/50"
-                          >
-                            {action}
-                          </Badge>
-                        </div>
+                  <div
+                    key={perm.id || perm.name}
+                    className="p-4 sm:px-6 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
+                  >
+                    <div className="space-y-1.5 min-w-0 flex-1">
+                      {/* Token, Action Badge, Domain, Status */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono text-xs sm:text-sm font-semibold text-zinc-900 dark:text-white break-all">
+                          {perm.name}
+                        </span>
 
-                        {perm.id && (
-                          <div className="flex items-center gap-1 text-[10px] text-zinc-400 dark:text-zinc-500 font-mono break-all">
-                            <span>id: {perm.id}</span>
-                            <button
-                              type="button"
-                              onClick={() => copyToClipboard(perm.id)}
-                              title="Copy permission UUID"
-                              className="hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors p-0.5 cursor-pointer shrink-0 inline-flex items-center"
-                            >
-                              {copiedId === perm.id ? (
-                                <Check className="h-3 w-3 text-emerald-500" />
-                              ) : (
-                                <Copy className="h-3 w-3" />
-                              )}
-                            </button>
-                          </div>
-                        )}
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] px-1.5 py-0 font-mono font-medium tracking-tight text-zinc-700 dark:text-zinc-300 bg-zinc-100/70 dark:bg-zinc-800/60 border-zinc-200 dark:border-zinc-700"
+                        >
+                          {action}
+                        </Badge>
 
                         <span
-                          className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border ${config.bg} ${config.border}`}
+                          className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full border ${config.bg} ${config.border}`}
                         >
-                          <DomainIcon className="h-2.5 w-2.5 shrink-0" />
+                          <DomainIcon className="h-3 w-3" />
                           <span>{config.label}</span>
                         </span>
-                      </div>
 
-                      {/* Status */}
-                      <div className="shrink-0">
-                        {perm.status === 'ENABLED' ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        {isEnabled ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                             Enabled
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-zinc-500 dark:text-zinc-400 bg-zinc-500/10 px-2 py-0.5 rounded-full border border-zinc-500/20">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 bg-zinc-500/10 px-2 py-0.5 rounded-full border border-zinc-500/20">
                             <span className="h-1.5 w-1.5 rounded-full bg-zinc-400" />
                             Disabled
                           </span>
                         )}
                       </div>
+
+                      {/* UUID */}
+                      {perm.id && (
+                        <div className="flex items-center gap-1.5 text-xs font-mono">
+                          <span className="text-zinc-400 dark:text-zinc-500 font-sans text-[11px] font-medium">id:</span>
+                          <span className="font-semibold text-zinc-700 dark:text-zinc-200">{perm.id}</span>
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(perm.id)}
+                            title="Copy permission UUID"
+                            className="text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 transition-colors p-0.5 cursor-pointer inline-flex items-center"
+                          >
+                            {copiedId === perm.id ? (
+                              <Check className="h-3.5 w-3.5 text-emerald-500" />
+                            ) : (
+                              <Copy className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Description */}
+                      <p className="text-xs font-normal text-zinc-700 dark:text-zinc-300 leading-relaxed">
+                        {perm.description || 'Enterprise RBAC security capability.'}
+                      </p>
                     </div>
 
-                    {/* Middle: Description */}
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                      {perm.description || '—'}
-                    </p>
-
-                    {/* Bottom: Action Button for Admins */}
+                    {/* Admin Action Toggle */}
                     {isAdmin && (
-                      <div className="pt-1">
+                      <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
                           disabled={isBusy}
                           onClick={() => handleToggleStatus(perm)}
-                          className={`h-8 text-xs w-full cursor-pointer font-medium transition-all ${
-                            perm.status === 'ENABLED'
-                              ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-200 dark:border-red-900/40'
-                              : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40'
+                          className={`h-8 text-xs px-3 gap-1.5 font-medium transition-all cursor-pointer ${
+                            isEnabled
+                              ? 'text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/20 border-rose-200 dark:border-rose-900/40'
+                              : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40'
                           }`}
                         >
                           {isBusy ? (
-                            <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              <span>Updating...</span>
+                            </>
+                          ) : isEnabled ? (
+                            <>
+                              <Power className="h-3.5 w-3.5" />
+                              <span>Disable</span>
+                            </>
                           ) : (
-                            <Power className="h-3 w-3 mr-1.5" />
+                            <>
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              <span>Enable</span>
+                            </>
                           )}
-                          <span>{perm.status === 'ENABLED' ? 'Disable Permission' : 'Enable Permission'}</span>
                         </Button>
                       </div>
                     )}
                   </div>
                 )
-              })
-            )}
+              })}
             </div>
-            </>
           )}
 
           {/* Bottom Pagination Bar */}

@@ -455,79 +455,79 @@ export function RolesPage() {
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => fetchRoles(currentPage, pageSize)}
-            disabled={loading || !canRead}
-            className="h-9 gap-2 text-xs font-medium cursor-pointer"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
-          </Button>
+          {canRead && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchRoles(currentPage, pageSize)}
+              disabled={loading}
+              className="h-9 gap-2 text-xs font-medium cursor-pointer"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </Button>
+          )}
 
-          <Button
-            size="sm"
-            onClick={openCreateModal}
-            disabled={createLoading || !canCreate}
-            title={!canCreate ? 'Insufficient permission: requires role:create' : 'Define and configure a new system role'}
-            className={cn(
-              'h-9 gap-2 text-xs font-medium shadow-xs transition-all',
-              canCreate
-                ? 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer'
-                : 'opacity-50 cursor-not-allowed bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 border border-zinc-200 dark:border-zinc-700'
-            )}
-          >
-            <Plus className="h-4 w-4" />
-            <span>Define New Role</span>
-          </Button>
+          {canCreate && (
+            <Button
+              size="sm"
+              onClick={openCreateModal}
+              disabled={createLoading}
+              className="h-9 gap-2 text-xs font-medium shadow-xs transition-all bg-purple-600 hover:bg-purple-700 text-white cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Define New Role</span>
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Stats Counter Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-        <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-              Total Roles
-            </p>
-            <p className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-0.5">
-              {fetchError ? '—' : totalElements}
-            </p>
+      {canRead && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+          <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                Total Roles
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-0.5">
+                {fetchError ? '—' : totalElements}
+              </p>
+            </div>
+            <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400">
+              <Layers className="h-4 w-4" />
+            </div>
           </div>
-          <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400">
-            <Layers className="h-4 w-4" />
-          </div>
-        </div>
 
-        <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-              Active Roles (Enabled)
-            </p>
-            <p className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-              {fetchError ? '0' : enabledCount}
-            </p>
+          <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                Active Roles (Enabled)
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                {fetchError ? '0' : enabledCount}
+              </p>
+            </div>
+            <div className="h-9 w-9 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <CheckCircle2 className="h-4 w-4" />
+            </div>
           </div>
-          <div className="h-9 w-9 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-            <CheckCircle2 className="h-4 w-4" />
-          </div>
-        </div>
 
-        <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-              Inactive / Deleted
-            </p>
-            <p className="text-xl sm:text-2xl font-bold text-zinc-500 dark:text-zinc-400 mt-0.5">
-              {fetchError ? '0' : inactiveCount}
-            </p>
-          </div>
-          <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
-            <Shield className="h-4 w-4" />
+          <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                Inactive / Deleted
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-zinc-500 dark:text-zinc-400 mt-0.5">
+                {fetchError ? '0' : inactiveCount}
+              </p>
+            </div>
+            <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
+              <Shield className="h-4 w-4" />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Roles List Card */}
       <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 overflow-hidden">
@@ -544,28 +544,29 @@ export function RolesPage() {
             </CardDescription>
           </div>
 
-          {/* Rows per page selector */}
-          <div className="flex items-center gap-2 self-start sm:self-auto">
-            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-              Rows per page:
-            </span>
-            <div className="inline-flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800 p-0.5 bg-zinc-50 dark:bg-zinc-900/80">
-              {[10, 20, 50].map((sizeOption) => (
-                <button
-                  key={sizeOption}
-                  type="button"
-                  onClick={() => handlePageSizeChange(sizeOption)}
-                  className={`text-[11px] px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
-                    pageSize === sizeOption
-                      ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs font-semibold'
-                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                  }`}
-                >
-                  {sizeOption}
-                </button>
-              ))}
+          {canRead && (
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
+                Rows per page:
+              </span>
+              <div className="inline-flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800 p-0.5 bg-zinc-50 dark:bg-zinc-900/80">
+                {[10, 20, 50].map((sizeOption) => (
+                  <button
+                    key={sizeOption}
+                    type="button"
+                    onClick={() => handlePageSizeChange(sizeOption)}
+                    className={`text-[11px] px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
+                      pageSize === sizeOption
+                        ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs font-semibold'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {sizeOption}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </CardHeader>
 
         <CardContent className="p-0">
@@ -666,32 +667,33 @@ export function RolesPage() {
 
                       {/* Role UUID */}
                       {role.id && (
-                        <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 dark:text-zinc-500 font-mono">
-                          <span>id: {role.id}</span>
+                        <div className="flex items-center gap-1.5 text-xs font-mono">
+                          <span className="text-zinc-400 dark:text-zinc-500 font-sans text-[11px] font-medium">id:</span>
+                          <span className="font-semibold text-zinc-700 dark:text-zinc-200">{role.id}</span>
                           <button
                             type="button"
                             onClick={() => copyToClipboard(role.id)}
                             title="Copy role UUID"
-                            className="hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors p-0.5 cursor-pointer inline-flex items-center"
+                            className="text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 transition-colors p-0.5 cursor-pointer inline-flex items-center"
                           >
                             {copiedId === role.id ? (
-                              <Check className="h-3 w-3 text-emerald-500" />
+                              <Check className="h-3.5 w-3.5 text-emerald-500" />
                             ) : (
-                              <Copy className="h-3 w-3" />
+                              <Copy className="h-3.5 w-3.5" />
                             )}
                           </button>
                         </div>
                       )}
 
                       {/* Description */}
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                      <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed font-normal">
                         {role.description || 'Enterprise role definition.'}
                       </p>
 
                       {/* Permissions List */}
                       <div className="pt-1.5">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mr-1">
+                          <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mr-1">
                             Capabilities ({role.permissions?.length || 0}):
                           </span>
                           {role.permissions && role.permissions.length > 0 ? (
@@ -699,13 +701,13 @@ export function RolesPage() {
                               <Badge
                                 key={perm}
                                 variant="outline"
-                                className="text-[10px] font-mono px-1.5 py-0 bg-zinc-50 dark:bg-zinc-900/60 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800"
+                                className="text-[11px] font-mono px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-700"
                               >
                                 {perm}
                               </Badge>
                             ))
                           ) : (
-                            <span className="text-[11px] text-zinc-400 italic">No assigned permissions</span>
+                            <span className="text-xs text-zinc-500 dark:text-zinc-400 italic">No assigned permissions</span>
                           )}
                         </div>
                       </div>
@@ -1007,8 +1009,9 @@ export function RolesPage() {
                   <h3 className="text-base font-bold text-zinc-900 dark:text-white">
                     Update Role: {roleToEdit.name}
                   </h3>
-                  <p className="text-xs text-zinc-500 font-mono">
-                    ID: {roleToEdit.id}
+                  <p className="text-xs font-mono text-zinc-600 dark:text-zinc-300">
+                    <span className="text-zinc-400 dark:text-zinc-500 font-sans text-[11px] font-medium">ID:</span>{' '}
+                    <span className="font-semibold text-zinc-700 dark:text-zinc-200">{roleToEdit.id}</span>
                   </p>
                 </div>
               </div>

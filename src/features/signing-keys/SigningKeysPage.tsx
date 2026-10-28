@@ -23,7 +23,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { apiClient } from '@/lib/api-client'
 import { useAuthStore } from '@/stores/authStore'
-import { cn } from '@/lib/utils'
 
 interface SigningKey {
   id?: string
@@ -290,32 +289,30 @@ export function SigningKeysPage() {
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => fetchKeys(currentPage, pageSize)}
-            disabled={loading || !canRead}
-            className="h-9 gap-2 text-xs font-medium cursor-pointer"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
-          </Button>
+          {canRead && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchKeys(currentPage, pageSize)}
+              disabled={loading}
+              className="h-9 gap-2 text-xs font-medium cursor-pointer"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </Button>
+          )}
 
-          <Button
-            size="sm"
-            onClick={handleRotate}
-            disabled={rotating || !canRotate}
-            title={!canRotate ? 'Insufficient permission: requires key:rotate' : 'Generate and activate new RSA-2048 key'}
-            className={cn(
-              'h-9 gap-2 text-xs font-medium shadow-xs transition-all',
-              canRotate
-                ? 'bg-amber-600 hover:bg-amber-700 text-white cursor-pointer'
-                : 'opacity-50 cursor-not-allowed bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 border border-zinc-200 dark:border-zinc-700'
-            )}
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${rotating ? 'animate-spin' : ''}`} />
-            <span>Rotate Key Immediately</span>
-          </Button>
+          {canRotate && (
+            <Button
+              size="sm"
+              onClick={handleRotate}
+              disabled={rotating}
+              className="h-9 gap-2 text-xs font-medium shadow-xs transition-all bg-amber-600 hover:bg-amber-700 text-white cursor-pointer"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${rotating ? 'animate-spin' : ''}`} />
+              <span>Rotate Key Immediately</span>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -347,64 +344,66 @@ export function SigningKeysPage() {
       )}
 
       {/* Key Stats Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-        <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-              Total Managed Keys
-            </p>
-            <p className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-0.5">
-              {fetchError ? '—' : totalElements}
-            </p>
+      {canRead && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+          <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                Total Managed Keys
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-0.5">
+                {fetchError ? '—' : totalElements}
+              </p>
+            </div>
+            <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400">
+              <KeyRound className="h-4 w-4" />
+            </div>
           </div>
-          <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400">
-            <KeyRound className="h-4 w-4" />
-          </div>
-        </div>
 
-        <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
-          <div className="min-w-0 pr-2">
-            <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-              Active Signing Key
-            </p>
-            <p
-              className={`text-xs font-mono font-bold truncate mt-1 ${
+          <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
+            <div className="min-w-0 pr-2">
+              <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                Active Signing Key
+              </p>
+              <p
+                className={`text-xs font-mono font-bold truncate mt-1 ${
+                  fetchError
+                    ? 'text-zinc-400 dark:text-zinc-500'
+                    : activeKey
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-zinc-500 dark:text-zinc-400'
+                }`}
+              >
+                {fetchError ? 'Unavailable' : activeKey ? activeKey.kid : 'None active'}
+              </p>
+            </div>
+            <div
+              className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
                 fetchError
-                  ? 'text-zinc-400 dark:text-zinc-500'
-                  : activeKey
-                  ? 'text-emerald-600 dark:text-emerald-400'
-                  : 'text-zinc-500 dark:text-zinc-400'
+                  ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500'
+                  : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
               }`}
             >
-              {fetchError ? 'Unavailable' : activeKey ? activeKey.kid : 'None active'}
-            </p>
+              <ShieldCheck className="h-4 w-4" />
+            </div>
           </div>
-          <div
-            className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
-              fetchError
-                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500'
-                : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-            }`}
-          >
-            <ShieldCheck className="h-4 w-4" />
-          </div>
-        </div>
 
-        <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-              Page Items
-            </p>
-            <p className="text-xl sm:text-2xl font-bold text-zinc-800 dark:text-zinc-200 mt-0.5">
-              {fetchError ? '0' : keys.length}{' '}
-              <span className="text-xs font-normal text-zinc-400">/ {pageSize}</span>
-            </p>
-          </div>
-          <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
-            <Clock className="h-4 w-4" />
+          <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                Page Items
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-zinc-800 dark:text-zinc-200 mt-0.5">
+                {fetchError ? '0' : keys.length}{' '}
+                <span className="text-xs font-normal text-zinc-400">/ {pageSize}</span>
+              </p>
+            </div>
+            <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
+              <Clock className="h-4 w-4" />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Keys List Card */}
       <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 overflow-hidden">
@@ -420,27 +419,29 @@ export function SigningKeysPage() {
           </div>
 
           {/* Rows per page selector */}
-          <div className="flex items-center gap-2 self-start sm:self-auto">
-            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-              Rows per page:
-            </span>
-            <div className="inline-flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800 p-0.5 bg-zinc-50 dark:bg-zinc-900/80">
-              {[10, 20, 50].map((sizeOption) => (
-                <button
-                  key={sizeOption}
-                  type="button"
-                  onClick={() => handlePageSizeChange(sizeOption)}
-                  className={`text-[11px] px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
-                    pageSize === sizeOption
-                      ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs font-semibold'
-                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                  }`}
-                >
-                  {sizeOption}
-                </button>
-              ))}
+          {canRead && (
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
+                Rows per page:
+              </span>
+              <div className="inline-flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800 p-0.5 bg-zinc-50 dark:bg-zinc-900/80">
+                {[10, 20, 50].map((sizeOption) => (
+                  <button
+                    key={sizeOption}
+                    type="button"
+                    onClick={() => handlePageSizeChange(sizeOption)}
+                    className={`text-[11px] px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
+                      pageSize === sizeOption
+                        ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs font-semibold'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {sizeOption}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </CardHeader>
         <CardContent className="p-0">
           {loading && keys.length === 0 ? (
