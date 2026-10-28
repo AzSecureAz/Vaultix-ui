@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import {
   KeyRound,
   RefreshCw,
@@ -194,14 +195,12 @@ export function SigningKeysPage() {
       }
     } catch (err: any) {
       const isSudoCancelled = err?.message?.includes('cancelled')
-      setMessage({
-        text:
-          err?.response?.data?.message ||
-          (isSudoCancelled
-            ? 'Key rotation cancelled: Sudo elevation is required.'
-            : 'Failed to rotate cryptographic signing key.'),
-        type: 'error',
-      })
+      const errorMsg =
+        err?.response?.data?.message ||
+        (isSudoCancelled
+          ? 'Key rotation cancelled: Sudo elevation is required.'
+          : 'Failed to rotate cryptographic signing key.')
+      toast.error(errorMsg)
     } finally {
       setRotating(false)
     }
@@ -215,7 +214,6 @@ export function SigningKeysPage() {
     try {
       const res = await apiClient.post(`/auth/admin/signing-keys/${encodeURIComponent(targetKid)}/revoke`)
       if (res.data?.success) {
-        setMessage({ text: `Signing key '${targetKid}' has been permanently revoked.`, type: 'success' })
         setKeyToRevoke(null)
 
         // Optimistically update key in-place to avoid unmounting list & preserve scroll position
@@ -232,14 +230,12 @@ export function SigningKeysPage() {
       }
     } catch (err: any) {
       const isSudoCancelled = err?.message?.includes('cancelled')
-      setMessage({
-        text:
-          err?.response?.data?.message ||
-          (isSudoCancelled
-            ? 'Key revocation cancelled: Sudo elevation is required.'
-            : `Failed to revoke signing key '${keyToRevoke.kid}'.`),
-        type: 'error',
-      })
+      const errorMsg =
+        err?.response?.data?.message ||
+        (isSudoCancelled
+          ? 'Key revocation cancelled: Sudo elevation is required.'
+          : `Failed to revoke signing key '${keyToRevoke.kid}'.`)
+      toast.error(errorMsg)
     } finally {
       setRevoking(false)
     }

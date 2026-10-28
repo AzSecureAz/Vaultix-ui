@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import {
   ShieldCheck,
   RefreshCw,
@@ -12,7 +13,6 @@ import {
   Shield,
   Power,
   Loader2,
-  AlertCircle,
   ShieldAlert,
   ChevronLeft,
   ChevronRight,
@@ -63,7 +63,6 @@ export function PermissionsPage() {
   const [permissions, setPermissions] = useState<PermissionItem[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
-  const [bannerMessage, setBannerMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
   const [fetchError, setFetchError] = useState<{ status?: number; message: string } | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
@@ -104,7 +103,6 @@ export function PermissionsPage() {
     }
 
     setLoading(true)
-    setBannerMessage(null)
     setFetchError(null)
     try {
       const res = await permissionsApi.getPermissions(page, size)
@@ -193,15 +191,12 @@ export function PermissionsPage() {
     const action = isCurrentlyEnabled ? 'disable' : 'enable'
 
     setActionLoadingId(perm.id)
-    setBannerMessage(null)
 
     try {
       if (isCurrentlyEnabled) {
         await permissionsApi.disablePermission(perm.name)
-        setBannerMessage({ text: `Permission '${perm.name}' has been disabled.`, type: 'success' })
       } else {
         await permissionsApi.enablePermission(perm.name)
-        setBannerMessage({ text: `Permission '${perm.name}' has been enabled.`, type: 'success' })
       }
 
       // Update item in local list
@@ -214,14 +209,12 @@ export function PermissionsPage() {
       )
     } catch (err: any) {
       const isSudoCancelled = err?.message?.includes('cancelled')
-      setBannerMessage({
-        text:
-          err?.response?.data?.message ||
-          (isSudoCancelled
-            ? `Action cancelled: Sudo elevation is required to ${action} permission '${perm.name}'.`
-            : `Failed to ${action} permission '${perm.name}'.`),
-        type: 'error',
-      })
+      const errorMsg =
+        err?.response?.data?.message ||
+        (isSudoCancelled
+          ? `Action cancelled: Sudo elevation is required to ${action} permission '${perm.name}'.`
+          : `Failed to ${action} permission '${perm.name}'.`)
+      toast.error(errorMsg)
     } finally {
       setActionLoadingId(null)
     }
@@ -276,33 +269,6 @@ export function PermissionsPage() {
           </Button>
         </div>
       </div>
-
-      {/* Banner feedback */}
-      {bannerMessage && (
-        <div
-          className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 text-xs animate-in fade-in ${
-            bannerMessage.type === 'success'
-              ? 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/30'
-              : 'bg-red-500/10 text-red-800 dark:text-red-300 border-red-500/30'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            {bannerMessage.type === 'success' ? (
-              <CheckCircle2 className="h-4 w-4 shrink-0" />
-            ) : (
-              <AlertCircle className="h-4 w-4 shrink-0" />
-            )}
-            <span>{bannerMessage.text}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setBannerMessage(null)}
-            className="text-xs opacity-70 hover:opacity-100 cursor-pointer"
-          >
-            &times;
-          </button>
-        </div>
-      )}
 
       {/* Stats Counter Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
