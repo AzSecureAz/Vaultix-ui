@@ -24,6 +24,7 @@ import {
   UserCheck,
   AlertTriangle,
   Search,
+  KeyRound,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -750,8 +751,8 @@ export function UsersPage() {
                               </span>
                             )}
                             {Boolean(item.has_password ?? item.hasPassword) && (
-                              <span className="text-zinc-600 dark:text-zinc-400 font-medium">
-                                Password
+                              <span className="inline-flex items-center gap-1 font-medium text-zinc-700 dark:text-zinc-300">
+                                <KeyRound className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" /> Password
                               </span>
                             )}
                             {!Boolean(item.passkey_enabled ?? item.passkeyEnabled) &&
