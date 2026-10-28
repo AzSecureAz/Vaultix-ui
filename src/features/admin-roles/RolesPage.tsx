@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import {
   ShieldCheck,
   Shield,
@@ -43,7 +44,6 @@ export function RolesPage() {
   const [roles, setRoles] = useState<RoleItem[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
-  const [bannerMessage, setBannerMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
   const [fetchError, setFetchError] = useState<{ status?: number; message: string } | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
@@ -129,7 +129,6 @@ export function RolesPage() {
     }
 
     setLoading(true)
-    setBannerMessage(null)
     setFetchError(null)
 
     try {
@@ -218,10 +217,7 @@ export function RolesPage() {
   const handleToggleStatus = async (role: RoleItem) => {
     if (!canUpdate || actionLoadingId || role.status === 'DELETED') return
     if (role.level <= userLevel) {
-      setBannerMessage({
-        text: `Hierarchy restriction: You cannot modify role '${role.name}' (level ${role.level} is equal or higher privilege than your level ${userLevel}).`,
-        type: 'error',
-      })
+      toast.error(`Hierarchy restriction: You cannot modify role '${role.name}' (level ${role.level} is equal or higher privilege than your level ${userLevel}).`)
       return
     }
 
@@ -229,15 +225,12 @@ export function RolesPage() {
     const action = isCurrentlyEnabled ? 'disable' : 'enable'
 
     setActionLoadingId(role.id)
-    setBannerMessage(null)
 
     try {
       if (isCurrentlyEnabled) {
         await rolesApi.disableRole(role.name)
-        setBannerMessage({ text: `Role '${role.name}' has been disabled. Associated active user tokens have been revoked.`, type: 'success' })
       } else {
         await rolesApi.enableRole(role.name)
-        setBannerMessage({ text: `Role '${role.name}' has been enabled.`, type: 'success' })
       }
 
       setRoles((prev) =>
@@ -249,14 +242,12 @@ export function RolesPage() {
       )
     } catch (err: any) {
       const isSudoCancelled = err?.message?.includes('cancelled')
-      setBannerMessage({
-        text:
-          err?.response?.data?.message ||
-          (isSudoCancelled
-            ? `Action cancelled: Sudo elevation is required to ${action} role '${role.name}'.`
-            : `Failed to ${action} role '${role.name}'.`),
-        type: 'error',
-      })
+      const errorMsg =
+        err?.response?.data?.message ||
+        (isSudoCancelled
+          ? `Action cancelled: Sudo elevation is required to ${action} role '${role.name}'.`
+          : `Failed to ${action} role '${role.name}'.`)
+      toast.error(errorMsg)
     } finally {
       setActionLoadingId(null)
     }
@@ -266,19 +257,14 @@ export function RolesPage() {
   const handleRestoreRole = async (role: RoleItem) => {
     if (!canRestore || actionLoadingId || role.status !== 'DELETED') return
     if (role.level <= userLevel) {
-      setBannerMessage({
-        text: `Hierarchy restriction: Cannot restore role '${role.name}' with level ${role.level}.`,
-        type: 'error',
-      })
+      toast.error(`Hierarchy restriction: Cannot restore role '${role.name}' with level ${role.level}.`)
       return
     }
 
     setActionLoadingId(role.id)
-    setBannerMessage(null)
 
     try {
       await rolesApi.restoreRole(role.name)
-      setBannerMessage({ text: `Role '${role.name}' has been restored to DISABLED state.`, type: 'success' })
       setRoles((prev) =>
         prev.map((item) =>
           item.id === role.id ? { ...item, status: 'DISABLED' } : item
@@ -286,14 +272,12 @@ export function RolesPage() {
       )
     } catch (err: any) {
       const isSudoCancelled = err?.message?.includes('cancelled')
-      setBannerMessage({
-        text:
-          err?.response?.data?.message ||
-          (isSudoCancelled
-            ? `Action cancelled: Sudo elevation is required to restore role '${role.name}'.`
-            : `Failed to restore role '${role.name}'.`),
-        type: 'error',
-      })
+      const errorMsg =
+        err?.response?.data?.message ||
+        (isSudoCancelled
+          ? `Action cancelled: Sudo elevation is required to restore role '${role.name}'.`
+          : `Failed to restore role '${role.name}'.`)
+      toast.error(errorMsg)
     } finally {
       setActionLoadingId(null)
     }
@@ -345,7 +329,7 @@ export function RolesPage() {
       })
 
       setIsCreateOpen(false)
-      setBannerMessage({ text: `Role '${canonicalName}' (Level ${lvl}) created successfully.`, type: 'success' })
+      toast.success(`Role '${canonicalName}' (Level ${lvl}) created successfully.`)
       if (canRead) {
         fetchRoles(currentPage, pageSize)
       }
@@ -403,7 +387,7 @@ export function RolesPage() {
       )
 
       setRoleToEdit(null)
-      setBannerMessage({ text: `Role '${roleToEdit.name}' updated successfully.`, type: 'success' })
+      toast.success(`Role '${roleToEdit.name}' updated successfully.`)
     } catch (err: any) {
       const isSudoCancelled = err?.message?.includes('cancelled')
       setEditError(
@@ -424,10 +408,6 @@ export function RolesPage() {
 
     try {
       await rolesApi.deleteRole(roleToDelete.name)
-      setBannerMessage({
-        text: `Role '${roleToDelete.name}' has been soft-deleted. User sessions with this role have been revoked.`,
-        type: 'success',
-      })
       setRoles((prev) =>
         prev.map((item) =>
           item.id === roleToDelete.id ? { ...item, status: 'DELETED' } : item
@@ -436,14 +416,12 @@ export function RolesPage() {
       setRoleToDelete(null)
     } catch (err: any) {
       const isSudoCancelled = err?.message?.includes('cancelled')
-      setBannerMessage({
-        text:
-          err?.response?.data?.message ||
-          (isSudoCancelled
-            ? `Action cancelled: Sudo elevation is required to delete role '${roleToDelete.name}'.`
-            : `Failed to delete role '${roleToDelete.name}'.`),
-        type: 'error',
-      })
+      const errorMsg =
+        err?.response?.data?.message ||
+        (isSudoCancelled
+          ? `Action cancelled: Sudo elevation is required to delete role '${roleToDelete.name}'.`
+          : `Failed to delete role '${roleToDelete.name}'.`)
+      toast.error(errorMsg)
       setRoleToDelete(null)
     } finally {
       setDeleteLoading(false)
@@ -505,33 +483,6 @@ export function RolesPage() {
           </Button>
         </div>
       </div>
-
-      {/* Banner Feedback */}
-      {bannerMessage && (
-        <div
-          className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 text-xs animate-in fade-in ${
-            bannerMessage.type === 'success'
-              ? 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/30'
-              : 'bg-red-500/10 text-red-800 dark:text-red-300 border-red-500/30'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            {bannerMessage.type === 'success' ? (
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-            ) : (
-              <AlertCircle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
-            )}
-            <span>{bannerMessage.text}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setBannerMessage(null)}
-            className="text-xs opacity-70 hover:opacity-100 cursor-pointer"
-          >
-            &times;
-          </button>
-        </div>
-      )}
 
       {/* Stats Counter Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
