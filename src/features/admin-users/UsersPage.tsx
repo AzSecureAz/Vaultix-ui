@@ -338,6 +338,7 @@ export function UsersPage() {
       await usersApi.createUser({
         username: cleanUsername,
         email: cleanEmail,
+        full_name: cleanFullName || undefined,
         fullName: cleanFullName || undefined,
         roles: createRoles,
       })
@@ -643,7 +644,7 @@ export function UsersPage() {
 
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-semibold text-zinc-900 dark:text-white text-xs sm:text-sm">
-                            {item.fullName ? item.fullName : item.username}
+                            {item.full_name || item.fullName || item.username}
                           </span>
 
                           <span className="text-xs text-zinc-600 dark:text-zinc-300 font-mono font-medium">
@@ -737,30 +738,49 @@ export function UsersPage() {
 
                         {/* Security / MFA */}
                         <div className="flex items-center gap-3 text-xs text-zinc-600 dark:text-zinc-300">
-                          <div className="flex items-center gap-1.5">
-                            {item.passkeyEnabled && (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {Boolean(item.passkey_enabled ?? item.passkeyEnabled) && (
                               <span className="inline-flex items-center gap-1 font-medium text-emerald-700 dark:text-emerald-400">
                                 <Fingerprint className="h-3.5 w-3.5" /> Passkey
                               </span>
                             )}
-                            {(item.mfaEnabled || item.smsMfaEnabled) && (
+                            {Boolean((item.mfa_enabled ?? item.mfaEnabled) || (item.sms_mfa_enabled ?? item.smsMfaEnabled)) && (
                               <span className="inline-flex items-center gap-1 font-medium text-purple-700 dark:text-purple-400">
                                 <Shield className="h-3.5 w-3.5" /> MFA
                               </span>
                             )}
-                            {!item.passkeyEnabled && !item.mfaEnabled && !item.smsMfaEnabled && (
-                              <span className="text-zinc-600 dark:text-zinc-400 font-medium">Password only</span>
+                            {Boolean(item.has_password ?? item.hasPassword) && (
+                              <span className="text-zinc-600 dark:text-zinc-400 font-medium">
+                                Password
+                              </span>
                             )}
+                            {!Boolean(item.passkey_enabled ?? item.passkeyEnabled) &&
+                              !Boolean(item.mfa_enabled ?? item.mfaEnabled) &&
+                              !Boolean(item.sms_mfa_enabled ?? item.smsMfaEnabled) &&
+                              !Boolean(item.has_password ?? item.hasPassword) && (
+                                <span className="text-zinc-500 dark:text-zinc-400 font-medium italic">
+                                  {Boolean(item.has_social_accounts ?? item.hasSocialAccounts) ? 'OAuth / Social only' : 'No credentials set'}
+                                </span>
+                              )}
                           </div>
 
                           <span className="text-zinc-300 dark:text-zinc-700 hidden sm:inline">•</span>
 
                           <div className="flex items-center gap-1.5">
                             <Mail className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
-                            <span className={item.emailVerified ? 'font-medium text-zinc-700 dark:text-zinc-200' : 'text-zinc-500 dark:text-zinc-400'}>
-                              {item.emailVerified ? 'Verified' : 'Unverified'}
+                            <span className={(item.email_verified ?? item.emailVerified) ? 'font-medium text-zinc-700 dark:text-zinc-200' : 'text-zinc-500 dark:text-zinc-400'}>
+                              {(item.email_verified ?? item.emailVerified) ? 'Verified' : 'Unverified'}
                             </span>
                           </div>
+
+                          {(item.created_at || item.createdAt) && (
+                            <>
+                              <span className="text-zinc-300 dark:text-zinc-700 hidden sm:inline">•</span>
+                              <span className="text-zinc-400 dark:text-zinc-500 text-[11px]">
+                                Created {new Date(item.created_at || item.createdAt!).toLocaleDateString()}
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>

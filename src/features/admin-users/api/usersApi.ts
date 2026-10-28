@@ -6,29 +6,47 @@ export interface UserItem {
   id: string
   username: string
   email: string
+  full_name?: string
   fullName?: string
+  phone_number?: string
   phoneNumber?: string
   status: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'DELETED'
-  emailVerified: boolean
-  phoneNumberVerified: boolean
-  mfaEnabled: boolean
-  passkeyEnabled: boolean
-  smsMfaEnabled: boolean
-  hasSocialAccounts: boolean
+  email_verified: boolean
+  emailVerified?: boolean
+  phone_number_verified?: boolean
+  phoneNumberVerified?: boolean
+  mfa_enabled?: boolean
+  mfaEnabled?: boolean
+  passkey_enabled?: boolean
+  passkeyEnabled?: boolean
+  sms_mfa_enabled?: boolean
+  smsMfaEnabled?: boolean
+  has_social_accounts?: boolean
+  hasSocialAccounts?: boolean
+  has_password?: boolean
+  hasPassword?: boolean
+  failed_login_attempts?: number
   failedLoginAttempts?: number
+  locked_until?: string
   lockedUntil?: string
+  last_login_at?: string
   lastLoginAt?: string
   level?: number
   roles: string[]
-  createdAt: string
+  created_at: string
+  createdAt?: string
+  created_by?: string
   createdBy?: string
+  updated_at?: string
   updatedAt?: string
+  updated_by?: string
   updatedBy?: string
 }
 
 export interface CreateUserPayload {
   username: string
   email: string
+  full_name?: string
   fullName?: string
   roles?: string[]
 }
@@ -51,7 +69,12 @@ export const usersApi = {
   },
 
   createUser: async (payload: CreateUserPayload): Promise<ApiResponse<UserItem>> => {
-    const res = await apiClient.post<ApiResponse<UserItem>>('/auth/admin/users', payload)
+    const res = await apiClient.post<ApiResponse<UserItem>>('/auth/admin/users', {
+      username: payload.username,
+      email: payload.email,
+      full_name: payload.full_name || payload.fullName,
+      roles: payload.roles,
+    })
     return res.data
   },
 
