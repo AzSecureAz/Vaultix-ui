@@ -16,6 +16,8 @@ import {
   ShieldAlert,
   ChevronLeft,
   ChevronRight,
+  Copy,
+  Check,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -46,7 +48,7 @@ const DOMAIN_CONFIG: Record<
     border: 'border-amber-500/30',
   },
   permission: {
-    label: 'Permissions Catalog',
+    label: 'Permissions Directory',
     icon: Lock,
     bg: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
     border: 'border-emerald-500/30',
@@ -63,6 +65,13 @@ export function PermissionsPage() {
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
   const [bannerMessage, setBannerMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
   const [fetchError, setFetchError] = useState<{ status?: number; message: string } | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    setCopiedId(text)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
 
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -346,7 +355,7 @@ export function PermissionsPage() {
           <div>
             <CardTitle className="text-sm font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <span>Permission Catalog</span>
+              <span>Permissions Directory</span>
             </CardTitle>
             <CardDescription className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
               {isAdmin
@@ -457,16 +466,35 @@ export function PermissionsPage() {
                       >
                         {/* Token & Granular action */}
                         <td className="py-3.5 px-4 sm:px-6">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100 text-xs">
-                              {perm.name}
-                            </span>
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] px-1.5 py-0 font-mono tracking-tight text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/50"
-                            >
-                              {action}
-                            </Badge>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100 text-xs">
+                                {perm.name}
+                              </span>
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] px-1.5 py-0 font-mono tracking-tight text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/50"
+                              >
+                                {action}
+                              </Badge>
+                            </div>
+                            {perm.id && (
+                              <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 dark:text-zinc-500 font-mono">
+                                <span>id: {perm.id}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => copyToClipboard(perm.id)}
+                                  title="Copy permission UUID"
+                                  className="hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors p-0.5 cursor-pointer inline-flex items-center"
+                                >
+                                  {copiedId === perm.id ? (
+                                    <Check className="h-3 w-3 text-emerald-500" />
+                                  ) : (
+                                    <Copy className="h-3 w-3" />
+                                  )}
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </td>
 
@@ -579,6 +607,24 @@ export function PermissionsPage() {
                             {action}
                           </Badge>
                         </div>
+
+                        {perm.id && (
+                          <div className="flex items-center gap-1 text-[10px] text-zinc-400 dark:text-zinc-500 font-mono break-all">
+                            <span>id: {perm.id}</span>
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard(perm.id)}
+                              title="Copy permission UUID"
+                              className="hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors p-0.5 cursor-pointer shrink-0 inline-flex items-center"
+                            >
+                              {copiedId === perm.id ? (
+                                <Check className="h-3 w-3 text-emerald-500" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </button>
+                          </div>
+                        )}
 
                         <span
                           className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border ${config.bg} ${config.border}`}

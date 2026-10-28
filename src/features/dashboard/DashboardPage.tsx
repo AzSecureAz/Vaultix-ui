@@ -83,7 +83,7 @@ export function DashboardPage() {
         badgeBg: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20',
       },
       permission: {
-        label: 'Permissions Catalog',
+        label: 'Permissions Directory',
         icon: Shield,
         color: 'text-emerald-600 dark:text-emerald-400',
         badgeBg: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20',
@@ -623,7 +623,7 @@ export function DashboardPage() {
                     onClick={() => navigate('/admin/permissions')}
                     className="h-6 text-[11px] px-2 py-0 cursor-pointer text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 gap-1 font-medium"
                   >
-                    <span>Manage in Catalog</span>
+                    <span>Manage in Directory</span>
                     <ExternalLink className="h-3 w-3" />
                   </Button>
                 )}

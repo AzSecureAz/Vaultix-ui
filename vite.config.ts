@@ -21,6 +21,7 @@ export default defineConfig({
     },
   },
   build: {
+    chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
         manualChunks(id: string) {
@@ -32,6 +33,9 @@ export default defineConfig({
           }
           if (id.includes('node_modules/recharts/')) {
             return 'vendor-charts'
+          }
+          if (id.includes('node_modules/lucide-react/')) {
+            return 'vendor-icons'
           }
         },
       },

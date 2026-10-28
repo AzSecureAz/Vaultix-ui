@@ -135,7 +135,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                   }
                 >
                   <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
-                  <span>Roles &amp; RBAC</span>
+                  <span>Roles Directory</span>
                 </NavLink>
               )}
 
@@ -153,7 +153,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                   }
                 >
                   <Lock className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
-                  <span>Permissions Catalog</span>
+                  <span>Permissions Directory</span>
                 </NavLink>
               )}
 
