@@ -4,7 +4,6 @@ import { toast } from 'sonner'
 import {
   KeyRound,
   RefreshCw,
-  AlertTriangle,
   ShieldCheck,
   Clock,
   Check,
@@ -50,7 +49,6 @@ export function SigningKeysPage() {
   const [rotating, setRotating] = useState(false)
   const [copiedKid, setCopiedKid] = useState<string | null>(null)
   const [copiedPem, setCopiedPem] = useState(false)
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
   const [fetchError, setFetchError] = useState<{ status?: number; message: string } | null>(null)
 
   const [searchParams, setSearchParams] = useSearchParams()
@@ -179,11 +177,10 @@ export function SigningKeysPage() {
 
   const handleRotate = async () => {
     setRotating(true)
-    setMessage(null)
     try {
       const res = await apiClient.post('/auth/admin/signing-keys/rotate')
       if (res.data?.success) {
-        setMessage({ text: 'RSA-2048 signing key successfully generated and activated.', type: 'success' })
+        toast.success('RSA-2048 signing key successfully generated and activated.')
         setSearchParams((prev) => {
           const next = new URLSearchParams(prev)
           next.set('page', '1')
@@ -208,12 +205,12 @@ export function SigningKeysPage() {
   const handleRevokeConfirm = async () => {
     if (!keyToRevoke) return
     setRevoking(true)
-    setMessage(null)
     const targetKid = keyToRevoke.kid
     try {
       const res = await apiClient.post(`/auth/admin/signing-keys/${encodeURIComponent(targetKid)}/revoke`)
       if (res.data?.success) {
         setKeyToRevoke(null)
+        toast.success(`Signing key '${targetKid}' successfully revoked.`)
 
         // Optimistically update key in-place to avoid unmounting list & preserve scroll position
         setKeys((prev) =>
@@ -315,33 +312,6 @@ export function SigningKeysPage() {
           )}
         </div>
       </div>
-
-      {/* Banner Feedback Message */}
-      {message && (
-        <div
-          className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 text-xs animate-in fade-in ${
-            message.type === 'success'
-              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300'
-              : 'border-rose-500/30 bg-rose-500/10 text-rose-800 dark:text-rose-300'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            {message.type === 'success' ? (
-              <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-            ) : (
-              <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" />
-            )}
-            <span>{message.text}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setMessage(null)}
-            className="text-xs opacity-70 hover:opacity-100 cursor-pointer"
-          >
-            &times;
-          </button>
-        </div>
-      )}
 
       {/* Key Stats Overview */}
       {canRead && (
