@@ -52,7 +52,17 @@ export interface PageResponse<T> {
 }
 
 export const rolesApi = {
-  getRoles: async (page = 0, size = 10, search?: string): Promise<ApiResponse<PageResponse<RoleItem>>> => {
+  getRoles: async (page = 0, size = 10): Promise<ApiResponse<PageResponse<RoleItem>>> => {
+    const params = new URLSearchParams()
+    params.set('page', String(page))
+    params.set('size', String(size))
+    const res = await apiClient.get<ApiResponse<PageResponse<RoleItem>>>(
+      `/auth/admin/roles?${params.toString()}`
+    )
+    return res.data
+  },
+
+  getAssignableRoles: async (search?: string, page = 0, size = 30): Promise<ApiResponse<PageResponse<RoleItem>>> => {
     const params = new URLSearchParams()
     params.set('page', String(page))
     params.set('size', String(size))
@@ -60,7 +70,7 @@ export const rolesApi = {
       params.set('search', search.trim())
     }
     const res = await apiClient.get<ApiResponse<PageResponse<RoleItem>>>(
-      `/auth/admin/roles?${params.toString()}`
+      `/auth/admin/roles/assignable?${params.toString()}`
     )
     return res.data
   },

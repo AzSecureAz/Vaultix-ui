@@ -101,7 +101,7 @@ export function UsersPage() {
   const fetchAvailableRoles = async (query = '') => {
     setSearchingRoles(true)
     try {
-      const res = await rolesApi.getRoles(0, 30, query)
+      const res = await rolesApi.getAssignableRoles(query, 0, 30)
       if (res.success && res.data) {
         const items = res.data.content || []
         // Only show ENABLED roles whose level is strictly lower privilege than current actor's level
