@@ -21,6 +21,7 @@ import {
   Layers,
   Check,
   Copy,
+  Search,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -74,6 +75,7 @@ export function RolesPage() {
   const [createDescription, setCreateDescription] = useState('')
   const [createLevel, setCreateLevel] = useState<string>('')
   const [createPermissions, setCreatePermissions] = useState<string[]>([])
+  const [createPermissionSearch, setCreatePermissionSearch] = useState('')
   const [createLoading, setCreateLoading] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
 
@@ -81,6 +83,7 @@ export function RolesPage() {
   const [editDescription, setEditDescription] = useState('')
   const [editLevel, setEditLevel] = useState<string>('')
   const [editPermissions, setEditPermissions] = useState<string[]>([])
+  const [editPermissionSearch, setEditPermissionSearch] = useState('')
   const [editLoading, setEditLoading] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
 
@@ -92,6 +95,13 @@ export function RolesPage() {
     return [...(user?.permissions || [])].sort()
   }, [user?.permissions])
 
+  // Filtered create permissions based on client-side search query
+  const filteredCreatePermissions = useMemo(() => {
+    const query = createPermissionSearch.trim().toLowerCase()
+    if (!query) return availableCreatePermissions
+    return availableCreatePermissions.filter((p) => p.toLowerCase().includes(query))
+  }, [availableCreatePermissions, createPermissionSearch])
+
   // Permissions available when editing a role (actor's permissions UNION existing permissions on the role)
   const availableEditPermissions = useMemo(() => {
     const set = new Set<string>([
@@ -100,6 +110,13 @@ export function RolesPage() {
     ])
     return Array.from(set).sort()
   }, [user?.permissions, roleToEdit?.permissions])
+
+  // Filtered edit permissions based on client-side search query
+  const filteredEditPermissions = useMemo(() => {
+    const query = editPermissionSearch.trim().toLowerCase()
+    if (!query) return availableEditPermissions
+    return availableEditPermissions.filter((p) => p.toLowerCase().includes(query))
+  }, [availableEditPermissions, editPermissionSearch])
 
   const toggleCreatePermission = (perm: string) => {
     setCreatePermissions((prev) =>
@@ -290,6 +307,7 @@ export function RolesPage() {
     const defaultLevel = userLevel < 9999 ? userLevel + 10 : 1000
     setCreateLevel(String(defaultLevel))
     setCreatePermissions([])
+    setCreatePermissionSearch('')
     setCreateError(null)
     setIsCreateOpen(true)
   }
@@ -352,6 +370,7 @@ export function RolesPage() {
     setEditDescription(role.description || '')
     setEditLevel(String(role.level))
     setEditPermissions(role.permissions || [])
+    setEditPermissionSearch('')
     setEditError(null)
   }
 
@@ -934,13 +953,39 @@ export function RolesPage() {
                   Select permissions to grant to this role from your account capabilities:
                 </p>
 
+                {availableCreatePermissions.length > 0 && (
+                  <div className="relative mb-2">
+                    <Search className="h-3.5 w-3.5 absolute left-2.5 top-2.5 text-zinc-400 pointer-events-none" />
+                    <Input
+                      value={createPermissionSearch}
+                      onChange={(e) => setCreatePermissionSearch(e.target.value)}
+                      placeholder="Filter permissions (e.g. user, read, key)..."
+                      className="pl-8 pr-7 h-8 text-xs bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+                    />
+                    {createPermissionSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setCreatePermissionSearch('')}
+                        className="absolute right-2 top-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+                        title="Clear filter"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 {availableCreatePermissions.length === 0 ? (
-                  <div className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/30 text-zinc-400 text-center italic">
+                  <div className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/30 text-zinc-400 text-center italic text-xs">
                     You do not currently possess any assignable permissions.
+                  </div>
+                ) : filteredCreatePermissions.length === 0 ? (
+                  <div className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/30 text-zinc-400 text-center italic text-xs">
+                    No permissions match "{createPermissionSearch}".
                   </div>
                 ) : (
                   <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/40">
-                    {availableCreatePermissions.map((perm) => {
+                    {filteredCreatePermissions.map((perm) => {
                       const isSelected = createPermissions.includes(perm)
                       return (
                         <button
@@ -1076,13 +1121,39 @@ export function RolesPage() {
                   Toggle capabilities (includes currently assigned and your available permissions):
                 </p>
 
+                {availableEditPermissions.length > 0 && (
+                  <div className="relative mb-2">
+                    <Search className="h-3.5 w-3.5 absolute left-2.5 top-2.5 text-zinc-400 pointer-events-none" />
+                    <Input
+                      value={editPermissionSearch}
+                      onChange={(e) => setEditPermissionSearch(e.target.value)}
+                      placeholder="Filter permissions (e.g. user, read, key)..."
+                      className="pl-8 pr-7 h-8 text-xs bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+                    />
+                    {editPermissionSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setEditPermissionSearch('')}
+                        className="absolute right-2 top-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+                        title="Clear filter"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 {availableEditPermissions.length === 0 ? (
-                  <div className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/30 text-zinc-400 text-center italic">
+                  <div className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/30 text-zinc-400 text-center italic text-xs">
                     No assignable permissions available.
+                  </div>
+                ) : filteredEditPermissions.length === 0 ? (
+                  <div className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/30 text-zinc-400 text-center italic text-xs">
+                    No permissions match "{editPermissionSearch}".
                   </div>
                 ) : (
                   <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/40">
-                    {availableEditPermissions.map((perm) => {
+                    {filteredEditPermissions.map((perm) => {
                       const isSelected = editPermissions.includes(perm)
                       return (
                         <button
