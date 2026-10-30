@@ -29,7 +29,7 @@ export const ChangeFullNameModal: React.FC<ChangeFullNameModalProps> = ({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [success, setSuccess] = useState(false)
 
-  // Reset state when modal opens
+  /* Reset state when modal opens */
   useEffect(() => {
     if (isOpen) {
       setNewFullName(currentFullName || '')
@@ -37,7 +37,7 @@ export const ChangeFullNameModal: React.FC<ChangeFullNameModalProps> = ({
       setFieldErrors({})
       setSuccess(false)
     }
-  }, [isOpen, currentFullName])
+  }, [isOpen])
 
   const clean = newFullName.trim()
   const isValidFormat = FULL_NAME_REGEX.test(clean)
