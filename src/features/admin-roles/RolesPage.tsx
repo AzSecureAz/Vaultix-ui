@@ -81,6 +81,7 @@ export function RolesPage() {
   const [createPermissionSearch, setCreatePermissionSearch] = useState('')
   const [createLoading, setCreateLoading] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
+  const [createFieldErrors, setCreateFieldErrors] = useState<Record<string, string>>({})
 
   const [roleToEdit, setRoleToEdit] = useState<RoleItem | null>(null)
   const [editDescription, setEditDescription] = useState('')
@@ -89,6 +90,7 @@ export function RolesPage() {
   const [editPermissionSearch, setEditPermissionSearch] = useState('')
   const [editLoading, setEditLoading] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
+  const [editFieldErrors, setEditFieldErrors] = useState<Record<string, string>>({})
 
   const [roleToDelete, setRoleToDelete] = useState<RoleItem | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -349,34 +351,45 @@ export function RolesPage() {
     setCreatePermissions([])
     setCreatePermissionSearch('')
     setCreateError(null)
+    setCreateFieldErrors({})
     setIsCreateOpen(true)
   }
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setCreateError(null)
+    setCreateFieldErrors({})
 
     const rawName = createName.trim()
-    if (!rawName) {
-      setCreateError('Role name is required.')
-      return
-    }
-
     const lvl = parseInt(createLevel, 10)
-    if (isNaN(lvl) || lvl < 1) {
-      setCreateError('Role level must be a positive integer.')
-      return
+
+    const errors: Record<string, string> = {}
+    const upper = rawName.toUpperCase()
+    const baseName = upper.startsWith('ROLE_') ? upper.substring(5) : upper
+    const isValidRoleName = /^[A-Z][A-Z0-9_]{0,57}[A-Z0-9]$/.test(baseName) && !baseName.includes('__')
+
+    if (!rawName) {
+      errors.name = 'Role name is required.'
+    } else if (baseName.length < 2 || baseName.length > 59) {
+      errors.name = "Role name must be between 2 and 59 characters without 'ROLE_' prefix (or 7 and 64 characters with 'ROLE_' prefix)"
+    } else if (!isValidRoleName) {
+      errors.name = "Role name must start with a letter, end with an alphanumeric character, contain only letters, numbers, and single underscores"
     }
 
-    if (lvl <= userLevel) {
-      setCreateError(`Role level must be strictly greater than your active level (${userLevel}). Lower numbers indicate higher privilege.`)
+    if (isNaN(lvl) || lvl < 1) {
+      errors.level = 'Role level must be a positive integer.'
+    } else if (lvl <= userLevel) {
+      errors.level = `Role level must be strictly greater than your active level (${userLevel}). Lower numbers indicate higher privilege.`
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setCreateFieldErrors(errors)
       return
     }
 
     setCreateLoading(true)
 
     try {
-      const upper = rawName.toUpperCase()
       const canonicalName = upper.startsWith('ROLE_') ? upper : `ROLE_${upper}`
 
       await rolesApi.createRole({
@@ -393,12 +406,28 @@ export function RolesPage() {
       }
     } catch (err: any) {
       const isSudoCancelled = err?.message?.includes('cancelled')
-      setCreateError(
-        err?.response?.data?.message ||
-        (isSudoCancelled
-          ? 'Action cancelled: Sudo elevation is required to create a new role.'
-          : 'Failed to create role.')
-      )
+      if (isSudoCancelled) {
+        setCreateError('Action cancelled: Sudo elevation is required to create a new role.')
+        return
+      }
+
+      const errData = err?.response?.data
+      if (errData?.errors && typeof errData.errors === 'object' && Object.keys(errData.errors).length > 0) {
+        setCreateFieldErrors(errData.errors)
+        const unhandled = Object.entries(errData.errors).filter(
+          ([key]) => !['name', 'level', 'description', 'permissions'].includes(key)
+        )
+        if (unhandled.length > 0) {
+          setCreateError(unhandled.map(([, val]) => val).join('. '))
+        }
+      } else {
+        const msg = errData?.message || errData?.error || 'Failed to create role.'
+        if (msg.toLowerCase().includes('name') || msg.toLowerCase().includes('exist') || msg.toLowerCase().includes('already')) {
+          setCreateFieldErrors({ name: msg })
+        } else {
+          setCreateError(msg)
+        }
+      }
     } finally {
       setCreateLoading(false)
     }
@@ -412,21 +441,25 @@ export function RolesPage() {
     setEditPermissions(role.permissions || [])
     setEditPermissionSearch('')
     setEditError(null)
+    setEditFieldErrors({})
   }
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!roleToEdit) return
     setEditError(null)
+    setEditFieldErrors({})
 
     const lvl = parseInt(editLevel, 10)
+    const errors: Record<string, string> = {}
     if (isNaN(lvl) || lvl < 1) {
-      setEditError('Role level must be a positive integer.')
-      return
+      errors.level = 'Role level must be a positive integer.'
+    } else if (lvl <= userLevel) {
+      errors.level = `Role level must be strictly greater than your active level (${userLevel}).`
     }
 
-    if (lvl <= userLevel) {
-      setEditError(`Role level must be strictly greater than your active level (${userLevel}).`)
+    if (Object.keys(errors).length > 0) {
+      setEditFieldErrors(errors)
       return
     }
 
@@ -449,12 +482,28 @@ export function RolesPage() {
       toast.success(`Role '${roleToEdit.name}' updated successfully.`)
     } catch (err: any) {
       const isSudoCancelled = err?.message?.includes('cancelled')
-      setEditError(
-        err?.response?.data?.message ||
-        (isSudoCancelled
-          ? 'Action cancelled: Sudo elevation is required to update this role.'
-          : 'Failed to update role.')
-      )
+      if (isSudoCancelled) {
+        setEditError('Action cancelled: Sudo elevation is required to update this role.')
+        return
+      }
+
+      const errData = err?.response?.data
+      if (errData?.errors && typeof errData.errors === 'object' && Object.keys(errData.errors).length > 0) {
+        setEditFieldErrors(errData.errors)
+        const unhandled = Object.entries(errData.errors).filter(
+          ([key]) => !['level', 'description', 'permissions'].includes(key)
+        )
+        if (unhandled.length > 0) {
+          setEditError(unhandled.map(([, val]) => val).join('. '))
+        }
+      } else {
+        const msg = errData?.message || errData?.error || 'Failed to update role.'
+        if (msg.toLowerCase().includes('level')) {
+          setEditFieldErrors({ level: msg })
+        } else {
+          setEditError(msg)
+        }
+      }
     } finally {
       setEditLoading(false)
     }
@@ -979,14 +1028,33 @@ export function RolesPage() {
                 </label>
                 <Input
                   value={createName}
-                  onChange={(e) => setCreateName(e.target.value)}
+                  onChange={(e) => {
+                    setCreateName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))
+                    if (createFieldErrors.name) {
+                      setCreateFieldErrors((prev) => {
+                        const next = { ...prev }
+                        delete next.name
+                        return next
+                      })
+                    }
+                  }}
                   placeholder="e.g. OPERATOR or ROLE_OPERATOR"
-                  className="font-mono text-xs uppercase"
+                  className={cn(
+                    'font-mono text-xs uppercase',
+                    createFieldErrors.name && 'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-red-900 dark:text-red-200'
+                  )}
                   required
                 />
-                <p className="text-[10px] text-zinc-400 mt-1">
-                  Standard format: alphanumeric with single underscores. Will be automatically prefixed with <code>ROLE_</code>.
-                </p>
+                {createFieldErrors.name ? (
+                  <p className="text-[11px] text-red-600 dark:text-red-400 font-medium flex items-center gap-1 mt-1 animate-in fade-in-50 duration-150">
+                    <AlertCircle className="h-3 w-3 shrink-0" />
+                    <span>{createFieldErrors.name}</span>
+                  </p>
+                ) : (
+                  <p className="text-[10px] text-zinc-400 mt-1">
+                    Standard format: alphanumeric with single underscores. Will be automatically prefixed with <code>ROLE_</code>.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -998,14 +1066,33 @@ export function RolesPage() {
                   min="1"
                   max="99999"
                   value={createLevel}
-                  onChange={(e) => setCreateLevel(e.target.value)}
+                  onChange={(e) => {
+                    setCreateLevel(e.target.value)
+                    if (createFieldErrors.level) {
+                      setCreateFieldErrors((prev) => {
+                        const next = { ...prev }
+                        delete next.level
+                        return next
+                      })
+                    }
+                  }}
                   placeholder={`Must be > ${userLevel}`}
-                  className="font-mono text-xs"
+                  className={cn(
+                    'font-mono text-xs',
+                    createFieldErrors.level && 'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-red-900 dark:text-red-200'
+                  )}
                   required
                 />
-                <p className="text-[10px] text-zinc-400 mt-1">
-                  Lower numbers represent higher privilege. Must be strictly greater than your level ({userLevel}).
-                </p>
+                {createFieldErrors.level ? (
+                  <p className="text-[11px] text-red-600 dark:text-red-400 font-medium flex items-center gap-1 mt-1 animate-in fade-in-50 duration-150">
+                    <AlertCircle className="h-3 w-3 shrink-0" />
+                    <span>{createFieldErrors.level}</span>
+                  </p>
+                ) : (
+                  <p className="text-[10px] text-zinc-400 mt-1">
+                    Lower numbers represent higher privilege. Must be strictly greater than your level ({userLevel}).
+                  </p>
+                )}
               </div>
 
               <div>
@@ -1166,14 +1253,33 @@ export function RolesPage() {
                   min="1"
                   max="99999"
                   value={editLevel}
-                  onChange={(e) => setEditLevel(e.target.value)}
+                  onChange={(e) => {
+                    setEditLevel(e.target.value)
+                    if (editFieldErrors.level) {
+                      setEditFieldErrors((prev) => {
+                        const next = { ...prev }
+                        delete next.level
+                        return next
+                      })
+                    }
+                  }}
                   placeholder={`Must be > ${userLevel}`}
-                  className="font-mono text-xs"
+                  className={cn(
+                    'font-mono text-xs',
+                    editFieldErrors.level && 'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-red-900 dark:text-red-200'
+                  )}
                   required
                 />
-                <p className="text-[10px] text-zinc-400 mt-1">
-                  Must be strictly greater than your level ({userLevel}).
-                </p>
+                {editFieldErrors.level ? (
+                  <p className="text-[11px] text-red-600 dark:text-red-400 font-medium flex items-center gap-1 mt-1 animate-in fade-in-50 duration-150">
+                    <AlertCircle className="h-3 w-3 shrink-0" />
+                    <span>{editFieldErrors.level}</span>
+                  </p>
+                ) : (
+                  <p className="text-[10px] text-zinc-400 mt-1">
+                    Must be strictly greater than your level ({userLevel}).
+                  </p>
+                )}
               </div>
 
               <div>

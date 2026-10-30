@@ -23,6 +23,7 @@ import {
   Mail,
   UserCheck,
   AlertTriangle,
+  AlertCircle,
   Search,
   KeyRound,
 } from 'lucide-react'
@@ -85,6 +86,7 @@ export function UsersPage() {
   const [createRoles, setCreateRoles] = useState<string[]>([])
   const [createLoading, setCreateLoading] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
+  const [createFieldErrors, setCreateFieldErrors] = useState<Record<string, string>>({})
 
   /* Edit Roles Modal */
   const [userToEdit, setUserToEdit] = useState<UserItem | null>(null)
@@ -345,6 +347,7 @@ export function UsersPage() {
     setCreateFullName('')
     setCreateRoles([])
     setCreateError(null)
+    setCreateFieldErrors({})
     setRoleSearchQuery('')
     setIsCreateOpen(true)
   }
@@ -362,18 +365,35 @@ export function UsersPage() {
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setCreateError(null)
+    setCreateFieldErrors({})
 
     const cleanUsername = createUsername.trim().toLowerCase()
     const cleanEmail = createEmail.trim().toLowerCase()
     const cleanFullName = createFullName.trim()
 
+    const errors: Record<string, string> = {}
+
+    /* Frontend validations matching backend ValidUsername and Email constraints */
+    const isUsernameFormatValid = /^[a-z0-9][a-z0-9._-]*[a-z0-9]$/.test(cleanUsername)
     if (!cleanUsername) {
-      setCreateError('Username is required.')
-      return
+      errors.username = 'Username is required'
+    } else if (cleanUsername.length < 3 || cleanUsername.length > 128) {
+      errors.username = 'Username must be between 3 and 128 characters'
+    } else if (!isUsernameFormatValid) {
+      errors.username = 'Username must start and end with an alphanumeric character, contain only letters, numbers, underscores, dots, or hyphens, and be between 3 and 128 characters'
     }
 
-    if (!cleanEmail || !cleanEmail.includes('@')) {
-      setCreateError('A valid email address is required.')
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!cleanEmail) {
+      errors.email = 'Corporate email is required'
+    } else if (!emailRegex.test(cleanEmail)) {
+      errors.email = 'Must be a valid email address'
+    } else if (cleanEmail.length > 256) {
+      errors.email = 'Email cannot exceed 256 characters'
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setCreateFieldErrors(errors)
       return
     }
 
@@ -395,12 +415,40 @@ export function UsersPage() {
       }
     } catch (err: any) {
       const isSudoCancelled = err?.message?.includes('cancelled')
-      setCreateError(
-        err?.response?.data?.message ||
-          (isSudoCancelled
-            ? 'Action cancelled: Sudo elevation is required to create a new user.'
-            : 'Failed to create user.')
-      )
+      if (isSudoCancelled) {
+        setCreateError('Action cancelled: Sudo elevation is required to create a new user.')
+        return
+      }
+
+      const errData = err?.response?.data
+      if (errData?.errors && typeof errData.errors === 'object' && Object.keys(errData.errors).length > 0) {
+        const mappedErrors: Record<string, string> = {}
+        for (const [key, msg] of Object.entries(errData.errors)) {
+          if (typeof msg === 'string') {
+            if (key === 'full_name' || key === 'fullName') mappedErrors.fullName = msg
+            else if (key === 'corporate_email' || key === 'corporateEmail') mappedErrors.email = msg
+            else mappedErrors[key] = msg
+          }
+        }
+        setCreateFieldErrors(mappedErrors)
+
+        /* If there are unhandled errors not mapped to a specific field, show in banner */
+        const unhandled = Object.entries(errData.errors).filter(
+          ([key]) => !['username', 'email', 'fullName', 'full_name', 'roles', 'corporateEmail', 'corporate_email'].includes(key)
+        )
+        if (unhandled.length > 0) {
+          setCreateError(unhandled.map(([, val]) => val).join('. '))
+        }
+      } else {
+        const msg = errData?.message || errData?.error || 'Failed to create user.'
+        if (msg.toLowerCase().includes('username') && (msg.toLowerCase().includes('exist') || msg.toLowerCase().includes('taken') || msg.toLowerCase().includes('already'))) {
+          setCreateFieldErrors({ username: msg })
+        } else if (msg.toLowerCase().includes('email') && (msg.toLowerCase().includes('exist') || msg.toLowerCase().includes('taken') || msg.toLowerCase().includes('already'))) {
+          setCreateFieldErrors({ email: msg })
+        } else {
+          setCreateError(msg)
+        }
+      }
     } finally {
       setCreateLoading(false)
     }
@@ -1056,15 +1104,35 @@ export function UsersPage() {
                 </label>
                 <Input
                   value={createUsername}
-                  onChange={(e) => setCreateUsername(e.target.value)}
+                  onChange={(e) => {
+                    setCreateUsername(e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, ''))
+                    if (createFieldErrors.username) {
+                      setCreateFieldErrors((prev) => {
+                        const next = { ...prev }
+                        delete next.username
+                        return next
+                      })
+                    }
+                  }}
                   placeholder="e.g. john.doe or jdoe"
                   disabled={createLoading}
-                  className="font-mono text-xs"
+                  className={cn(
+                    'font-mono text-xs',
+                    createFieldErrors.username &&
+                      'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-red-900 dark:text-red-200'
+                  )}
                   required
                 />
-                <p className="text-[10px] text-zinc-400 mt-1">
-                  Must be alphanumeric with single periods or underscores.
-                </p>
+                {createFieldErrors.username ? (
+                  <p className="text-[11px] text-red-600 dark:text-red-400 font-medium flex items-center gap-1 mt-1 animate-in fade-in-50 duration-150">
+                    <AlertCircle className="h-3 w-3 shrink-0" />
+                    <span>{createFieldErrors.username}</span>
+                  </p>
+                ) : (
+                  <p className="text-[10px] text-zinc-400 mt-1">
+                    3-128 chars, lowercase letters, numbers, dots, hyphens
+                  </p>
+                )}
               </div>
 
               <div>
@@ -1074,12 +1142,31 @@ export function UsersPage() {
                 <Input
                   type="email"
                   value={createEmail}
-                  onChange={(e) => setCreateEmail(e.target.value)}
+                  onChange={(e) => {
+                    setCreateEmail(e.target.value)
+                    if (createFieldErrors.email) {
+                      setCreateFieldErrors((prev) => {
+                        const next = { ...prev }
+                        delete next.email
+                        return next
+                      })
+                    }
+                  }}
                   placeholder="e.g. john.doe@vaultix.io"
                   disabled={createLoading}
-                  className="text-xs"
+                  className={cn(
+                    'text-xs',
+                    createFieldErrors.email &&
+                      'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-red-900 dark:text-red-200'
+                  )}
                   required
                 />
+                {createFieldErrors.email && (
+                  <p className="text-[11px] text-red-600 dark:text-red-400 font-medium flex items-center gap-1 mt-1 animate-in fade-in-50 duration-150">
+                    <AlertCircle className="h-3 w-3 shrink-0" />
+                    <span>{createFieldErrors.email}</span>
+                  </p>
+                )}
               </div>
 
               <div>
@@ -1088,11 +1175,30 @@ export function UsersPage() {
                 </label>
                 <Input
                   value={createFullName}
-                  onChange={(e) => setCreateFullName(e.target.value)}
+                  onChange={(e) => {
+                    setCreateFullName(e.target.value)
+                    if (createFieldErrors.fullName) {
+                      setCreateFieldErrors((prev) => {
+                        const next = { ...prev }
+                        delete next.fullName
+                        return next
+                      })
+                    }
+                  }}
                   placeholder="e.g. John Doe"
                   disabled={createLoading}
-                  className="text-xs"
+                  className={cn(
+                    'text-xs',
+                    createFieldErrors.fullName &&
+                      'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-red-900 dark:text-red-200'
+                  )}
                 />
+                {createFieldErrors.fullName && (
+                  <p className="text-[11px] text-red-600 dark:text-red-400 font-medium flex items-center gap-1 mt-1 animate-in fade-in-50 duration-150">
+                    <AlertCircle className="h-3 w-3 shrink-0" />
+                    <span>{createFieldErrors.fullName}</span>
+                  </p>
+                )}
               </div>
 
               {/* Role Assignment Picker */}
@@ -1156,6 +1262,13 @@ export function UsersPage() {
                     })
                   )}
                 </div>
+
+                {createFieldErrors.roles && (
+                  <p className="text-[11px] text-red-600 dark:text-red-400 font-medium flex items-center gap-1 mt-1 animate-in fade-in-50 duration-150">
+                    <AlertCircle className="h-3 w-3 shrink-0" />
+                    <span>{createFieldErrors.roles}</span>
+                  </p>
+                )}
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
