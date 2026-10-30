@@ -624,6 +624,7 @@ export function UsersPage() {
                 const isSelf = item.id === user?.id
                 const targetLevel = item.level ?? Infinity
                 const isProtectedByHierarchy = targetLevel <= userLevel
+                const isManageable = !isSelf && !isProtectedByHierarchy
                 const isDeleted = item.status === 'DELETED'
                 const isActive = item.status === 'ACTIVE'
                 const isMutating = actionLoadingId === item.id
@@ -667,6 +668,17 @@ export function UsersPage() {
                               className="text-[10px] px-2 py-0.5 font-mono font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/30"
                             >
                               Level {item.level}
+                            </Badge>
+                          )}
+
+                          {!isSelf && isProtectedByHierarchy && (
+                            <Badge
+                              variant="secondary"
+                              title={`You cannot manage this user because their authority level (${targetLevel}) is equal or higher privilege than your level (${userLevel})`}
+                              className="text-[10px] px-1.5 py-0.5 text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 gap-1 border border-zinc-200 dark:border-zinc-700 inline-flex items-center"
+                            >
+                              <Lock className="h-2.5 w-2.5" />
+                              <span>Protected</span>
                             </Badge>
                           )}
 
@@ -789,17 +801,13 @@ export function UsersPage() {
                     {/* Action Controls */}
                     <div className="flex items-center gap-1.5 shrink-0 self-end md:self-center flex-wrap">
                       {isDeleted ? (
-                        canRestore && (
+                        canRestore && isManageable && (
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleRestoreUser(item)}
-                            disabled={isMutating || isProtectedByHierarchy}
-                            title={
-                              isProtectedByHierarchy
-                                ? `Cannot restore user with level ${targetLevel} (equal or higher authority than yours)`
-                                : 'Restore account to DISABLED state'
-                            }
+                            disabled={isMutating}
+                            title="Restore account to DISABLED state"
                             className="h-8 text-xs px-2.5 text-blue-600 hover:text-blue-700 dark:text-blue-400 gap-1.5 border-blue-200 dark:border-blue-900/50 cursor-pointer font-medium"
                           >
                             {isMutating ? (
@@ -811,83 +819,65 @@ export function UsersPage() {
                           </Button>
                         )
                       ) : (
-                        <>
-                          {/* Edit Roles Button */}
-                          {canUpdate && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => openEditModal(item)}
-                              disabled={isMutating || isSelf || isProtectedByHierarchy}
-                              title={
-                                isSelf
-                                  ? 'Cannot modify roles of your own account'
-                                  : isProtectedByHierarchy
-                                  ? `Cannot edit user with level ${targetLevel} (equal or higher authority than yours)`
-                                  : 'Edit assigned roles'
-                              }
-                              className="h-8 text-xs px-2.5 gap-1.5 cursor-pointer font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white"
-                            >
-                              <Edit3 className="h-3.5 w-3.5 text-zinc-500" />
-                              <span>Roles</span>
-                            </Button>
-                          )}
+                        isManageable && (
+                          <>
+                            {/* Edit Roles Button */}
+                            {canUpdate && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openEditModal(item)}
+                                disabled={isMutating}
+                                title="Edit assigned roles"
+                                className="h-8 text-xs px-2.5 gap-1.5 cursor-pointer font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white"
+                              >
+                                <Edit3 className="h-3.5 w-3.5 text-zinc-500" />
+                                <span>Roles</span>
+                              </Button>
+                            )}
 
-                          {/* Enable / Disable Toggle */}
-                          {canUpdate && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleToggleStatus(item)}
-                              disabled={isMutating || isSelf || isProtectedByHierarchy}
-                              title={
-                                isSelf
-                                  ? 'Cannot modify status of your own account'
-                                  : isProtectedByHierarchy
-                                  ? `Hierarchy restriction: level ${targetLevel} is equal or higher authority`
-                                  : isActive
-                                  ? 'Disable user and revoke active tokens'
-                                  : 'Enable user account'
-                              }
-                              className={`h-8 text-xs px-2.5 gap-1.5 font-medium cursor-pointer transition-all ${
-                                isActive
-                                  ? 'text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/20 border-amber-200 dark:border-amber-900/40'
-                                  : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40'
-                              }`}
-                            >
-                              {isMutating ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <Power className="h-3.5 w-3.5" />
-                              )}
-                              <span>{isActive ? 'Disable' : 'Enable'}</span>
-                            </Button>
-                          )}
+                            {/* Enable / Disable Toggle */}
+                            {canUpdate && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleToggleStatus(item)}
+                                disabled={isMutating}
+                                title={isActive ? 'Disable user and revoke active tokens' : 'Enable user account'}
+                                className={`h-8 text-xs px-2.5 gap-1.5 font-medium cursor-pointer transition-all ${
+                                  isActive
+                                    ? 'text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/20 border-amber-200 dark:border-amber-900/40'
+                                    : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40'
+                                }`}
+                              >
+                                {isMutating ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <Power className="h-3.5 w-3.5" />
+                                )}
+                                <span>{isActive ? 'Disable' : 'Enable'}</span>
+                              </Button>
+                            )}
 
-                          {/* Delete Button */}
-                          {canDelete && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setUserToDelete(item)}
-                              disabled={isMutating || isSelf || isProtectedByHierarchy}
-                              title={
-                                isSelf
-                                  ? 'Cannot delete your own account'
-                                  : isProtectedByHierarchy
-                                  ? `Hierarchy restriction: level ${targetLevel} is equal or higher authority`
-                                  : 'Soft-delete account'
-                              }
-                              className="h-8 text-xs px-2.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/20 border-rose-200 dark:border-rose-900/40 gap-1.5 cursor-pointer font-medium"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                              <span>Delete</span>
-                            </Button>
-                          )}
-                        </>
+                            {/* Delete Button */}
+                            {canDelete && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setUserToDelete(item)}
+                                disabled={isMutating}
+                                title="Soft-delete account"
+                                className="h-8 text-xs px-2.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/20 border-rose-200 dark:border-rose-900/40 gap-1.5 cursor-pointer font-medium"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                <span>Delete</span>
+                              </Button>
+                            )}
+                          </>
+                        )
                       )}
                     </div>
                   </div>
