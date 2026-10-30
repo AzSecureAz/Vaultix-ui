@@ -537,19 +537,14 @@ export function SigningKeysPage() {
                         </Button>
                       )}
 
-                      {canRevoke && !isRevoked && (
+                      {canRevoke && !isActive && !isRevoked && (
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
                           onClick={() => setKeyToRevoke(key)}
-                          disabled={isActive}
-                          title={isActive ? 'Active signing key cannot be revoked. Rotate first.' : 'Revoke this rotated signing key'}
-                          className={`text-[11px] gap-1.5 h-7.5 px-2.5 font-medium transition-all ${
-                            isActive
-                              ? 'opacity-40 cursor-not-allowed text-zinc-400 border-zinc-200 dark:border-zinc-800'
-                              : 'cursor-pointer text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-200 dark:border-red-900/40'
-                          }`}
+                          title="Revoke this rotated signing key"
+                          className="text-[11px] gap-1.5 h-7.5 px-2.5 font-medium transition-all cursor-pointer text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-200 dark:border-red-900/40"
                         >
                           <Trash2 className="h-3 w-3" />
                           <span>Revoke</span>
