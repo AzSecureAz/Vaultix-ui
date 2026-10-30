@@ -14,7 +14,7 @@ export function UserButton() {
   const [isLogoutAllOpen, setIsLogoutAllOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  // Close when clicking outside
+  /* Close when clicking outside */
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -126,6 +126,18 @@ export function UserButton() {
             >
               <Fingerprint className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
               <span>Passkeys</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                navigate('/sessions')
+                setIsOpen(false)
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 transition-colors cursor-pointer text-left"
+            >
+              <Smartphone className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
+              <span>Active sessions</span>
             </button>
 
             <button
