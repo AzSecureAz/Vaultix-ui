@@ -18,10 +18,13 @@ import {
   ChevronRight,
   Copy,
   Check,
+  Search,
+  X,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/stores/authStore'
 import { permissionsApi, type PermissionItem } from './api/permissionsApi'
 
@@ -74,20 +77,49 @@ export function PermissionsPage() {
 
   const [searchParams, setSearchParams] = useSearchParams()
 
-  // 1-indexed for users in URL (?page=1, ?page=5)
+  const urlSearch = searchParams.get('search') || ''
+  const [searchInput, setSearchInput] = useState(urlSearch)
+
+  /* 1-indexed for users in URL (?page=1, ?page=5) */
   const rawPage = parseInt(searchParams.get('page') || '1', 10)
   const rawSize = parseInt(searchParams.get('size') || '10', 10)
 
   const currentPage = isNaN(rawPage) || rawPage < 1 ? 0 : rawPage - 1
   const pageSize = [10, 20, 50].includes(rawSize) ? rawSize : 10
 
-  // Server-side pagination metadata
+  /* Server-side pagination metadata */
   const [totalElements, setTotalElements] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
   const [isFirst, setIsFirst] = useState(true)
   const [isLast, setIsLast] = useState(true)
 
-  const fetchPermissions = async (page = currentPage, size = pageSize) => {
+  /* Synchronize local search input if URL changes externally */
+  useEffect(() => {
+    setSearchInput(urlSearch)
+  }, [urlSearch])
+
+  /* Debounce search input and sync to URL params */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const clean = searchInput.trim()
+      if (clean !== urlSearch) {
+        setSearchParams((prev) => {
+          const next = new URLSearchParams(prev)
+          if (clean) {
+            next.set('search', clean)
+          } else {
+            next.delete('search')
+          }
+          next.set('page', '1')
+          return next
+        })
+      }
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchInput, urlSearch, setSearchParams])
+
+  const fetchPermissions = async (page = currentPage, size = pageSize, search = urlSearch) => {
     if (!canRead) {
       setLoading(false)
       setFetchError({
@@ -105,7 +137,9 @@ export function PermissionsPage() {
     setLoading(true)
     setFetchError(null)
     try {
-      const res = await permissionsApi.getPermissions(page, size)
+      const trimmed = search.trim()
+      const payload = trimmed ? { search: trimmed } : {}
+      const res = await permissionsApi.searchPermissions(payload, page, size)
       if (res.success && res.data) {
         setFetchError(null)
         const data = res.data
@@ -122,12 +156,15 @@ export function PermissionsPage() {
         setIsFirst(pageNum === 0)
         setIsLast(pageNum >= pages - 1)
 
-        // Auto-correct page if query param exceeds total pages
+        /* Auto-correct page if query param exceeds total pages */
         if (page >= pages && pages > 0) {
           setSearchParams((prev) => {
             const next = new URLSearchParams(prev)
             next.set('page', String(pages))
             next.set('size', String(size))
+            if (urlSearch) {
+              next.set('search', urlSearch)
+            }
             return next
           }, { replace: true })
         }
@@ -162,8 +199,8 @@ export function PermissionsPage() {
   }
 
   useEffect(() => {
-    fetchPermissions(currentPage, pageSize)
-  }, [currentPage, pageSize, canRead])
+    fetchPermissions(currentPage, pageSize, urlSearch)
+  }, [currentPage, pageSize, urlSearch, canRead])
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 0 && newPage < totalPages && !loading) {
@@ -171,6 +208,9 @@ export function PermissionsPage() {
         const next = new URLSearchParams(prev)
         next.set('page', String(newPage + 1))
         next.set('size', String(pageSize))
+        if (urlSearch) {
+          next.set('search', urlSearch)
+        }
         return next
       })
     }
@@ -181,6 +221,9 @@ export function PermissionsPage() {
       const next = new URLSearchParams(prev)
       next.set('page', '1')
       next.set('size', String(newSize))
+      if (urlSearch) {
+        next.set('search', urlSearch)
+      }
       return next
     })
   }
@@ -199,7 +242,7 @@ export function PermissionsPage() {
         await permissionsApi.enablePermission(perm.name)
       }
 
-      // Update item in local list
+      /* Update item in local list */
       setPermissions((prev) =>
         prev.map((item) =>
           item.id === perm.id
@@ -261,7 +304,7 @@ export function PermissionsPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => fetchPermissions(currentPage, pageSize)}
+              onClick={() => fetchPermissions(currentPage, pageSize, urlSearch)}
               disabled={loading}
               className="h-9 gap-2 text-xs font-medium cursor-pointer"
             >
@@ -321,7 +364,7 @@ export function PermissionsPage() {
 
       {/* Permissions Table Card with Pagination */}
       <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 overflow-hidden">
-        <CardHeader className="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <CardHeader className="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800/60 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <CardTitle className="text-sm font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -334,27 +377,51 @@ export function PermissionsPage() {
             </CardDescription>
           </div>
 
-          {/* Page size selector in header */}
           {canRead && (
-            <div className="flex items-center gap-2 self-start sm:self-auto">
-              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-                Rows per page:
-              </span>
-              <div className="inline-flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800 p-0.5 bg-zinc-50 dark:bg-zinc-900/80">
-                {[10, 20, 50].map((sizeOption) => (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto">
+              {/* Search input */}
+              <div className="relative w-full sm:w-64">
+                <Search className="h-3.5 w-3.5 absolute left-2.5 top-2.5 text-zinc-400 pointer-events-none" />
+                <Input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="Search permissions..."
+                  className="pl-8 pr-7 h-8 text-xs bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+                />
+                {searchInput && (
                   <button
-                    key={sizeOption}
                     type="button"
-                    onClick={() => handlePageSizeChange(sizeOption)}
-                    className={`text-[11px] px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
-                      pageSize === sizeOption
-                        ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs font-semibold'
-                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                    }`}
+                    onClick={() => setSearchInput('')}
+                    className="absolute right-2 top-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+                    title="Clear search"
                   >
-                    {sizeOption}
+                    <X className="h-3.5 w-3.5" />
                   </button>
-                ))}
+                )}
+              </div>
+
+              {/* Page size selector in header */}
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
+                  Rows per page:
+                </span>
+                <div className="inline-flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800 p-0.5 bg-zinc-50 dark:bg-zinc-900/80">
+                  {[10, 20, 50].map((sizeOption) => (
+                    <button
+                      key={sizeOption}
+                      type="button"
+                      onClick={() => handlePageSizeChange(sizeOption)}
+                      className={`text-[11px] px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
+                        pageSize === sizeOption
+                          ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs font-semibold'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                      }`}
+                    >
+                      {sizeOption}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -376,7 +443,7 @@ export function PermissionsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => fetchPermissions(currentPage, pageSize)}
+                    onClick={() => fetchPermissions(currentPage, pageSize, urlSearch)}
                     className="h-8 gap-1.5 text-xs font-medium cursor-pointer"
                   >
                     <RefreshCw className="h-3.5 w-3.5" />
@@ -394,7 +461,22 @@ export function PermissionsPage() {
             </div>
           ) : permissions.length === 0 ? (
             <div className="py-14 text-center text-zinc-500 dark:text-zinc-400 text-xs">
-              No permissions found.
+              {urlSearch ? (
+                <div className="space-y-1.5">
+                  <p>No permissions found matching &ldquo;{urlSearch}&rdquo;.</p>
+                  <Button
+                    type="button"
+                    variant="link"
+                    size="sm"
+                    onClick={() => setSearchInput('')}
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline p-0 h-auto cursor-pointer"
+                  >
+                    Clear search filter
+                  </Button>
+                </div>
+              ) : (
+                'No permissions found.'
+              )}
             </div>
           ) : (
             <div className="divide-y divide-zinc-200 dark:divide-zinc-800/80">

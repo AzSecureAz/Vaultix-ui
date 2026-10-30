@@ -63,6 +63,18 @@ export const usersApi = {
     return res.data
   },
 
+  searchUsers: async (
+    payload: { search?: string } = {},
+    page = 0,
+    size = 10
+  ): Promise<ApiResponse<PageResponse<UserItem>>> => {
+    const res = await apiClient.post<ApiResponse<PageResponse<UserItem>>>(
+      `/auth/admin/users/search?page=${page}&size=${size}`,
+      payload
+    )
+    return res.data
+  },
+
   getUserByIdentifier: async (identifier: string): Promise<ApiResponse<UserItem>> => {
     const res = await apiClient.get<ApiResponse<UserItem>>(`/auth/admin/users/${encodeURIComponent(identifier)}`)
     return res.data

@@ -16,10 +16,12 @@ import {
   ShieldAlert,
   Loader2,
   Trash2,
+  Search,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import { apiClient } from '@/lib/api-client'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -53,25 +55,54 @@ export function SigningKeysPage() {
 
   const [searchParams, setSearchParams] = useSearchParams()
 
-  // 1-indexed for users in URL (?page=1, ?page=5)
+  const urlSearch = searchParams.get('search') || ''
+  const [searchInput, setSearchInput] = useState(urlSearch)
+
+  /* 1-indexed for users in URL (?page=1, ?page=5) */
   const rawPage = parseInt(searchParams.get('page') || '1', 10)
   const rawSize = parseInt(searchParams.get('size') || '10', 10)
 
   const currentPage = isNaN(rawPage) || rawPage < 1 ? 0 : rawPage - 1
   const pageSize = [10, 20, 50].includes(rawSize) ? rawSize : 10
 
-  // Server-side pagination metadata
+  /* Server-side pagination metadata */
   const [totalElements, setTotalElements] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
   const [isFirst, setIsFirst] = useState(true)
   const [isLast, setIsLast] = useState(true)
 
-  // Modals state
+  /* Modals state */
   const [selectedPemKey, setSelectedPemKey] = useState<SigningKey | null>(null)
   const [keyToRevoke, setKeyToRevoke] = useState<SigningKey | null>(null)
   const [revoking, setRevoking] = useState(false)
 
-  const fetchKeys = async (page = currentPage, size = pageSize, isSilent = false) => {
+  /* Synchronize local search input if URL changes externally */
+  useEffect(() => {
+    setSearchInput(urlSearch)
+  }, [urlSearch])
+
+  /* Debounce search input and sync to URL params */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const clean = searchInput.trim()
+      if (clean !== urlSearch) {
+        setSearchParams((prev) => {
+          const next = new URLSearchParams(prev)
+          if (clean) {
+            next.set('search', clean)
+          } else {
+            next.delete('search')
+          }
+          next.set('page', '1')
+          return next
+        })
+      }
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchInput, urlSearch, setSearchParams])
+
+  const fetchKeys = async (page = currentPage, size = pageSize, search = urlSearch, isSilent = false) => {
     if (!canRead) {
       if (!isSilent) {
         setLoading(false)
@@ -93,13 +124,15 @@ export function SigningKeysPage() {
         setLoading(true)
       }
       setFetchError(null)
-      const res = await apiClient.get(`/auth/admin/signing-keys?page=${page}&size=${size}`)
+      const trimmed = search.trim()
+      const payload = trimmed ? { search: trimmed } : {}
+      const res = await apiClient.post(`/auth/admin/signing-keys/search?page=${page}&size=${size}`, payload)
       if (res.data?.success && res.data.data) {
         const data = res.data.data
         const items: SigningKey[] = data.content || []
         setKeys(items)
 
-        // Read from via-dto page metadata
+        /* Read from via-dto page metadata */
         const pageInfo = data.page
         const total = pageInfo?.total_elements ?? data.total_elements ?? data.totalElements ?? items.length
         const pages = pageInfo?.total_pages ?? data.total_pages ?? data.totalPages ?? Math.max(1, Math.ceil(total / size))
@@ -110,12 +143,15 @@ export function SigningKeysPage() {
         setIsFirst(pageNum === 0)
         setIsLast(pageNum >= pages - 1)
 
-        // Auto-correct page if query param exceeds total pages
+        /* Auto-correct page if query param exceeds total pages */
         if (page >= pages && pages > 0) {
           setSearchParams((prev) => {
             const next = new URLSearchParams(prev)
             next.set('page', String(pages))
             next.set('size', String(size))
+            if (urlSearch) {
+              next.set('search', urlSearch)
+            }
             return next
           }, { replace: true })
         }
@@ -152,8 +188,8 @@ export function SigningKeysPage() {
   }
 
   useEffect(() => {
-    fetchKeys(currentPage, pageSize)
-  }, [currentPage, pageSize, canRead])
+    fetchKeys(currentPage, pageSize, urlSearch)
+  }, [currentPage, pageSize, urlSearch, canRead])
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 0 && newPage < totalPages && !loading) {
@@ -161,6 +197,9 @@ export function SigningKeysPage() {
         const next = new URLSearchParams(prev)
         next.set('page', String(newPage + 1))
         next.set('size', String(pageSize))
+        if (urlSearch) {
+          next.set('search', urlSearch)
+        }
         return next
       })
     }
@@ -171,6 +210,9 @@ export function SigningKeysPage() {
       const next = new URLSearchParams(prev)
       next.set('page', '1')
       next.set('size', String(newSize))
+      if (urlSearch) {
+        next.set('search', urlSearch)
+      }
       return next
     })
   }
@@ -185,9 +227,12 @@ export function SigningKeysPage() {
           const next = new URLSearchParams(prev)
           next.set('page', '1')
           next.set('size', String(pageSize))
+          if (urlSearch) {
+            next.set('search', urlSearch)
+          }
           return next
         })
-        await fetchKeys(0, pageSize)
+        await fetchKeys(0, pageSize, urlSearch)
       }
     } catch (err: any) {
       const isSudoCancelled = err?.message?.includes('cancelled')
@@ -212,7 +257,7 @@ export function SigningKeysPage() {
         setKeyToRevoke(null)
         toast.success(`Signing key '${targetKid}' successfully revoked.`)
 
-        // Optimistically update key in-place to avoid unmounting list & preserve scroll position
+        /* Optimistically update key in-place to avoid unmounting list & preserve scroll position */
         setKeys((prev) =>
           prev.map((key) =>
             key.kid === targetKid
@@ -221,8 +266,8 @@ export function SigningKeysPage() {
           )
         )
 
-        // Silent background sync
-        await fetchKeys(currentPage, pageSize, true)
+        /* Silent background sync */
+        await fetchKeys(currentPage, pageSize, urlSearch, true)
       }
     } catch (err: any) {
       const isSudoCancelled = err?.message?.includes('cancelled')
@@ -290,7 +335,7 @@ export function SigningKeysPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => fetchKeys(currentPage, pageSize)}
+              onClick={() => fetchKeys(currentPage, pageSize, urlSearch)}
               disabled={loading}
               className="h-9 gap-2 text-xs font-medium cursor-pointer"
             >
@@ -377,7 +422,7 @@ export function SigningKeysPage() {
 
       {/* Keys List Card */}
       <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 overflow-hidden">
-        <CardHeader className="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <CardHeader className="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800/60 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <CardTitle className="text-sm font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
               <KeyRound className="h-4 w-4 text-amber-600 dark:text-amber-400" />
@@ -388,27 +433,51 @@ export function SigningKeysPage() {
             </CardDescription>
           </div>
 
-          {/* Rows per page selector */}
           {canRead && (
-            <div className="flex items-center gap-2 self-start sm:self-auto">
-              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-                Rows per page:
-              </span>
-              <div className="inline-flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800 p-0.5 bg-zinc-50 dark:bg-zinc-900/80">
-                {[10, 20, 50].map((sizeOption) => (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto">
+              {/* Search input */}
+              <div className="relative w-full sm:w-64">
+                <Search className="h-3.5 w-3.5 absolute left-2.5 top-2.5 text-zinc-400 pointer-events-none" />
+                <Input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="Search by KID..."
+                  className="pl-8 pr-7 h-8 text-xs bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+                />
+                {searchInput && (
                   <button
-                    key={sizeOption}
                     type="button"
-                    onClick={() => handlePageSizeChange(sizeOption)}
-                    className={`text-[11px] px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
-                      pageSize === sizeOption
-                        ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs font-semibold'
-                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                    }`}
+                    onClick={() => setSearchInput('')}
+                    className="absolute right-2 top-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+                    title="Clear search"
                   >
-                    {sizeOption}
+                    <X className="h-3.5 w-3.5" />
                   </button>
-                ))}
+                )}
+              </div>
+
+              {/* Rows per page selector */}
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
+                  Rows per page:
+                </span>
+                <div className="inline-flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800 p-0.5 bg-zinc-50 dark:bg-zinc-900/80">
+                  {[10, 20, 50].map((sizeOption) => (
+                    <button
+                      key={sizeOption}
+                      type="button"
+                      onClick={() => handlePageSizeChange(sizeOption)}
+                      className={`text-[11px] px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
+                        pageSize === sizeOption
+                          ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs font-semibold'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                      }`}
+                    >
+                      {sizeOption}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -437,7 +506,7 @@ export function SigningKeysPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => fetchKeys(currentPage, pageSize)}
+                    onClick={() => fetchKeys(currentPage, pageSize, urlSearch)}
                     className="h-8 gap-1.5 text-xs font-medium cursor-pointer"
                   >
                     <RefreshCw className="h-3.5 w-3.5" />
@@ -447,8 +516,23 @@ export function SigningKeysPage() {
               </div>
             </div>
           ) : keys.length === 0 ? (
-            <div className="py-14 text-center text-zinc-500 text-xs">
-              No signing keys found.
+            <div className="py-14 text-center text-zinc-500 dark:text-zinc-400 text-xs">
+              {urlSearch ? (
+                <div className="space-y-1.5">
+                  <p>No signing keys found matching &ldquo;{urlSearch}&rdquo;.</p>
+                  <Button
+                    type="button"
+                    variant="link"
+                    size="sm"
+                    onClick={() => setSearchInput('')}
+                    className="text-xs text-amber-600 dark:text-amber-400 hover:underline p-0 h-auto cursor-pointer"
+                  >
+                    Clear search filter
+                  </Button>
+                </div>
+              ) : (
+                'No signing keys found.'
+              )}
             </div>
           ) : (
             <div className="divide-y divide-zinc-200 dark:divide-zinc-800/80">

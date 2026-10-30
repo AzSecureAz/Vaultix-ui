@@ -38,14 +38,14 @@ import { cn } from '@/lib/utils'
 export function UsersPage() {
   const { user, hasPermission } = useAuthStore()
 
-  // Fine-grained capability checks
+  /* Fine-grained capability checks */
   const canRead = hasPermission('user:read')
   const canCreate = hasPermission('user:create')
   const canUpdate = hasPermission('user:update')
   const canDelete = hasPermission('user:delete')
   const canRestore = hasPermission('user:restore')
 
-  // User's active level (lower numeric level = higher privilege)
+  /* User's active level (lower numeric level = higher privilege) */
   const userLevel = user?.level ?? Infinity
 
   const [users, setUsers] = useState<UserItem[]>([])
@@ -60,8 +60,12 @@ export function UsersPage() {
     setTimeout(() => setCopiedId(null), 2000)
   }
 
-  // URL pagination state
+  /* URL pagination state */
   const [searchParams, setSearchParams] = useSearchParams()
+
+  const urlSearch = searchParams.get('search') || ''
+  const [searchInput, setSearchInput] = useState(urlSearch)
+
   const rawPage = parseInt(searchParams.get('page') || '1', 10)
   const currentPage = isNaN(rawPage) || rawPage < 1 ? 0 : rawPage - 1
 
@@ -73,7 +77,7 @@ export function UsersPage() {
   const [isFirst, setIsFirst] = useState(true)
   const [isLast, setIsLast] = useState(true)
 
-  // Modals state
+  /* Modals state */
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [createUsername, setCreateUsername] = useState('')
   const [createEmail, setCreateEmail] = useState('')
@@ -82,39 +86,65 @@ export function UsersPage() {
   const [createLoading, setCreateLoading] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
 
-  // Edit Roles Modal
+  /* Edit Roles Modal */
   const [userToEdit, setUserToEdit] = useState<UserItem | null>(null)
   const [editRoles, setEditRoles] = useState<string[]>([])
   const [editLoading, setEditLoading] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
 
-  // Delete User Confirmation Modal
+  /* Delete User Confirmation Modal */
   const [userToDelete, setUserToDelete] = useState<UserItem | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
-  // Role search in modals
+  /* Role search in modals */
   const [roleSearchQuery, setRoleSearchQuery] = useState('')
   const [availableRoles, setAvailableRoles] = useState<RoleItem[]>([])
   const [searchingRoles, setSearchingRoles] = useState(false)
 
-  // Fetch roles for assignment dropdown/chips
+  /* Fetch roles for assignment dropdown/chips */
   const fetchAvailableRoles = async (query = '') => {
     setSearchingRoles(true)
     try {
       const res = await rolesApi.getAssignableRoles(query, 0, 30)
       if (res.success && res.data) {
         const items = res.data.content || []
-        // Only show ENABLED roles whose level is strictly lower privilege than current actor's level
+        /* Only show ENABLED roles whose level is strictly lower privilege than current actor's level */
         setAvailableRoles(items.filter((r) => r.status === 'ENABLED' && r.level > userLevel))
       }
     } catch {
-      // Ignore background role search errors
+      /* Ignore background role search errors */
     } finally {
       setSearchingRoles(false)
     }
   }
 
-  // 300ms debounced search for assignable roles in modals
+  /* Synchronize local search input if URL changes externally */
+  useEffect(() => {
+    setSearchInput(urlSearch)
+  }, [urlSearch])
+
+  /* Debounce search input and sync to URL params */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const clean = searchInput.trim()
+      if (clean !== urlSearch) {
+        setSearchParams((prev) => {
+          const next = new URLSearchParams(prev)
+          if (clean) {
+            next.set('search', clean)
+          } else {
+            next.delete('search')
+          }
+          next.set('page', '1')
+          return next
+        })
+      }
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchInput, urlSearch, setSearchParams])
+
+  /* 300ms debounced search for assignable roles in modals */
   useEffect(() => {
     if (!isCreateOpen && !userToEdit) return
 
@@ -125,8 +155,8 @@ export function UsersPage() {
     return () => clearTimeout(timer)
   }, [roleSearchQuery, isCreateOpen, userToEdit])
 
-  // Fetch users from backend
-  const fetchUsers = async (page = currentPage, size = pageSize) => {
+  /* Fetch users from backend */
+  const fetchUsers = async (page = currentPage, size = pageSize, search = urlSearch) => {
     if (!canRead) {
       setLoading(false)
       setFetchError({
@@ -145,7 +175,9 @@ export function UsersPage() {
     setFetchError(null)
 
     try {
-      const res = await usersApi.getUsers(page, size)
+      const trimmed = search.trim()
+      const payload = trimmed ? { search: trimmed } : {}
+      const res = await usersApi.searchUsers(payload, page, size)
       if (res.success && res.data) {
         setFetchError(null)
         const data = res.data
@@ -162,12 +194,17 @@ export function UsersPage() {
         setIsFirst(pageNum === 0)
         setIsLast(pageNum >= pages - 1)
 
+        /* Auto-correct page if query param exceeds total pages */
         if (page >= pages && pages > 0) {
           setSearchParams((prev) => {
             const next = new URLSearchParams(prev)
             next.set('page', String(pages))
+            next.set('size', String(size))
+            if (urlSearch) {
+              next.set('search', urlSearch)
+            }
             return next
-          })
+          }, { replace: true })
         }
       } else {
         const errorMsg = res.message || 'Failed to retrieve enterprise user directory.'
@@ -188,15 +225,19 @@ export function UsersPage() {
   }
 
   useEffect(() => {
-    fetchUsers(currentPage, pageSize)
-  }, [currentPage, pageSize, canRead])
+    fetchUsers(currentPage, pageSize, urlSearch)
+  }, [currentPage, pageSize, urlSearch, canRead])
 
-  // Pagination navigation helpers
+  /* Pagination navigation helpers */
   const handlePageChange = (newPage: number) => {
     if (newPage < 0 || newPage >= totalPages) return
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev)
       next.set('page', String(newPage + 1))
+      next.set('size', String(pageSize))
+      if (urlSearch) {
+        next.set('search', urlSearch)
+      }
       return next
     })
   }
@@ -206,15 +247,18 @@ export function UsersPage() {
       const next = new URLSearchParams(prev)
       next.set('page', '1')
       next.set('size', String(newSize))
+      if (urlSearch) {
+        next.set('search', urlSearch)
+      }
       return next
     })
   }
 
-  // Toggle User Status (ENABLE / DISABLE)
+  /* Toggle User Status (ENABLE / DISABLE) */
   const handleToggleStatus = async (targetUser: UserItem) => {
     if (!canUpdate || actionLoadingId || targetUser.status === 'DELETED') return
 
-    // Hierarchy validation: cannot modify self or equal/higher privilege user
+    /* Hierarchy validation: cannot modify self or equal/higher privilege user */
     if (targetUser.id === user?.id) {
       toast.error('Cannot modify status of your own account.')
       return
@@ -260,7 +304,7 @@ export function UsersPage() {
     }
   }
 
-  // Restore Soft-Deleted User
+  /* Restore Soft-Deleted User */
   const handleRestoreUser = async (targetUser: UserItem) => {
     if (!canRestore || actionLoadingId || targetUser.status !== 'DELETED') return
 
@@ -294,7 +338,7 @@ export function UsersPage() {
     }
   }
 
-  // Create User Modal Handlers
+  /* Create User Modal Handlers */
   const openCreateModal = () => {
     setCreateUsername('')
     setCreateEmail('')
@@ -347,7 +391,7 @@ export function UsersPage() {
       setIsCreateOpen(false)
       toast.success(`User '${cleanUsername}' created successfully. Initial password must be set via password reset.`)
       if (canRead) {
-        fetchUsers(currentPage, pageSize)
+        fetchUsers(0, pageSize, urlSearch)
       }
     } catch (err: any) {
       const isSudoCancelled = err?.message?.includes('cancelled')
@@ -362,7 +406,7 @@ export function UsersPage() {
     }
   }
 
-  // Edit Roles Handlers
+  /* Edit Roles Handlers */
   const openEditModal = (targetUser: UserItem) => {
     setUserToEdit(targetUser)
     setEditRoles(targetUser.roles || [])
@@ -408,7 +452,7 @@ export function UsersPage() {
     }
   }
 
-  // Delete User Handlers
+  /* Delete User Handlers */
   const handleDeleteConfirm = async () => {
     if (!userToDelete) return
     setDeleteLoading(true)
@@ -435,7 +479,7 @@ export function UsersPage() {
     }
   }
 
-  // Calculate high-level stats
+  /* Calculate high-level stats */
   const activeCount = useMemo(() => users.filter((u) => u.status === 'ACTIVE').length, [users])
   const inactiveCount = useMemo(() => users.filter((u) => u.status !== 'ACTIVE').length, [users])
 
@@ -461,7 +505,7 @@ export function UsersPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => fetchUsers(currentPage, pageSize)}
+              onClick={() => fetchUsers(currentPage, pageSize, urlSearch)}
               disabled={loading}
               className="gap-2 border-zinc-200 dark:border-zinc-800 cursor-pointer"
             >
@@ -532,7 +576,7 @@ export function UsersPage() {
 
       {/* Main Users Table Card */}
       <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 overflow-hidden">
-        <CardHeader className="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <CardHeader className="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800/60 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <CardTitle className="text-sm font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
               <UserCheck className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -544,25 +588,50 @@ export function UsersPage() {
           </div>
 
           {canRead && (
-            <div className="flex items-center gap-2 self-start sm:self-auto">
-              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-                Rows per page:
-              </span>
-              <div className="inline-flex rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-0.5 text-xs">
-                {[10, 20, 50].map((size) => (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto">
+              {/* Search input */}
+              <div className="relative w-full sm:w-64">
+                <Search className="h-3.5 w-3.5 absolute left-2.5 top-2.5 text-zinc-400 pointer-events-none" />
+                <Input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="Search users..."
+                  className="pl-8 pr-7 h-8 text-xs bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+                />
+                {searchInput && (
                   <button
-                    key={size}
                     type="button"
-                    onClick={() => handlePageSizeChange(size)}
-                    className={`px-2 py-0.5 rounded-md font-mono text-[11px] transition-colors cursor-pointer ${
-                      pageSize === size
-                        ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold shadow-xs'
-                        : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
-                    }`}
+                    onClick={() => setSearchInput('')}
+                    className="absolute right-2 top-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+                    title="Clear search"
                   >
-                    {size}
+                    <X className="h-3.5 w-3.5" />
                   </button>
-                ))}
+                )}
+              </div>
+
+              {/* Rows per page selector */}
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
+                  Rows per page:
+                </span>
+                <div className="inline-flex rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-0.5 text-xs">
+                  {[10, 20, 50].map((size) => (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => handlePageSizeChange(size)}
+                      className={`px-2 py-0.5 rounded-md font-mono text-[11px] transition-colors cursor-pointer ${
+                        pageSize === size
+                          ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold shadow-xs'
+                          : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -586,7 +655,7 @@ export function UsersPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => fetchUsers(currentPage, pageSize)}
+                  onClick={() => fetchUsers(currentPage, pageSize, urlSearch)}
                   className="gap-2 cursor-pointer mt-2"
                 >
                   <RefreshCw className="h-3 w-3" />
@@ -599,23 +668,42 @@ export function UsersPage() {
               <div className="h-12 w-12 rounded-full bg-zinc-100 dark:bg-zinc-800/60 mx-auto flex items-center justify-center text-zinc-400">
                 <Users className="h-6 w-6" />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                  No accounts found
-                </p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                  No enterprise user accounts have been registered on this node.
-                </p>
-              </div>
-              {canCreate && (
-                <Button
-                  size="sm"
-                  onClick={openCreateModal}
-                  className="gap-1.5 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  <UserPlus className="h-4 w-4" />
-                  <span>Create First User</span>
-                </Button>
+              {urlSearch ? (
+                <div className="space-y-1.5">
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                    No accounts found matching &ldquo;{urlSearch}&rdquo;
+                  </p>
+                  <Button
+                    type="button"
+                    variant="link"
+                    size="sm"
+                    onClick={() => setSearchInput('')}
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline p-0 h-auto cursor-pointer"
+                  >
+                    Clear search filter
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                      No accounts found
+                    </p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                      No enterprise user accounts have been registered on this node.
+                    </p>
+                  </div>
+                  {canCreate && (
+                    <Button
+                      size="sm"
+                      onClick={openCreateModal}
+                      className="gap-1.5 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <UserPlus className="h-4 w-4" />
+                      <span>Create First User</span>
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           ) : (

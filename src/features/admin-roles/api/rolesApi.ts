@@ -62,6 +62,18 @@ export const rolesApi = {
     return res.data
   },
 
+  searchRoles: async (
+    payload: { search?: string } = {},
+    page = 0,
+    size = 10
+  ): Promise<ApiResponse<PageResponse<RoleItem>>> => {
+    const res = await apiClient.post<ApiResponse<PageResponse<RoleItem>>>(
+      `/auth/admin/roles/search?page=${page}&size=${size}`,
+      payload
+    )
+    return res.data
+  },
+
   getAssignableRoles: async (search?: string, page = 0, size = 30): Promise<ApiResponse<PageResponse<RoleItem>>> => {
     const params = new URLSearchParams()
     params.set('page', String(page))

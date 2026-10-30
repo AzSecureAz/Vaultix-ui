@@ -39,7 +39,7 @@ export function RolesPage() {
   const canDelete = hasPermission('role:delete')
   const canRestore = hasPermission('role:restore')
 
-  // User's active level (lower numeric level = higher privilege)
+  /* User's active level (lower numeric level = higher privilege) */
   const userLevel = user?.level ?? Infinity
 
   const [roles, setRoles] = useState<RoleItem[]>([])
@@ -56,20 +56,23 @@ export function RolesPage() {
 
   const [searchParams, setSearchParams] = useSearchParams()
 
-  // 1-indexed for users in URL (?page=1, ?page=5)
+  const urlSearch = searchParams.get('search') || ''
+  const [searchInput, setSearchInput] = useState(urlSearch)
+
+  /* 1-indexed for users in URL (?page=1, ?page=5) */
   const rawPage = parseInt(searchParams.get('page') || '1', 10)
   const rawSize = parseInt(searchParams.get('size') || '10', 10)
 
   const currentPage = isNaN(rawPage) || rawPage < 1 ? 0 : rawPage - 1
   const pageSize = [10, 20, 50].includes(rawSize) ? rawSize : 10
 
-  // Server-side pagination metadata
+  /* Server-side pagination metadata */
   const [totalElements, setTotalElements] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
   const [isFirst, setIsFirst] = useState(true)
   const [isLast, setIsLast] = useState(true)
 
-  // Modals & form state
+  /* Modals & form state */
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [createName, setCreateName] = useState('')
   const [createDescription, setCreateDescription] = useState('')
@@ -90,19 +93,45 @@ export function RolesPage() {
   const [roleToDelete, setRoleToDelete] = useState<RoleItem | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
-  // Permissions available to assign when creating a role (actor's own possessed permissions)
+  /* Synchronize local search input if URL changes externally */
+  useEffect(() => {
+    setSearchInput(urlSearch)
+  }, [urlSearch])
+
+  /* Debounce search input and sync to URL params */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const clean = searchInput.trim()
+      if (clean !== urlSearch) {
+        setSearchParams((prev) => {
+          const next = new URLSearchParams(prev)
+          if (clean) {
+            next.set('search', clean)
+          } else {
+            next.delete('search')
+          }
+          next.set('page', '1')
+          return next
+        })
+      }
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchInput, urlSearch, setSearchParams])
+
+  /* Permissions available to assign when creating a role (actor's own possessed permissions) */
   const availableCreatePermissions = useMemo(() => {
     return [...(user?.permissions || [])].sort()
   }, [user?.permissions])
 
-  // Filtered create permissions based on client-side search query
+  /* Filtered create permissions based on client-side search query */
   const filteredCreatePermissions = useMemo(() => {
     const query = createPermissionSearch.trim().toLowerCase()
     if (!query) return availableCreatePermissions
     return availableCreatePermissions.filter((p) => p.toLowerCase().includes(query))
   }, [availableCreatePermissions, createPermissionSearch])
 
-  // Permissions available when editing a role (actor's permissions UNION existing permissions on the role)
+  /* Permissions available when editing a role (actor's permissions UNION existing permissions on the role) */
   const availableEditPermissions = useMemo(() => {
     const set = new Set<string>([
       ...(user?.permissions || []),
@@ -111,7 +140,7 @@ export function RolesPage() {
     return Array.from(set).sort()
   }, [user?.permissions, roleToEdit?.permissions])
 
-  // Filtered edit permissions based on client-side search query
+  /* Filtered edit permissions based on client-side search query */
   const filteredEditPermissions = useMemo(() => {
     const query = editPermissionSearch.trim().toLowerCase()
     if (!query) return availableEditPermissions
@@ -130,7 +159,7 @@ export function RolesPage() {
     )
   }
 
-  const fetchRoles = async (page = currentPage, size = pageSize) => {
+  const fetchRoles = async (page = currentPage, size = pageSize, search = urlSearch) => {
     if (!canRead) {
       setLoading(false)
       setFetchError({
@@ -149,7 +178,9 @@ export function RolesPage() {
     setFetchError(null)
 
     try {
-      const res = await rolesApi.getRoles(page, size)
+      const trimmed = search.trim()
+      const payload = trimmed ? { search: trimmed } : {}
+      const res = await rolesApi.searchRoles(payload, page, size)
       if (res.success && res.data) {
         setFetchError(null)
         const data = res.data
@@ -166,12 +197,15 @@ export function RolesPage() {
         setIsFirst(pageNum === 0)
         setIsLast(pageNum >= pages - 1)
 
-        // Auto-correct page if query param exceeds total pages
+        /* Auto-correct page if query param exceeds total pages */
         if (page >= pages && pages > 0) {
           setSearchParams((prev) => {
             const next = new URLSearchParams(prev)
             next.set('page', String(pages))
             next.set('size', String(size))
+            if (urlSearch) {
+              next.set('search', urlSearch)
+            }
             return next
           }, { replace: true })
         }
@@ -207,8 +241,8 @@ export function RolesPage() {
 
 
   useEffect(() => {
-    fetchRoles(currentPage, pageSize)
-  }, [currentPage, pageSize, canRead])
+    fetchRoles(currentPage, pageSize, urlSearch)
+  }, [currentPage, pageSize, urlSearch, canRead])
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 0 && newPage < totalPages && !loading) {
@@ -216,6 +250,9 @@ export function RolesPage() {
         const next = new URLSearchParams(prev)
         next.set('page', String(newPage + 1))
         next.set('size', String(pageSize))
+        if (urlSearch) {
+          next.set('search', urlSearch)
+        }
         return next
       })
     }
@@ -226,11 +263,14 @@ export function RolesPage() {
       const next = new URLSearchParams(prev)
       next.set('page', '1')
       next.set('size', String(newSize))
+      if (urlSearch) {
+        next.set('search', urlSearch)
+      }
       return next
     })
   }
 
-  // Toggle Role Status (ENABLE / DISABLE)
+  /* Toggle Role Status (ENABLE / DISABLE) */
   const handleToggleStatus = async (role: RoleItem) => {
     if (!canUpdate || actionLoadingId || role.status === 'DELETED') return
     if (role.level <= userLevel) {
@@ -270,7 +310,7 @@ export function RolesPage() {
     }
   }
 
-  // Restore Soft-Deleted Role
+  /* Restore Soft-Deleted Role */
   const handleRestoreRole = async (role: RoleItem) => {
     if (!canRestore || actionLoadingId || role.status !== 'DELETED') return
     if (role.level <= userLevel) {
@@ -300,7 +340,7 @@ export function RolesPage() {
     }
   }
 
-  // Create Role Handlers
+  /* Create Role Handlers */
   const openCreateModal = () => {
     setCreateName('')
     setCreateDescription('')
@@ -349,7 +389,7 @@ export function RolesPage() {
       setIsCreateOpen(false)
       toast.success(`Role '${canonicalName}' (Level ${lvl}) created successfully.`)
       if (canRead) {
-        fetchRoles(currentPage, pageSize)
+        fetchRoles(0, pageSize, urlSearch)
       }
     } catch (err: any) {
       const isSudoCancelled = err?.message?.includes('cancelled')
@@ -364,7 +404,7 @@ export function RolesPage() {
     }
   }
 
-  // Edit Role Handlers
+  /* Edit Role Handlers */
   const openEditModal = (role: RoleItem) => {
     setRoleToEdit(role)
     setEditDescription(role.description || '')
@@ -420,7 +460,7 @@ export function RolesPage() {
     }
   }
 
-  // Delete Role Handlers
+  /* Delete Role Handlers */
   const handleDeleteConfirm = async () => {
     if (!roleToDelete) return
     setDeleteLoading(true)
@@ -478,7 +518,7 @@ export function RolesPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => fetchRoles(currentPage, pageSize)}
+              onClick={() => fetchRoles(currentPage, pageSize, urlSearch)}
               disabled={loading}
               className="h-9 gap-2 text-xs font-medium cursor-pointer"
             >
@@ -550,7 +590,7 @@ export function RolesPage() {
 
       {/* Roles List Card */}
       <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 overflow-hidden">
-        <CardHeader className="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <CardHeader className="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800/60 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <CardTitle className="text-sm font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
               <Shield className="h-4 w-4 text-purple-600 dark:text-purple-400" />
@@ -564,25 +604,50 @@ export function RolesPage() {
           </div>
 
           {canRead && (
-            <div className="flex items-center gap-2 self-start sm:self-auto">
-              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-                Rows per page:
-              </span>
-              <div className="inline-flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800 p-0.5 bg-zinc-50 dark:bg-zinc-900/80">
-                {[10, 20, 50].map((sizeOption) => (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto">
+              {/* Search input */}
+              <div className="relative w-full sm:w-64">
+                <Search className="h-3.5 w-3.5 absolute left-2.5 top-2.5 text-zinc-400 pointer-events-none" />
+                <Input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="Search roles..."
+                  className="pl-8 pr-7 h-8 text-xs bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+                />
+                {searchInput && (
                   <button
-                    key={sizeOption}
                     type="button"
-                    onClick={() => handlePageSizeChange(sizeOption)}
-                    className={`text-[11px] px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
-                      pageSize === sizeOption
-                        ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs font-semibold'
-                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                    }`}
+                    onClick={() => setSearchInput('')}
+                    className="absolute right-2 top-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+                    title="Clear search"
                   >
-                    {sizeOption}
+                    <X className="h-3.5 w-3.5" />
                   </button>
-                ))}
+                )}
+              </div>
+
+              {/* Rows per page selector */}
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
+                  Rows per page:
+                </span>
+                <div className="inline-flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800 p-0.5 bg-zinc-50 dark:bg-zinc-900/80">
+                  {[10, 20, 50].map((sizeOption) => (
+                    <button
+                      key={sizeOption}
+                      type="button"
+                      onClick={() => handlePageSizeChange(sizeOption)}
+                      className={`text-[11px] px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
+                        pageSize === sizeOption
+                          ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs font-semibold'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                      }`}
+                    >
+                      {sizeOption}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -605,7 +670,7 @@ export function RolesPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => fetchRoles(currentPage, pageSize)}
+                    onClick={() => fetchRoles(currentPage, pageSize, urlSearch)}
                     className="h-8 gap-1.5 text-xs font-medium cursor-pointer"
                   >
                     <RefreshCw className="h-3.5 w-3.5" />
@@ -623,7 +688,22 @@ export function RolesPage() {
             </div>
           ) : roles.length === 0 ? (
             <div className="py-14 text-center text-zinc-500 dark:text-zinc-400 text-xs">
-              No roles found.
+              {urlSearch ? (
+                <div className="space-y-1.5">
+                  <p>No roles found matching &ldquo;{urlSearch}&rdquo;.</p>
+                  <Button
+                    type="button"
+                    variant="link"
+                    size="sm"
+                    onClick={() => setSearchInput('')}
+                    className="text-xs text-purple-600 dark:text-purple-400 hover:underline p-0 h-auto cursor-pointer"
+                  >
+                    Clear search filter
+                  </Button>
+                </div>
+              ) : (
+                'No roles found.'
+              )}
             </div>
           ) : (
             <div className="divide-y divide-zinc-200 dark:divide-zinc-800/80">

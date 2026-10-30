@@ -44,6 +44,18 @@ export const permissionsApi = {
     return res.data
   },
 
+  searchPermissions: async (
+    payload: { search?: string } = {},
+    page = 0,
+    size = 50
+  ): Promise<ApiResponse<PageResponse<PermissionItem>>> => {
+    const res = await apiClient.post<ApiResponse<PageResponse<PermissionItem>>>(
+      `/auth/admin/permissions/search?page=${page}&size=${size}`,
+      payload
+    )
+    return res.data
+  },
+
   getPermissionByIdentifier: async (identifier: string): Promise<ApiResponse<PermissionItem>> => {
     const res = await apiClient.get<ApiResponse<PermissionItem>>(
       `/auth/admin/permissions/${encodeURIComponent(identifier)}`
