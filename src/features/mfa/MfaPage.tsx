@@ -15,6 +15,7 @@ import {
   Eye,
   EyeOff,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -39,15 +40,14 @@ export function MfaPage() {
   const [regenerating, setRegenerating] = useState(false)
   const [copiedKey, setCopiedKey] = useState(false)
   const [copiedAllCodes, setCopiedAllCodes] = useState(false)
-  const [statusMsg, setStatusMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
   const [activationError, setActivationError] = useState<string | null>(null)
   const [showSmsPhone, setShowSmsPhone] = useState(false)
 
-  // Dialog states
+  /* Dialog states */
   const [isDisableDialogOpen, setIsDisableDialogOpen] = useState(false)
   const [isRegenerateDialogOpen, setIsRegenerateDialogOpen] = useState(false)
 
-  // SMS MFA States
+  /* SMS MFA States */
   const [isSmsSetupOpen, setIsSmsSetupOpen] = useState(false)
   const [smsVerificationCode, setSmsVerificationCode] = useState('')
   const [smsSending, setSmsSending] = useState(false)
@@ -59,7 +59,7 @@ export function MfaPage() {
   const [isVerifyPhoneOpen, setIsVerifyPhoneOpen] = useState(false)
   const [isAddPhoneOpen, setIsAddPhoneOpen] = useState(false)
 
-  // Countdown timer for SMS setup resend
+  /* Countdown timer for SMS setup resend */
   useEffect(() => {
     if (smsCountdown <= 0) return
     const timer = setInterval(() => {
@@ -68,7 +68,7 @@ export function MfaPage() {
     return () => clearInterval(timer)
   }, [smsCountdown])
 
-  // Fetch remaining recovery codes count when any MFA factor is active
+  /* Fetch remaining recovery codes count when any MFA factor is active */
   useEffect(() => {
     if (user?.mfa_enabled || user?.sms_mfa_enabled) {
       loadRecoveryCodesCount()
@@ -84,14 +84,13 @@ export function MfaPage() {
         setRemainingCodes(res.data)
       }
     } catch {
-      // Ignore if not available
+      /* Ignore if not available */
     }
   }
 
-  // Step 1: Initiate Setup (Generates unverified TOTP secret & QR code)
+  /* Step 1: Initiate Setup (Generates unverified TOTP secret & QR code) */
   const initiateSetup = async () => {
     setLoading(true)
-    setStatusMsg(null)
     setActivationError(null)
     try {
       const res = await authApi.setupTotp()
@@ -100,16 +99,13 @@ export function MfaPage() {
         setVerificationCode('')
       }
     } catch (err: any) {
-      setStatusMsg({
-        text: err?.response?.data?.message || 'Failed to initiate authenticator setup. Please try again.',
-        type: 'error',
-      })
+      toast.error(err?.response?.data?.message || 'Failed to initiate authenticator setup. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
-  // Step 2: Verify & Activate TOTP
+  /* Step 2: Verify & Activate TOTP */
   const handleActivate = async (e: React.FormEvent) => {
     e.preventDefault()
     const cleanCode = verificationCode.trim().replace(/\D/g, '')
@@ -119,16 +115,12 @@ export function MfaPage() {
     }
 
     setActivating(true)
-    setStatusMsg(null)
     setActivationError(null)
 
     try {
       const res = await authApi.activateTotp(cleanCode)
       if (res.success) {
-        setStatusMsg({
-          text: 'Two-factor authentication is now active on your account.',
-          type: 'success',
-        })
+        toast.success('Two-factor authentication is now active on your account.')
         const codes = res.data?.recovery_codes || res.data?.recoveryCodes || []
         setRecoveryCodes(codes)
         setRemainingCodes(codes.length)
@@ -144,10 +136,9 @@ export function MfaPage() {
     }
   }
 
-  // SMS MFA Handlers
+  /* SMS MFA Handlers */
   const handleInitiateSmsSetup = async () => {
     setSmsSending(true)
-    setStatusMsg(null)
     setSmsError(null)
     try {
       const res = await authApi.sendSmsMfaSetupOtp()
@@ -158,7 +149,7 @@ export function MfaPage() {
       }
     } catch (err: any) {
       const errMsg = err?.response?.data?.message || 'Failed to dispatch SMS setup code. Please try again.'
-      setStatusMsg({ text: errMsg, type: 'error' })
+      toast.error(errMsg)
     } finally {
       setSmsSending(false)
     }
@@ -173,16 +164,12 @@ export function MfaPage() {
     }
 
     setSmsActivating(true)
-    setStatusMsg(null)
     setSmsError(null)
 
     try {
       const res = await authApi.enableSmsMfa(cleanCode)
       if (res.success) {
-        setStatusMsg({
-          text: 'SMS two-factor authentication is now active on your account.',
-          type: 'success',
-        })
+        toast.success('SMS two-factor authentication is now active on your account.')
         const codes = res.data?.recovery_codes || res.data?.recoveryCodes || []
         if (codes.length > 0) {
           setRecoveryCodes(codes)
@@ -202,22 +189,15 @@ export function MfaPage() {
 
   const handleDisableSmsMfa = async () => {
     setSmsDisabling(true)
-    setStatusMsg(null)
     try {
       const res = await authApi.disableSmsMfa()
       if (res.success) {
-        setStatusMsg({
-          text: 'SMS two-factor authentication has been disabled.',
-          type: 'success',
-        })
+        toast.success('SMS two-factor authentication has been disabled.')
         setIsDisableSmsDialogOpen(false)
         await fetchProfile()
       }
     } catch (err: any) {
-      setStatusMsg({
-        text: err?.response?.data?.message || 'Failed to disable SMS 2FA. Please try again.',
-        type: 'error',
-      })
+      toast.error(err?.response?.data?.message || 'Failed to disable SMS 2FA. Please try again.')
     } finally {
       setSmsDisabling(false)
     }
@@ -225,33 +205,25 @@ export function MfaPage() {
 
   const handleDisableTotp = async () => {
     setDisabling(true)
-    setStatusMsg(null)
 
     try {
       await authApi.disableTotp()
-      setStatusMsg({
-        text: 'Two-factor authentication has been disabled successfully.',
-        type: 'success',
-      })
+      toast.success('Two-factor authentication has been disabled successfully.')
       setIsDisableDialogOpen(false)
       setSetupData(null)
       setRecoveryCodes([])
       setRemainingCodes(null)
       await fetchProfile()
     } catch (err: any) {
-      setStatusMsg({
-        text: err?.response?.data?.message || 'Failed to disable two-factor authentication.',
-        type: 'error',
-      })
+      toast.error(err?.response?.data?.message || 'Failed to disable two-factor authentication.')
     } finally {
       setDisabling(false)
     }
   }
 
-  // Step 4: Regenerate Recovery Codes
+  /* Step 4: Regenerate Recovery Codes */
   const handleRegenerateCodes = async () => {
     setRegenerating(true)
-    setStatusMsg(null)
 
     try {
       const res = await authApi.regenerateRecoveryCodes()
@@ -259,17 +231,11 @@ export function MfaPage() {
         const codes = res.data?.recovery_codes || res.data?.recoveryCodes || []
         setRecoveryCodes(codes)
         setRemainingCodes(codes.length)
-        setStatusMsg({
-          text: 'New emergency recovery codes have been generated. Previous codes have been invalidated.',
-          type: 'success',
-        })
+        toast.success('New emergency recovery codes have been generated. Previous codes have been invalidated.')
         setIsRegenerateDialogOpen(false)
       }
     } catch (err: any) {
-      setStatusMsg({
-        text: err?.response?.data?.message || 'Failed to regenerate emergency recovery codes.',
-        type: 'error',
-      })
+      toast.error(err?.response?.data?.message || 'Failed to regenerate emergency recovery codes.')
     } finally {
       setRegenerating(false)
     }
@@ -305,33 +271,6 @@ export function MfaPage() {
           Add an extra layer of security to your account by requiring an authorized second factor when signing in.
         </p>
       </div>
-
-      {/* Global Status Message */}
-      {statusMsg && (
-        <div
-          className={`p-3.5 rounded-xl border text-xs flex items-center justify-between gap-2.5 animate-in fade-in-0 duration-150 ${
-            statusMsg.type === 'success'
-              ? 'border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-              : 'border-red-500/20 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            {statusMsg.type === 'success' ? (
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-            ) : (
-              <AlertCircle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
-            )}
-            <span>{statusMsg.text}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setStatusMsg(null)}
-            className="p-1 rounded text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      )}
 
       {/* Emergency Recovery Codes Display (Shown on activation or regeneration) */}
       {recoveryCodes.length > 0 && (

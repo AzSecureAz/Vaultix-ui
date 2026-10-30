@@ -4,10 +4,9 @@ import {
   Link2,
   Unlink,
   CheckCircle2,
-  AlertCircle,
   Loader2,
-  X,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -23,16 +22,14 @@ export function ConnectedAccountsPage() {
   const [accounts, setAccounts] = useState<SocialAccountItem[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
 
   useEffect(() => {
     if (location.state?.successMessage) {
-      setSuccess(location.state.successMessage)
+      toast.success(location.state.successMessage)
       window.history.replaceState({}, document.title)
     }
     if (location.state?.errorMessage) {
-      setError(location.state.errorMessage)
+      toast.error(location.state.errorMessage)
       window.history.replaceState({}, document.title)
     }
   }, [location.state])
@@ -55,44 +52,40 @@ export function ConnectedAccountsPage() {
   }, [loadAccounts])
 
   const handleLinkGoogle = async (idToken: string) => {
-    setError(null)
-    setSuccess(null)
     setActionLoading('link-google')
 
     try {
       const res = await authApi.linkGoogleAccount(idToken)
       if (res.success) {
-        setSuccess('Google account successfully connected to your profile.')
+        toast.success('Google account successfully connected to your profile.')
         await loadAccounts()
         await fetchProfile()
       } else {
-        setError(res.message || 'Failed to link Google account.')
+        toast.error(res.message || 'Failed to link Google account.')
       }
     } catch (err: any) {
       const errData = err?.response?.data
-      setError(errData?.message || 'Failed to link Google account.')
+      toast.error(errData?.message || 'Failed to link Google account.')
     } finally {
       setActionLoading(null)
     }
   }
 
   const handleUnlink = async (provider: 'GOOGLE' | 'GITHUB') => {
-    setError(null)
-    setSuccess(null)
     setActionLoading(`unlink-${provider}`)
 
     try {
       const res = await authApi.unlinkSocialAccount(provider)
       if (res.success) {
-        setSuccess(`${provider === 'GOOGLE' ? 'Google' : 'GitHub'} account disconnected successfully.`)
+        toast.success(`${provider === 'GOOGLE' ? 'Google' : 'GitHub'} account disconnected successfully.`)
         await loadAccounts()
         await fetchProfile()
       } else {
-        setError(res.message || 'Failed to disconnect account.')
+        toast.error(res.message || 'Failed to disconnect account.')
       }
     } catch (err: any) {
       const errData = err?.response?.data
-      setError(
+      toast.error(
         errData?.message ||
           'Failed to disconnect account. Please ensure you have another sign-in method.'
       )
@@ -102,12 +95,9 @@ export function ConnectedAccountsPage() {
   }
 
   const handleLinkGitHub = () => {
-    setError(null)
-    setSuccess(null)
-
     const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID
     if (!clientId || clientId === 'YOUR_GITHUB_CLIENT_ID' || clientId === 'your_github_client_id_here' || clientId.trim() === '') {
-      setError('GitHub OAuth is not configured. Please set VITE_GITHUB_CLIENT_ID.')
+      toast.error('GitHub OAuth is not configured. Please set VITE_GITHUB_CLIENT_ID.')
       return
     }
 
@@ -128,7 +118,7 @@ export function ConnectedAccountsPage() {
       window.location.href = githubUrl
     } catch (err: any) {
       setActionLoading(null)
-      setError(err?.message || 'Failed to initiate GitHub authentication.')
+      toast.error(err?.message || 'Failed to initiate GitHub authentication.')
     }
   }
 
@@ -183,41 +173,6 @@ export function ConnectedAccountsPage() {
         </CardHeader>
 
         <CardContent className="p-4 sm:p-6 space-y-4">
-          {/* Status Notifications */}
-          {error && (
-            <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3.5 py-2.5 text-xs text-red-600 dark:text-red-400 font-medium flex items-center justify-between gap-2 animate-in fade-in-50 duration-150">
-              <div className="flex items-center gap-2 flex-1">
-                <AlertCircle className="h-4 w-4 shrink-0" />
-                <span>{error}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setError(null)}
-                className="p-1 rounded text-red-400 hover:text-red-600 dark:hover:text-red-200 cursor-pointer"
-                title="Dismiss"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          )}
-
-          {success && (
-            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-2.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center justify-between gap-2 animate-in fade-in-50 duration-150">
-              <div className="flex items-center gap-2 flex-1">
-                <CheckCircle2 className="h-4 w-4 shrink-0" />
-                <span>{success}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSuccess(null)}
-                className="p-1 rounded text-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-200 cursor-pointer"
-                title="Dismiss"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          )}
-
           {loading ? (
             <div className="py-8 flex items-center justify-center gap-2 text-xs text-zinc-500">
               <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
@@ -286,7 +241,7 @@ export function ConnectedAccountsPage() {
                   ) : (
                     <GoogleSignInButton
                       onSuccess={handleLinkGoogle}
-                      onError={(msg) => setError(msg)}
+                      onError={(msg) => toast.error(msg)}
                       isLoading={actionLoading === 'link-google'}
                       disabled={actionLoading !== null}
                       label="Connect Google"
