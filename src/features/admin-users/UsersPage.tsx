@@ -98,6 +98,11 @@ export function UsersPage() {
   const [userToDelete, setUserToDelete] = useState<UserItem | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
+  /* Reset User MFA Confirmation Modal */
+  const [userToResetMfa, setUserToResetMfa] = useState<UserItem | null>(null)
+  const [resetMfaLoading, setResetMfaLoading] = useState(false)
+  const [resetMfaError, setResetMfaError] = useState<string | null>(null)
+
   /* Role search in modals */
   const [roleSearchQuery, setRoleSearchQuery] = useState('')
   const [availableRoles, setAvailableRoles] = useState<RoleItem[]>([])
@@ -524,6 +529,43 @@ export function UsersPage() {
       setUserToDelete(null)
     } finally {
       setDeleteLoading(false)
+    }
+  }
+
+  /* Reset User MFA Handlers */
+  const handleResetMfaConfirm = async () => {
+    if (!userToResetMfa) return
+    setResetMfaLoading(true)
+    setResetMfaError(null)
+
+    try {
+      await usersApi.resetMfa(userToResetMfa.username)
+      setUsers((prev) =>
+        prev.map((item) =>
+          item.id === userToResetMfa.id
+            ? {
+                ...item,
+                mfa_enabled: false,
+                mfaEnabled: false,
+                sms_mfa_enabled: false,
+                smsMfaEnabled: false,
+              }
+            : item
+        )
+      )
+      toast.success(`Two-factor authentication has been reset for @${userToResetMfa.username}.`)
+      setUserToResetMfa(null)
+    } catch (err: any) {
+      const isSudoCancelled = err?.message?.includes('cancelled')
+      const errorMsg =
+        err?.response?.data?.message ||
+        (isSudoCancelled
+          ? `Action cancelled: Sudo elevation is required to reset MFA for user '${userToResetMfa.username}'.`
+          : `Failed to reset MFA for user '${userToResetMfa.username}'.`)
+      setResetMfaError(errorMsg)
+      toast.error(errorMsg)
+    } finally {
+      setResetMfaLoading(false)
     }
   }
 
@@ -970,6 +1012,25 @@ export function UsersPage() {
                               >
                                 <Edit3 className="h-3.5 w-3.5 text-zinc-500" />
                                 <span>Roles</span>
+                              </Button>
+                            )}
+
+                            {/* Reset MFA Button (visible when user has active MFA and is not deleted) */}
+                            {canUpdate && !isDeleted && (item.mfa_enabled || item.mfaEnabled || item.sms_mfa_enabled || item.smsMfaEnabled) && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setUserToResetMfa(item)
+                                  setResetMfaError(null)
+                                }}
+                                disabled={isMutating}
+                                title="Reset user's two-factor authentication"
+                                className="h-8 text-xs px-2.5 gap-1.5 cursor-pointer font-medium text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/20 border-amber-200 dark:border-amber-900/40"
+                              >
+                                <KeyRound className="h-3.5 w-3.5" />
+                                <span>Reset MFA</span>
                               </Button>
                             )}
 
@@ -1486,6 +1547,89 @@ export function UsersPage() {
                   </>
                 ) : (
                   <span>Delete User</span>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 4: Reset MFA Confirmation */}
+      {userToResetMfa && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                  <KeyRound className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                    Reset Two-Factor Authentication
+                  </h3>
+                  <p className="text-xs text-zinc-500">
+                    Disable all MFA factors for this account
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setUserToResetMfa(null)}
+                disabled={resetMfaLoading}
+                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {resetMfaError && (
+              <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-400 text-xs flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                <span>{resetMfaError}</span>
+              </div>
+            )}
+
+            <div className="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/60 text-xs space-y-2 text-amber-900 dark:text-amber-200">
+              <p className="leading-relaxed">
+                Are you sure you want to reset two-factor authentication for{' '}
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">@{userToResetMfa.username}</span>?
+              </p>
+              <ul className="list-disc pl-4 space-y-1 text-[11px] text-amber-800 dark:text-amber-300/80">
+                <li>Authenticator application (TOTP) and SMS MFA will be disabled.</li>
+                <li>All emergency recovery codes will be permanently invalidated.</li>
+                <li>All active sessions and tokens for this user will be revoked immediately.</li>
+                <li>The user will be required to re-enroll MFA on their next login.</li>
+              </ul>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setUserToResetMfa(null)}
+                disabled={resetMfaLoading}
+                className="cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleResetMfaConfirm}
+                disabled={resetMfaLoading}
+                className="gap-1.5 bg-amber-600 hover:bg-amber-700 text-white cursor-pointer"
+              >
+                {resetMfaLoading ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Resetting MFA...</span>
+                  </>
+                ) : (
+                  <>
+                    <KeyRound className="h-3.5 w-3.5" />
+                    <span>Confirm Reset MFA</span>
+                  </>
                 )}
               </Button>
             </div>

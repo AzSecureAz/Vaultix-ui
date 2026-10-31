@@ -114,4 +114,9 @@ export const usersApi = {
     const res = await apiClient.post<ApiResponse<UserItem>>(`/auth/admin/users/${encodeURIComponent(identifier)}/restore`)
     return res.data
   },
+
+  resetMfa: async (identifier: string): Promise<ApiResponse<UserItem>> => {
+    const res = await apiClient.post<ApiResponse<UserItem>>(`/auth/admin/users/${encodeURIComponent(identifier)}/reset-mfa`)
+    return res.data
+  },
 }
