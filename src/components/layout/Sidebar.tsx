@@ -1,8 +1,129 @@
-import { NavLink } from 'react-router-dom'
-import { User, Link2, Shield, Fingerprint, Smartphone, X, Users, ShieldCheck, Lock, KeyRound } from 'lucide-react'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { NavLink, useLocation } from 'react-router-dom'
+import {
+  User,
+  Link2,
+  Shield,
+  Fingerprint,
+  Smartphone,
+  X,
+  Users,
+  ShieldCheck,
+  Lock,
+  KeyRound,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
 import { Logo } from '@/components/ui/Logo'
+
+interface NavItemConfig {
+  to: string
+  label: string
+  icon: React.ElementType
+}
+
+interface AnimatedNavGroupProps {
+  items: NavItemConfig[]
+  onItemClick?: () => void
+}
+
+/* Fluid sliding active tab indicator with high-contrast visible state */
+function AnimatedNavGroup({ items, onItemClick }: AnimatedNavGroupProps) {
+  const location = useLocation()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const isMountedRef = useRef(false)
+  const [indicator, setIndicator] = useState<{ top: number; height: number; opacity: number }>({
+    top: 0,
+    height: 0,
+    opacity: 0,
+  })
+
+  const isItemActive = (path: string) => {
+    if (path === '/dashboard') {
+      return location.pathname === '/dashboard' || location.pathname === '/'
+    }
+    return location.pathname === path || location.pathname.startsWith(`${path}/`)
+  }
+
+  useEffect(() => {
+    const updateIndicator = () => {
+      if (!containerRef.current) return
+      const activeElement = containerRef.current.querySelector<HTMLElement>('[data-active="true"]')
+      if (activeElement) {
+        setIndicator({
+          top: activeElement.offsetTop,
+          height: activeElement.offsetHeight,
+          opacity: 1,
+        })
+      } else {
+        setIndicator((prev) => ({ ...prev, opacity: 0 }))
+      }
+    }
+
+    const raf = requestAnimationFrame(() => {
+      updateIndicator()
+      isMountedRef.current = true
+    })
+
+    window.addEventListener('resize', updateIndicator)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('resize', updateIndicator)
+    }
+  }, [location.pathname, items])
+
+  return (
+    <nav ref={containerRef} className="relative space-y-1">
+      {/* Sliding Active Highlight Pill */}
+      <div
+        className={cn(
+          'absolute left-0 right-0 rounded-xl pointer-events-none select-none z-0',
+          isMountedRef.current ? 'transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]' : 'transition-none'
+        )}
+        style={{
+          transform: `translate3d(0, ${indicator.top}px, 0)`,
+          height: `${indicator.height}px`,
+          opacity: indicator.opacity,
+        }}
+      >
+        {/* High-visibility active background card */}
+        <div className="w-full h-full rounded-xl bg-zinc-200/90 dark:bg-zinc-800 border border-zinc-300 dark:border-white/20 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12),0_2px_8px_rgba(0,0,0,0.5)]" />
+        {/* Vibrant blue accent indicator bar on left edge */}
+        <div className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-blue-600 dark:bg-blue-400 shadow-[0_0_10px_rgba(37,99,235,0.8)]" />
+      </div>
+
+      {items.map((item) => {
+        const Icon = item.icon
+        const active = isItemActive(item.to)
+
+        return (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            data-active={active}
+            onClick={onItemClick}
+            className={cn(
+              'group relative z-10 flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors duration-150 select-none cursor-pointer',
+              active
+                ? 'text-zinc-950 dark:text-white font-semibold'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/60 dark:hover:bg-white/[0.04]'
+            )}
+          >
+            <Icon
+              className={cn(
+                'h-3.5 w-3.5 shrink-0 transition-all duration-200',
+                active
+                  ? 'text-blue-600 dark:text-blue-400 scale-110 drop-shadow-[0_0_8px_rgba(37,99,235,0.4)]'
+                  : 'text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-200'
+              )}
+            />
+            <span className="truncate">{item.label}</span>
+          </NavLink>
+        )
+      })}
+    </nav>
+  )
+}
 
 interface SidebarProps {
   mobileOpen?: boolean
@@ -21,13 +142,27 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   const hasKeyAccess = hasPermission('key:*')
   const hasAdminAccess = hasUserAccess || hasRoleAccess || hasPermissionAccess || hasKeyAccess
 
-  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    cn(
-      'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 select-none',
-      isActive
-        ? 'bg-zinc-100 dark:bg-white/[0.08] text-zinc-950 dark:text-white font-semibold shadow-2xs border border-zinc-200/80 dark:border-white/10'
-        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/70 dark:hover:bg-white/[0.04]'
-    )
+  /* Primary Account Management Navigation Items */
+  const accountNavItems: NavItemConfig[] = useMemo(
+    () => [
+      { to: '/dashboard', label: 'Profile Details', icon: User },
+      { to: '/connected-accounts', label: 'Connected Accounts', icon: Link2 },
+      { to: '/mfa', label: 'Two-Step Verification', icon: Shield },
+      { to: '/passkeys', label: 'Passkeys', icon: Fingerprint },
+      { to: '/sessions', label: 'Active Sessions', icon: Smartphone },
+    ],
+    []
+  )
+
+  /* Administration Navigation Items */
+  const adminNavItems: NavItemConfig[] = useMemo(() => {
+    const list: NavItemConfig[] = []
+    if (hasUserAccess) list.push({ to: '/admin/users', label: 'Users Directory', icon: Users })
+    if (hasRoleAccess) list.push({ to: '/admin/roles', label: 'Roles Directory', icon: ShieldCheck })
+    if (hasPermissionAccess) list.push({ to: '/admin/permissions', label: 'Permissions Directory', icon: Lock })
+    if (hasKeyAccess) list.push({ to: '/admin/signing-keys', label: 'Signing Keys', icon: KeyRound })
+    return list
+  }, [hasUserAccess, hasRoleAccess, hasPermissionAccess, hasKeyAccess])
 
   const navContent = (
     <>
@@ -37,69 +172,16 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
           <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1.5">
             Account Management
           </p>
-          <nav className="space-y-0.5">
-            <NavLink to="/dashboard" onClick={onClose} className={navLinkClass}>
-              <User className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
-              <span>Profile Details</span>
-            </NavLink>
-
-            <NavLink to="/connected-accounts" onClick={onClose} className={navLinkClass}>
-              <Link2 className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
-              <span>Connected Accounts</span>
-            </NavLink>
-
-            <NavLink to="/mfa" onClick={onClose} className={navLinkClass}>
-              <Shield className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
-              <span>Two-Step Verification</span>
-            </NavLink>
-
-            <NavLink to="/passkeys" onClick={onClose} className={navLinkClass}>
-              <Fingerprint className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
-              <span>Passkeys</span>
-            </NavLink>
-
-            <NavLink to="/sessions" onClick={onClose} className={navLinkClass}>
-              <Smartphone className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
-              <span>Active Sessions</span>
-            </NavLink>
-          </nav>
+          <AnimatedNavGroup items={accountNavItems} onItemClick={onClose} />
         </div>
 
         {/* Administration Section */}
-        {hasAdminAccess && (
+        {hasAdminAccess && adminNavItems.length > 0 && (
           <div>
             <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1.5">
               Administration
             </p>
-            <nav className="space-y-0.5">
-              {hasUserAccess && (
-                <NavLink to="/admin/users" onClick={onClose} className={navLinkClass}>
-                  <Users className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
-                  <span>Users Directory</span>
-                </NavLink>
-              )}
-
-              {hasRoleAccess && (
-                <NavLink to="/admin/roles" onClick={onClose} className={navLinkClass}>
-                  <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
-                  <span>Roles Directory</span>
-                </NavLink>
-              )}
-
-              {hasPermissionAccess && (
-                <NavLink to="/admin/permissions" onClick={onClose} className={navLinkClass}>
-                  <Lock className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
-                  <span>Permissions Directory</span>
-                </NavLink>
-              )}
-
-              {hasKeyAccess && (
-                <NavLink to="/admin/signing-keys" onClick={onClose} className={navLinkClass}>
-                  <KeyRound className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" />
-                  <span>Signing Keys</span>
-                </NavLink>
-              )}
-            </nav>
+            <AnimatedNavGroup items={adminNavItems} onItemClick={onClose} />
           </div>
         )}
       </div>
