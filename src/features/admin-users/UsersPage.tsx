@@ -30,6 +30,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/stores/authStore'
 import { usersApi, type UserItem } from './api/usersApi'
@@ -729,9 +730,28 @@ export function UsersPage() {
 
         <CardContent className="p-0">
           {loading ? (
-            <div className="py-16 flex flex-col items-center justify-center gap-3 text-zinc-500">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-              <p className="text-xs">Loading enterprise user directory...</p>
+            <div className="divide-y divide-zinc-200/80 dark:divide-white/[0.06] p-0">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="p-4 sm:px-6 flex items-start justify-between gap-4 animate-pulse">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-2.5">
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                      <Skeleton className="h-4 w-36" />
+                      <Skeleton className="h-4 w-48" />
+                      <Skeleton className="h-4 w-16 rounded-full" />
+                    </div>
+                    <Skeleton className="h-3 w-64" />
+                    <div className="flex items-center gap-2 pt-1">
+                      <Skeleton className="h-5 w-20 rounded-md" />
+                      <Skeleton className="h-5 w-24 rounded-md" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Skeleton className="h-8 w-20 rounded-lg" />
+                    <Skeleton className="h-8 w-8 rounded-lg" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : fetchError ? (
             <div className="p-8 text-center space-y-3">

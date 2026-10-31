@@ -18,6 +18,7 @@ import { toast } from 'sonner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useAuthStore } from '@/stores/authStore'
 import { apiClient } from '@/lib/api-client'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -265,7 +266,7 @@ export function SessionsPage() {
               <div className="min-w-0">
                 <CardTitle className="text-base text-zinc-900 dark:text-white flex items-center gap-2 flex-wrap">
                   <span>Current Active Session</span>
-                  <Badge variant="success" className="text-[10px]">This Device</Badge>
+                  <Badge variant="success" dot pulse className="text-[10px]">This Device</Badge>
                 </CardTitle>
                 <CardDescription className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
                   {currentSession?.device_info || 'Authenticated Client'}
@@ -366,9 +367,22 @@ export function SessionsPage() {
 
         <CardContent className="space-y-3 pt-4">
           {isLoadingOther ? (
-            <div className="py-12 flex flex-col items-center justify-center gap-2 text-zinc-400 text-sm">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-              <span>Loading active sessions...</span>
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="p-3.5 sm:p-4 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-white/[0.06] flex items-center justify-between gap-4 animate-pulse"
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <Skeleton className="h-9 w-9 rounded-lg shrink-0" />
+                    <div className="space-y-2 flex-1 min-w-0">
+                      <Skeleton className="h-4 w-40 sm:w-56" />
+                      <Skeleton className="h-3 w-48 sm:w-80" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-8 w-18 rounded-lg shrink-0" />
+                </div>
+              ))}
             </div>
           ) : otherSessions.length === 0 ? (
             <div className="py-10 px-4 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 text-center space-y-2">

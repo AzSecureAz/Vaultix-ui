@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   Fingerprint,
   Plus,
-  Loader2,
   Laptop,
   Smartphone,
   Key,
@@ -16,6 +15,7 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import { authApi } from '@/features/auth/api/authApi'
 import { RegisterPasskeyModal } from './components/RegisterPasskeyModal'
 import { RenamePasskeyModal } from './components/RenamePasskeyModal'
@@ -130,9 +130,22 @@ export function PasskeysPage() {
 
         <CardContent className="p-0">
           {loading ? (
-            <div className="py-12 flex flex-col items-center justify-center space-y-2 text-zinc-500 dark:text-zinc-400">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              <p className="text-xs">Loading passkeys...</p>
+            <div className="p-4 sm:p-5 space-y-3">
+              {[1, 2].map((i) => (
+                <div key={i} className="flex items-center justify-between gap-4 p-3 rounded-xl border border-zinc-200/80 dark:border-white/[0.06] animate-pulse">
+                  <div className="flex items-center gap-3 flex-1">
+                    <Skeleton className="h-10 w-10 rounded-xl shrink-0" />
+                    <div className="space-y-1.5 flex-1">
+                      <Skeleton className="h-4 w-36" />
+                      <Skeleton className="h-3 w-52" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Skeleton className="h-8 w-16 rounded-md" />
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : error ? (
             <div className="p-6 text-center space-y-3">

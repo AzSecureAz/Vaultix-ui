@@ -3,18 +3,19 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { TopNav } from './TopNav'
 import { SudoModal } from '@/features/sudo/SudoModal'
+import { CommandPalette } from '@/components/ui/CommandPalette'
 
 export function AppLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const location = useLocation()
 
-  // Auto-close mobile drawer whenever route changes
+  /* Auto-close mobile drawer whenever route changes */
   useEffect(() => {
     setMobileMenuOpen(false)
   }, [location.pathname])
 
   return (
-    <div className="flex min-h-screen bg-zinc-50 dark:bg-[#090a0f] text-zinc-900 dark:text-zinc-100 transition-colors">
+    <div className="flex min-h-screen bg-[#fafbfc] dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 transition-colors">
       <Sidebar
         mobileOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
@@ -26,6 +27,7 @@ export function AppLayout() {
         </main>
       </div>
       <SudoModal />
+      <CommandPalette />
     </div>
   )
 }

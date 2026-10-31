@@ -26,6 +26,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/stores/authStore'
 import { rolesApi, type RoleItem } from './api/rolesApi'
@@ -729,11 +730,28 @@ export function RolesPage() {
               </div>
             </div>
           ) : loading && roles.length === 0 ? (
-            <div className="py-14 text-center text-zinc-500 text-xs">
-              <div className="flex items-center justify-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
-                <span>Loading roles...</span>
-              </div>
+            <div className="divide-y divide-zinc-200/80 dark:divide-white/[0.06] p-0">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="p-4 sm:px-6 flex items-start justify-between gap-4 animate-pulse">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-18 rounded-md" />
+                      <Skeleton className="h-4 w-16 rounded-full" />
+                    </div>
+                    <Skeleton className="h-3 w-72" />
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <Skeleton className="h-5 w-16 rounded-md" />
+                      <Skeleton className="h-5 w-20 rounded-md" />
+                      <Skeleton className="h-5 w-18 rounded-md" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Skeleton className="h-8 w-16 rounded-lg" />
+                    <Skeleton className="h-8 w-8 rounded-lg" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : roles.length === 0 ? (
             <div className="py-14 text-center text-zinc-500 dark:text-zinc-400 text-xs">

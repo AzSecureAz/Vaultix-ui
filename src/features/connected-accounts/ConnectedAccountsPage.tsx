@@ -3,12 +3,12 @@ import { useLocation } from 'react-router-dom'
 import {
   Link2,
   Unlink,
-  CheckCircle2,
   Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { authApi } from '@/features/auth/api/authApi'
 import { GoogleIcon, GoogleSignInButton } from '@/features/auth/components/GoogleSignInButton'
@@ -174,9 +174,22 @@ export function ConnectedAccountsPage() {
 
         <CardContent className="p-4 sm:p-6 space-y-4">
           {loading ? (
-            <div className="py-8 flex items-center justify-center gap-2 text-xs text-zinc-500">
-              <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
-              <span>Loading connected accounts...</span>
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="p-4 rounded-xl border border-zinc-200/80 dark:border-white/[0.06] bg-zinc-50/50 dark:bg-white/[0.02] flex items-center justify-between gap-4 animate-pulse"
+                >
+                  <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                    <Skeleton className="h-10 w-10 rounded-xl shrink-0" />
+                    <div className="space-y-1.5 flex-1 min-w-0">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-56" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-8 w-24 rounded-lg shrink-0" />
+                </div>
+              ))}
             </div>
           ) : (
             <div className="space-y-3">
@@ -193,12 +206,11 @@ export function ConnectedAccountsPage() {
                         Google
                       </h4>
                       {googleAccount ? (
-                        <Badge variant="success" className="text-[10px] py-0 px-1.5 h-4.5">
-                          <CheckCircle2 className="h-3 w-3 mr-0.5" />
+                        <Badge variant="success" dot pulse className="text-[10px] py-0 px-2 h-5">
                           Connected
                         </Badge>
                       ) : (
-                        <Badge variant="secondary" className="text-[10px] py-0 px-1.5 h-4.5">
+                        <Badge variant="secondary" className="text-[10px] py-0 px-2 h-5">
                           Not Connected
                         </Badge>
                       )}
@@ -264,12 +276,11 @@ export function ConnectedAccountsPage() {
                         GitHub
                       </h4>
                       {githubAccount ? (
-                        <Badge variant="success" className="text-[10px] py-0 px-1.5 h-4.5">
-                          <CheckCircle2 className="h-3 w-3 mr-0.5" />
+                        <Badge variant="success" dot pulse className="text-[10px] py-0 px-2 h-5">
                           Connected
                         </Badge>
                       ) : (
-                        <Badge variant="secondary" className="text-[10px] py-0 px-1.5 h-4.5">
+                        <Badge variant="secondary" className="text-[10px] py-0 px-2 h-5">
                           Not Connected
                         </Badge>
                       )}

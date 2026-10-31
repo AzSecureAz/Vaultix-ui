@@ -4,7 +4,7 @@ import { Shield, Loader2 } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { AppLayout } from '@/components/layout/AppLayout'
 
-// Route-level code-splitting: loaded asynchronously on demand
+/* Route-level code-splitting: loaded asynchronously on demand */
 const LoginForm = lazy(() => import('@/features/auth/components/LoginForm').then(m => ({ default: m.LoginForm })))
 const RegisterPage = lazy(() => import('@/features/auth/components/RegisterPage').then(m => ({ default: m.RegisterPage })))
 const ForgotPasswordPage = lazy(() => import('@/features/auth/components/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })))
@@ -47,16 +47,16 @@ export function AppRoutes() {
   const { isInitializing, isAuthenticated, checkAuthOnBoot } = useAuthStore()
 
   useEffect(() => {
-    // On app mount, perform silent refresh using stored/cookie refresh token
+    /* On app mount, perform silent refresh using stored/cookie refresh token */
     checkAuthOnBoot()
   }, [checkAuthOnBoot])
 
-  // Fullscreen Enterprise Security Splash Screen while silent refresh is in-flight
+  /* Fullscreen Enterprise Security Splash Screen while silent refresh is in-flight */
   if (isInitializing) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-[#090a0f] bg-grid-pattern flex flex-col items-center justify-center relative overflow-hidden select-none transition-colors">
+      <div className="min-h-screen bg-[#fafbfc] dark:bg-[#09090b] bg-grid-pattern flex flex-col items-center justify-center relative overflow-hidden select-none transition-colors">
         <div className="z-10 flex flex-col items-center space-y-4">
-          <div className="h-12 w-12 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-zinc-800 dark:text-zinc-200 shadow-md">
+          <div className="h-12 w-12 rounded-2xl bg-white dark:bg-[#111116] border border-zinc-200/80 dark:border-white/10 flex items-center justify-center text-zinc-800 dark:text-zinc-200 shadow-xl">
             <Shield className="h-6 w-6 text-zinc-700 dark:text-zinc-300" />
           </div>
 

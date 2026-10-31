@@ -6,7 +6,6 @@ import {
   Check,
   AlertCircle,
   Loader2,
-  CheckCircle2,
   X,
   RefreshCw,
   AlertTriangle,
@@ -623,12 +622,11 @@ export function MfaPage() {
                     Authenticator application
                   </span>
                   {user?.mfa_enabled ? (
-                    <Badge variant="success" className="text-[10px] py-0 px-1.5 h-4.5">
-                      <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
+                    <Badge variant="success" dot pulse className="text-[10px] py-0 px-2 h-5">
                       Active
                     </Badge>
                   ) : (
-                    <Badge variant="secondary" className="text-[10px] py-0 px-1.5 h-4.5">
+                    <Badge variant="secondary" className="text-[10px] py-0 px-2 h-5">
                       Disabled
                     </Badge>
                   )}
@@ -678,12 +676,11 @@ export function MfaPage() {
                     SMS text message
                   </span>
                   {user?.sms_mfa_enabled ? (
-                    <Badge variant="success" className="text-[10px] py-0 px-1.5 h-4.5">
-                      <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
+                    <Badge variant="success" dot pulse className="text-[10px] py-0 px-2 h-5">
                       Active
                     </Badge>
                   ) : (
-                    <Badge variant="secondary" className="text-[10px] py-0 px-1.5 h-4.5">
+                    <Badge variant="secondary" className="text-[10px] py-0 px-2 h-5">
                       Disabled
                     </Badge>
                   )}

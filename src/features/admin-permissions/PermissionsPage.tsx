@@ -24,6 +24,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/stores/authStore'
 import { permissionsApi, type PermissionItem } from './api/permissionsApi'
@@ -453,11 +454,20 @@ export function PermissionsPage() {
               </div>
             </div>
           ) : loading ? (
-            <div className="py-14 text-center text-zinc-500 text-xs">
-              <div className="flex items-center justify-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
-                <span>Loading permissions...</span>
-              </div>
+            <div className="divide-y divide-zinc-200/80 dark:divide-white/[0.06] p-0">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="p-4 sm:px-6 flex items-start justify-between gap-4 animate-pulse">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-6 w-6 rounded-lg" />
+                      <Skeleton className="h-4 w-40 font-mono" />
+                      <Skeleton className="h-4 w-18 rounded-full" />
+                    </div>
+                    <Skeleton className="h-3 w-64" />
+                  </div>
+                  <Skeleton className="h-8 w-18 rounded-lg shrink-0" />
+                </div>
+              ))}
             </div>
           ) : permissions.length === 0 ? (
             <div className="py-14 text-center text-zinc-500 dark:text-zinc-400 text-xs">

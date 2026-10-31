@@ -59,7 +59,7 @@ export function DashboardPage() {
     }
   }
 
-  // Group effective permissions by domain prefix (e.g. user, role, key, permission)
+  /* Group effective permissions by domain prefix (e.g. user, role, key, permission) */
   const groupedPermissions = useMemo(() => {
     if (!user?.permissions || user.permissions.length === 0) return []
 
@@ -148,13 +148,13 @@ export function DashboardPage() {
       </div>
 
       {/* Clerk-Style Hero Profile Card (Responsive) */}
-      <div className="p-4 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/50 backdrop-blur-md shadow-sm dark:shadow-black/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5 transition-colors">
+      <div className="p-4 sm:p-6 rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] bg-white dark:bg-[#111116]/90 backdrop-blur-md shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06),0_12px_36px_-6px_rgba(0,0,0,0.5)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5 transition-colors">
         <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
           <div className="relative group shrink-0">
-            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 dark:from-zinc-800 dark:to-zinc-950 text-white flex items-center justify-center text-lg sm:text-xl font-bold tracking-wider shadow-inner border border-zinc-300 dark:border-zinc-700">
+            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-gradient-to-br from-zinc-800 to-zinc-950 dark:from-zinc-700 dark:to-zinc-900 text-white flex items-center justify-center text-lg sm:text-xl font-bold tracking-wider shadow-md ring-2 ring-zinc-200/80 dark:ring-white/10">
               {user.username ? user.username.slice(0, 2).toUpperCase() : 'VX'}
             </div>
-            <span className="absolute bottom-0 right-0 h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full bg-emerald-500 border-2 border-white dark:border-zinc-900" title="Online" />
+            <span className="absolute bottom-0 right-0 h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full bg-emerald-500 border-2 border-white dark:border-[#111116]" title="Online" />
           </div>
 
           <div className="space-y-0.5 min-w-0 flex-1">
@@ -163,8 +163,7 @@ export function DashboardPage() {
                 {user.full_name || user.username}
               </h2>
               {user.email_verified && (
-                <Badge variant="success" className="text-[10px] py-0 px-1.5 h-4.5 shrink-0">
-                  <CheckCircle2 className="h-3 w-3 mr-0.5" />
+                <Badge variant="success" dot pulse className="text-[10px] py-0 px-2 h-5 shrink-0">
                   Verified
                 </Badge>
               )}
@@ -177,7 +176,7 @@ export function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setIsVerifyModalOpen(true)}
-                  className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30 hover:border-amber-500/50 transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
+                  className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-500/30 hover:border-amber-500/50 transition-all cursor-pointer shadow-2xs active:scale-95 shrink-0 select-none"
                 >
                   <Mail className="h-3 w-3" />
                   <span>Verify</span>
@@ -187,15 +186,17 @@ export function DashboardPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap sm:shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-zinc-100 dark:border-zinc-800/60">
+        <div className="flex items-center gap-2 flex-wrap sm:shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-zinc-100 dark:border-white/[0.06]">
           {user.roles && user.roles.length > 0 && (
-            <Badge variant="default" className="font-mono text-[11px] sm:text-xs px-2 py-0.5 uppercase tracking-wide">
+            <Badge variant="default" className="font-mono text-[11px] sm:text-xs px-2.5 py-0.5 uppercase tracking-wide">
               {user.roles[0].replace('ROLE_', '')}
             </Badge>
           )}
           <Badge
             variant={user.status === 'ACTIVE' ? 'success' : 'secondary'}
-            className="text-[11px] sm:text-xs px-2 py-0.5 capitalize"
+            dot={user.status === 'ACTIVE'}
+            pulse={user.status === 'ACTIVE'}
+            className="text-[11px] sm:text-xs px-2.5 py-0.5 capitalize"
           >
             {user.status ? user.status.toLowerCase() : 'active'}
           </Badge>
@@ -439,8 +440,7 @@ export function DashboardPage() {
             </span>
             <div>
               {user.mfa_enabled ? (
-                <Badge variant="success" className="gap-1.5 text-xs">
-                  <ShieldCheck className="h-3 w-3" />
+                <Badge variant="success" dot pulse className="gap-1.5 text-xs">
                   <span>Enabled (Authenticator App)</span>
                 </Badge>
               ) : (
@@ -460,7 +460,7 @@ export function DashboardPage() {
             <div className="flex items-center gap-2.5">
               {user.passkey_enabled ? (
                 <>
-                  <Badge variant="success" className="text-xs">Active</Badge>
+                  <Badge variant="success" dot className="text-xs">Active</Badge>
                   <Button
                     type="button"
                     variant="outline"
@@ -495,7 +495,7 @@ export function DashboardPage() {
             </span>
             <div className="flex items-center gap-2.5">
               {(user.has_social_accounts || (user as any).hasSocialAccounts) ? (
-                <Badge variant="success" className="text-xs">Connected</Badge>
+                <Badge variant="success" dot className="text-xs">Connected</Badge>
               ) : (
                 <span className="text-zinc-500 dark:text-zinc-400 text-xs">None linked</span>
               )}
