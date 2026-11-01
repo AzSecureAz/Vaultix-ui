@@ -1,173 +1,265 @@
 # Vaultix Web Console - Frontend Architecture & Technical Design
 
-This document details the architectural patterns, client-side security mechanisms, state management lifecycles, and component design patterns governing the **Vaultix Web Console**.
+Comprehensive technical documentation detailing the client-side security architecture, state management lifecycles, token rotation concurrency queues, transparent Sudo mode elevation, and biometric ceremony integrations governing the **Vaultix Web Console**.
 
 ---
 
-## Architectural Data Flow
+## 1. System Architecture & Topology
 
+The Vaultix Web Console is built as an enterprise-grade Single Page Application (SPA). It communicates with the Vaultix backend cluster through the [Spring Cloud Gateway](file:///c:/Users/vimal/Documents/Projects/Vaultix/gateway/README.md) reverse proxy, isolating the frontend from internal microservice topologies.
+
+```mermaid
+flowchart TD
+    subgraph Browser ["Client Browser Application"]
+        SPA[React 19 SPA<br/>AppRoutes & Protected Layout]
+        STORES[Zustand 5 State Stores<br/>Auth / Theme / Sudo / Command]
+        INTERCEPTOR[Axios API Client<br/>api-client.ts]
+    end
+
+    subgraph GatewayNode ["Edge Gateway (Port 8085)"]
+        GATEWAY[Spring Cloud Gateway<br/>Token Relay & Rate Limiting]
+    end
+
+    subgraph Microservices ["Internal Microservices Cluster"]
+        AUTH_SRV[Authorization Service<br/>Port 8081 / lb://authorization]
+        NOTIF_SRV[Notification Service<br/>Port 8084 / lb://notification]
+        EUREKA_SRV[Eureka Server<br/>Port 8761]
+    end
+
+    SPA <--> STORES
+    SPA --> INTERCEPTOR
+    INTERCEPTOR -->|HTTP /api/v1/**| GATEWAY
+    GATEWAY -->|Forward /api/v1/auth/**| AUTH_SRV
+    GATEWAY -->|Forward /api/v1/notifications/**| NOTIF_SRV
+    GATEWAY -.->|Dynamic Service Discovery| EUREKA_SRV
 ```
-                      ┌────────────────────────────┐
-                      │    Vaultix Web Console     │
-                      │     (Port 3000 / 5173)     │
-                      └─────────────┬──────────────┘
-                                    │ /api/v1/**
-                                    ▼
-                      ┌────────────────────────────┐
-                      │    Spring Cloud Gateway    │
-                      │        (Port 8085)         │
-                      └──────▲───────────────▲─────┘
-                             │               │
-               lb://authorization            │ lb://notification
-                             ▼               ▼
-                      ┌──────────────┐┌──────────────┐
-                      │Authorization ││ Notification │
-                      │ (Port 8082)  ││ (Port 8084)  │
-                      └──────────────┘└──────────────┘
+
+---
+
+## 2. Client-Side Routing & Access Control
+
+Routing is orchestrated with **React Router 7** using asynchronous route-level code splitting via `React.lazy()` in [`AppRoutes.tsx`](file:///c:/Users/vimal/Documents/Projects/Vaultix/ui/src/routes/AppRoutes.tsx):
+
+### 2.1 Route Partitioning
+- **Public Routes**: Accessible without authentication (`/login`, `/register`, `/forgot-password`, `/email-revert`, `/oauth/callback/github`). When an already-authenticated user navigates to public routes, they are automatically forwarded to `/dashboard`.
+- **Protected Layout (`AppLayout`)**: Wraps all authenticated features in [`AppLayout.tsx`](file:///c:/Users/vimal/Documents/Projects/Vaultix/ui/src/components/layout/AppLayout.tsx), mounting the [`Sidebar`](file:///c:/Users/vimal/Documents/Projects/Vaultix/ui/src/components/layout/Sidebar.tsx), [`TopNav`](file:///c:/Users/vimal/Documents/Projects/Vaultix/ui/src/components/layout/TopNav.tsx), [`SudoModal`](file:///c:/Users/vimal/Documents/Projects/Vaultix/ui/src/features/sudo/SudoModal.tsx), and [`CommandPalette`](file:///c:/Users/vimal/Documents/Projects/Vaultix/ui/src/components/ui/CommandPalette.tsx).
+- **Administrative Portals**: Sub-routes under `/admin/*` (`/admin/users`, `/admin/roles`, `/admin/permissions`, `/admin/signing-keys`) are restricted by RBAC permission guards.
+
+### 2.2 Boot Authentication & Silent Refresh
+On initial application mount, `AppRoutes` triggers `checkAuthOnBoot()`:
+1. Renders a full-screen **Enterprise Security Splash Screen** displaying the Vaultix brand shield and a verification indicator (`Verifying security context...`).
+2. Dispatches a silent refresh request to `POST /api/v1/auth/public/refresh` utilizing the secure `HttpOnly` cookie or persisted refresh token.
+3. If valid, populates the user profile (`GET /api/v1/auth/me`) and mounts protected routes seamlessly without flashing the login screen.
+4. If expired or unauthenticated, transitions cleanly to public routes while preserving the target query location.
+
+---
+
+## 3. Token Rotation & Concurrency Refresh Queue
+
+API calls are routed through the customized Axios client in [`api-client.ts`](file:///c:/Users/vimal/Documents/Projects/Vaultix/ui/src/lib/api-client.ts):
+
+### 3.1 Token Separation Policy
+- **Access Tokens**: Short-lived JWTs held strictly in memory (`useAuthStore`). Injected into protected API requests as `Authorization: Bearer <token>`.
+- **Refresh Tokens**: Persisted in encrypted, `HttpOnly`, `SameSite=Strict` cookies, completely impervious to JavaScript access and Cross-Site Scripting (XSS) exfiltration.
+
+### 3.2 Concurrency Lock & Promise Queue Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant App as React Components
+    participant Client as Axios Interceptor (api-client.ts)
+    participant AuthStore as useAuthStore (Zustand)
+    participant Backend as Gateway / Auth Service
+
+    App->>Client: GET /api/v1/auth/me (Req A - Token Expired)
+    App->>Client: GET /api/v1/sessions (Req B - Token Expired)
+    Client->>Backend: Req A -> Bearer ExpiredToken
+    Backend-->>Client: 401 Unauthorized
+
+    Note over Client: Engage Lock (isRefreshing = true)<br/>Queue Req B in failedQueue[]
+
+    Client->>Backend: POST /api/v1/auth/public/refresh
+    Backend-->>Client: 200 OK (New Access Token)
+
+    Client->>AuthStore: setAuth(newTokens)
+    Note over Client: Drain and resolve failedQueue[]
+
+    Client->>Backend: Replay Req A with New Token
+    Client->>Backend: Replay Req B with New Token
+    Backend-->>App: 200 OK (Req A Data)
+    Backend-->>App: 200 OK (Req B Data)
+```
+
+### 3.3 Credential Error Isolation
+To prevent unwanted token refresh or logout loops when a user enters an incorrect password in a verification modal, the interceptor inspects the error context:
+```typescript
+/* Do not auto-refresh or logout if the 401 is a credential verification failure */
+const isSudoVerification = originalRequest.url?.includes('/auth/sudo/verify') || 
+                           originalRequest.url?.includes('/auth/sudo/passkey/verify')
+const isCredentialError = isSudoVerification && 
+  error.response?.data?.message && 
+  !error.response.data.message.toLowerCase().includes('token') && 
+  !error.response.data.message.toLowerCase().includes('jwt')
+
+if (isCredentialError) {
+  return Promise.reject(error)
+}
 ```
 
 ---
 
-## 1. Routing & Security Access Control
+## 4. Transparent Sudo Mode Elevation Architecture
 
-The application uses **React Router 7** with centralized client-side access control:
+When performing destructive operations (e.g., changing passwords, deleting passkeys, or regenerating emergency recovery codes), the backend requires elevated Sudo authentication.
 
-- **Public Routes**: Accessible without authentication (`/login`, `/register`, `/forgot-password`). Handles external OAuth2 redirection callbacks cleanly.
-- **Protected Layout (`MainLayout`)**: Wraps authenticated features:
-  - `/dashboard`: Primary profile, password management, phone & email verification, and security overview.
-  - `/connected-accounts`: Management of external identity providers (Google OIDC & GitHub OAuth2).
-  - `/mfa`: Multi-factor authentication (TOTP Authenticator app, SMS MFA, and Emergency Recovery Codes).
-  - `/passkeys`: WebAuthn / FIDO2 Level 3 biometric security keys.
-- **Initialization State**: On application boot, `authStore.initialize()` queries `GET /api/v1/auth/me`. If the session is invalid or expired, the user is seamlessly redirected to `/login` with clean query preservation.
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Page as Dashboard / Passkeys Page
+    participant Client as Axios Interceptor
+    participant SudoStore as useSudoStore
+    participant Modal as SudoModal Component
+    participant Backend as Auth Service
 
----
+    Page->>Client: DELETE /api/v1/auth/mfa/passkeys/{id}
+    Client->>Backend: DELETE /api/v1/auth/mfa/passkeys/{id}
+    Backend-->>Client: 403 Forbidden (x-sudo-required: true)
 
-## 2. Authentication, Token Rotation & Concurrency Queue
+    Note over Client: Mark originalRequest._sudoRetried = true<br/>Call sudoStore.requestElevation()
 
-API communication is managed by a customized **Axios client** ([`src/lib/api-client.ts`](../src/lib/api-client.ts)) implementing seamless JWT token rotation:
+    Client->>SudoStore: requestElevation() -> Returns Pending Promise
+    SudoStore->>Modal: set isOpen = true
+    Modal-->>Page: Displays Sudo Challenge Modal (Password / Passkey / TOTP)
 
-### Token Storage Strategy
-- **Short-Lived Access Tokens**: Stored in memory / authorization headers (`Bearer <token>`).
-- **Refresh Tokens**: Persisted exclusively in **`HttpOnly`**, **`SameSite=Strict`** cookies managed by the backend, eliminating exposure to Cross-Site Scripting (XSS).
+    Modal->>Backend: POST /api/v1/auth/sudo/verify (Credentials)
+    Backend-->>Modal: 200 OK (Sudo Granted)
 
-### Concurrency Refresh Queue
-When an access token expires:
-1. The first intercepted `401 Unauthorized` request triggers a call to `/auth/public/refresh`.
-2. A lock flag `isRefreshing = true` is engaged.
-3. Concurrent requests during token rotation are queued in `failedQueue` as pending promises.
-4. Upon successful refresh:
-   - Queued requests are resolved and automatically retried with the new access token.
-   - The queue is drained and reset.
-5. If the refresh token has expired or been revoked:
-   - All queued requests are rejected.
-   - The auth store dispatches `logout()`, invalidating local state and routing to `/login`.
+    Modal->>SudoStore: resolveElevation()
+    Note over SudoStore: Pending Promise Resolves!
 
----
+    Client->>Backend: Auto-Replay DELETE /api/v1/auth/mfa/passkeys/{id}
+    Backend-->>Page: 200 OK (Passkey Deleted)
+```
 
-## 3. Global State Management
-
-Application state is decoupled into specialized **Zustand 5** stores:
-
-| Store | Location | Responsibility |
-| :--- | :--- | :--- |
-| **`useAuthStore`** | [`src/stores/authStore.ts`](../src/stores/authStore.ts) | User profile identity, authentication status, role & permission sets, session refresh, and logout routines. |
-| **`useThemeStore`** | [`src/stores/themeStore.ts`](../src/stores/themeStore.ts) | Theme mode (`light` / `dark` / `system`), DOM class synchronization (`dark`), and `localStorage` persistence. |
+### Key Technical Advantages
+- **Zero Page Reloads**: The calling component never needs to handle 403 Sudo states manually.
+- **Zero Loss of UI Context**: Form states, modal inputs, and component focus are retained while the user elevates permissions.
+- **Automatic Request Replay**: Once elevated, the original API call automatically executes and resolves.
 
 ---
 
-## 4. Identity & Profile Lifecycle Management
+## 5. Granular RBAC & Wildcard Permission Engine
 
-The account profile portal ([`src/features/dashboard/DashboardPage.tsx`](../src/features/dashboard/DashboardPage.tsx)) provides self-service credential lifecycle actions:
+Role and permission checks are encapsulated within [`useAuthStore.ts`](file:///c:/Users/vimal/Documents/Projects/Vaultix/ui/src/stores/authStore.ts):
 
-### Primary Email Modification
-1. **Initiation**: User specifies new email in `ChangeEmailModal`.
-2. **Backend Event**: Dispatches `POST /auth/email/change/request`. Backend sends a 6-digit confirmation OTP to the new email address.
-3. **Confirmation**: User submits the OTP to `POST /auth/email/change/confirm`.
-4. **Session Invalidation**: Backend updates email, marks verified, revokes all active sessions for security, and returns a clean cookie. Frontend redirects the user to `/login`.
+### 5.1 Role Evaluation (`hasRole`)
+Normalizes role prefixes dynamically:
+```typescript
+hasRole: (role: string) => {
+  const user = get().user
+  if (!user || !user.roles) return false
+  const cleanRole = role.startsWith('ROLE_') ? role.substring(5) : role
+  return user.roles.some(
+    (r) => r === role || r === `ROLE_${cleanRole}` || r === cleanRole
+  )
+}
+```
 
-### International Phone Number Management & Privacy Controls
-- Integrates the reusable `PhoneInput` with live country selection (245+ countries) and automatic dial code formatting.
-- **Verification**: If `phone_number_verified` is false, displays amber `Unverified` badge and launches `VerifyPhoneModal` to send and verify an SMS OTP.
-- **Add / Change Flow**: `ChangePhoneNumberModal` supports adding a phone number when empty and updating an existing one. Submits to `POST /auth/phone/change/request` and confirms with OTP via `POST /auth/phone/change/confirm`.
-- **Phone Privacy Toggle**: Displays phone numbers masked by default (e.g., `+1 555-***-1234`) using `maskPhoneNumber(...)`. An interactive **Eye / EyeOff** toggle button allows users to reveal or hide their phone number securely across the Dashboard, SMS setup dialogs, and modification modals.
+### 5.2 Hierarchical Wildcard Permission Evaluation (`hasPermission`)
+Supports three distinct evaluation tiers:
+1. **Global Superadmin Wildcard (`*`)**: Grants access to all system capabilities.
+2. **Domain-Level Wildcard (`domain:*`)**: E.g., `key:*` matches `key:read`, `key:write`, and `key:rotate`.
+3. **Exact Permission Match**: E.g., `user:create` matches `user:create`.
 
----
+```typescript
+hasPermission: (permission: string) => {
+  const user = get().user
+  if (!user || !user.permissions || user.permissions.length === 0) return false
+  const cleanPerm = permission.trim().toLowerCase()
 
-## 5. Two-Step Verification (MFA) Lifecycle
+  if (cleanPerm === '*') return true
 
-Configured in [`src/features/mfa/MfaPage.tsx`](../src/features/mfa/MfaPage.tsx) supporting both Authenticator Apps and SMS:
+  /* Domain wildcard query, e.g. "key:*" */
+  if (cleanPerm.endsWith(':*')) {
+    const domainPrefix = cleanPerm.slice(0, -1)
+    return user.permissions.some((p) => {
+      const cleanP = p.trim().toLowerCase()
+      return cleanP === '*' || cleanP.startsWith(domainPrefix)
+    })
+  }
 
-### 5.1 Authenticator App (RFC 6238 TOTP)
-1. **Setup Initiation**: User clicks **Set Up** on the Authenticator factor (`POST /auth/mfa/totp/setup`).
-2. **Secret Presentation**: Renders a dynamic QR code (`otpauth://`) alongside a manual Base32 secret key.
-3. **Activation**: User enters 6-digit TOTP code (`POST /auth/mfa/totp/activate`).
-4. **Recovery Codes Issuance**: Backend responds with 10 cryptographically generated emergency recovery codes (`TotpActivationResponse`). The frontend displays them in a secure grid with one-click **Copy All**.
-5. **Disabling**: Clicking **Disable** opens a confirmation dialog, revoking TOTP credentials via `POST /auth/mfa/totp/disable`.
-
-### 5.2 SMS Multi-Factor Authentication
-1. **Prerequisite Check**: Verifies that the user has a verified phone number. If unverified or missing, launches the phone verification/setup modal.
-2. **Setup Ceremony**: User clicks **Set Up** on the SMS factor (`POST /auth/mfa/sms/send-setup-otp`). A 60-second cooldown timer prevents abuse.
-3. **Verification**: User inputs the 6-digit SMS OTP (`POST /auth/mfa/sms/enable`).
-4. **Recovery Codes**: If this is the user's first MFA factor, 10 backup recovery codes are issued and displayed.
-5. **Disabling**: User confirms disablement via `POST /auth/mfa/sms/disable`.
-
-### 5.3 Unified Login Challenge Dialog
-During sign-in, if `authResponse.mfa_required = true`:
-- The client opens the MFA challenge dialog.
-- The user can select their preferred verification method:
-  - **Authenticator App**: Enter current 6-digit TOTP code.
-  - **SMS Code**: Click "Send SMS code" (invoking `POST /auth/public/login/mfa/sms/send-otp`) and enter received code.
-  - **Emergency Recovery Code**: Enter a single-use `xxxxx-xxxxx` backup code.
-- Verification submits to `POST /auth/public/login/mfa`, establishing the authenticated session.
-
-### 5.4 Recovery Codes Management
-- Real-time remaining count loaded via `GET /auth/mfa/recovery-codes`.
-- One-click code regeneration via `POST /auth/mfa/recovery-codes/regenerate` with security warning.
-
----
-
-## 6. Passkeys & WebAuthn Level 3 Integration
-
-Configured in [`src/features/passkeys/PasskeysPage.tsx`](../src/features/passkeys/PasskeysPage.tsx) using `@simplewebauthn/browser`:
-
-### Registration Flow
-1. **Challenge Options**: User clicks **Create Passkey**; frontend calls `POST /auth/webauthn/register/options`.
-2. **Authenticator Ceremony**: Invokes `startRegistration({ optionsJSON })` to prompt Touch ID, Face ID, Windows Hello, or hardware security keys.
-3. **Attestation Submission**: Submits credential attestation to `POST /auth/webauthn/register`. Backend validates cryptographic signature, registers the credential, and updates `user.passkey_enabled = true`.
-4. **Label Customization**: Updates passkey nickname via `PATCH /auth/mfa/passkeys/{id}`.
-
-### Passwordless Login Flow
-1. **Assertion Options**: On the login page (`/login`), user clicks **Sign in with a passkey**; frontend calls `POST /auth/webauthn/authenticate/options`.
-2. **Biometric Verification**: Invokes `startAuthentication({ optionsJSON })` to obtain biometric signature assertion.
-3. **Session Issuance**: Submits assertion to `POST /auth/login/webauthn`. Backend validates the assertion, sets the `HttpOnly` refresh cookie, and returns the standard `AuthResponse` access token payload.
-
-### Passkey Lifecycle Management
-- **List Credentials**: Fetches authorized passkeys via `GET /auth/mfa/passkeys`.
-- **Rename**: Allows renaming passkey labels anytime (`PATCH /auth/mfa/passkeys/{id}`).
-- **Revocation**: Safely removes passkeys with confirmation (`DELETE /auth/mfa/passkeys/{id}`). If all passkeys are deleted, the backend automatically synchronizes `user.passkey_enabled = false`.
+  /* Specific permission query, e.g. "key:read" matches "key:read", "key:*", or "*" */
+  const domain = cleanPerm.split(':')[0]
+  return user.permissions.some((p) => {
+    const cleanP = p.trim().toLowerCase()
+    return cleanP === '*' || cleanP === `${domain}:*` || cleanP === cleanPerm
+  })
+}
+```
 
 ---
 
-## 7. Social Identity Federation & Connected Accounts
+## 6. Biometric Passkeys (FIDO2 / WebAuthn Level 3)
 
-Managed via [`src/features/connected-accounts/ConnectedAccountsPage.tsx`](../src/features/connected-accounts/ConnectedAccountsPage.tsx):
+Configured in [`PasskeysPage.tsx`](file:///c:/Users/vimal/Documents/Projects/Vaultix/ui/src/features/passkeys/PasskeysPage.tsx) using `@simplewebauthn/browser`:
 
-### Supported Identity Providers
-- **Google OIDC**: Integrates Google Identity Services (`@react-oauth/google`). The frontend captures the cryptographic `id_token` and delivers it to `POST /auth/public/login/google` (login/register) or `POST /auth/social/google/link` (account linking).
-- **GitHub OAuth2**: Initiates the GitHub authorization code grant flow, redirecting to GitHub and exchanging the `code` via `POST /auth/public/login/github` or `POST /auth/social/github/link`.
+### 6.1 Registration Ceremony
+1. **Challenge Negotiation**: Frontend requests registration options:
+   ```typescript
+   const options = await authApi.getPasskeyRegistrationOptions()
+   ```
+2. **Platform Biometric Prompt**: Invokes browser authenticator ceremony:
+   ```typescript
+   const attestation = await startRegistration({ optionsJSON: options })
+   ```
+3. **Cryptographic Attestation Verification**: Submits attestation to `POST /api/v1/auth/webauthn/register`.
+4. **State Synchronization**: Backend verifies the attestation signature and updates `user.passkey_enabled = true`.
 
-### Direct 1-Click Connect UX
-- Both Google and GitHub offer direct, seamless 1-click connect actions without redundant intermediate confirmation modals.
-- Real-time status cards display connection badges (`Connected` / `Not connected`), linked provider email addresses, and last connection timestamps.
-
-### Account Unlinking Safety Invariant
-- To prevent accidental account lockouts, if a user attempts to unlink a provider when no local password is set and no other login method exists, the backend and UI guard reject the action with a clear warning modal instructing them to configure a password or alternative authentication method first.
+### 6.2 Passwordless Login Ceremony
+1. User clicks **Sign in with a passkey** on the login form.
+2. Calls `GET /api/v1/auth/webauthn/authenticate/options` to receive challenge.
+3. Invokes `startAuthentication({ optionsJSON })` prompting Touch ID, Windows Hello, or security key.
+4. Posts assertion response to `POST /api/v1/auth/login/webauthn`, establishing session and returning `AuthTokens`.
 
 ---
 
-## 8. UX & Design Principles
+## 7. Multi-Factor Authentication Architecture (`/mfa`)
 
-- **Clerk-Inspired Aesthetics**: High contrast typography, dark/light mode parity, glassmorphic cards, rounded-2xl containers, and subtle micro-animations.
-- **Contextual Inline Errors**: In accordance with enterprise form UX, error messages render directly below the relevant input field with red border outlines, eliminating bulky top notification banners.
-- **Privacy by Default**: Sensitive PII such as phone numbers are masked by default with convenient visibility toggles for the user.
-- **Zero Information Leakage**: UI suppresses internal cryptographic algorithm names or hash methods, preventing reconnaissance.
+The MFA portal in [`MfaPage.tsx`](file:///c:/Users/vimal/Documents/Projects/Vaultix/ui/src/features/mfa/MfaPage.tsx) provides three defensive layers:
+
+### 7.1 RFC 6238 TOTP Authenticator
+- Generates a cryptographic secret and renders an inline QR code (`otpauth://totp/...`).
+- Provides a manual Base32 secret with one-click clipboard copy.
+- Enforces 6-digit confirmation before activation.
+- Generates 10 single-use emergency backup recovery codes on initial setup.
+
+### 7.2 SMS Multi-Factor Authentication
+- Requires a verified phone number as a prerequisite.
+- Features a 60-second cooldown timer to prevent OTP spamming.
+- Confirms phone possession before enrolling the SMS factor.
+
+### 7.3 Emergency Recovery Codes
+- Displays remaining available codes.
+- Supports single-click regeneration of 10 fresh codes with security warnings.
+
+---
+
+## 8. Social Identity Federation & Connected Accounts
+
+Managed via [`ConnectedAccountsPage.tsx`](file:///c:/Users/vimal/Documents/Projects/Vaultix/ui/src/features/connected-accounts/ConnectedAccountsPage.tsx):
+- **Google OIDC**: Integrates Google Identity Services, capturing JWT `id_token` and submitting to `/auth/social/google/link`.
+- **GitHub OAuth2**: Direct authorization code grant exchange via `/auth/social/github/link`.
+- **Account Unlink Invariant**: If a user attempts to disconnect their only login method (when no password is set), the UI rejects the action with a safety warning modal, preventing accidental account lockouts.
+
+---
+
+## 9. Performance Optimization & Production Chunking
+
+Configured in [`vite.config.ts`](file:///c:/Users/vimal/Documents/Projects/Vaultix/ui/vite.config.ts):
+- **Rollup Manual Chunks**: Partitions vendor code into isolated bundles:
+  - `vendor-react`: React 19, React DOM, React Router DOM.
+  - `vendor-tanstack`: TanStack React Query, TanStack React Table.
+  - `vendor-charts`: Recharts data visualization.
+  - `vendor-icons`: Lucide React icon library.
+- **Route-Level Asynchronous Loading**: Every major feature page is loaded on demand using `React.lazy()`.
