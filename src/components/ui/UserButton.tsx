@@ -42,7 +42,7 @@ export function UserButton() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="h-8 w-8 rounded-full bg-gradient-to-br from-zinc-800 to-zinc-950 dark:from-zinc-700 dark:to-zinc-900 text-white flex items-center justify-center text-xs font-semibold tracking-wider shadow-xs hover:ring-2 hover:ring-zinc-900/10 dark:hover:ring-white/20 transition-all cursor-pointer select-none border border-zinc-200/80 dark:border-white/10"
+        className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 via-indigo-600 to-zinc-950 text-white flex items-center justify-center text-xs font-bold tracking-wider shadow-sm hover:ring-2 hover:ring-blue-500/40 transition-all cursor-pointer select-none border border-white/20"
         title="Account"
       >
         {initials}

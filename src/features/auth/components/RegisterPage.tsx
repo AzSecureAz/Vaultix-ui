@@ -156,20 +156,22 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafa] dark:bg-[#0a0a0c] bg-grid-pattern text-zinc-900 dark:text-zinc-100 flex flex-col justify-between p-4 sm:p-6 transition-colors">
+    <div className="relative min-h-screen bg-[#fafbfc] dark:bg-[#09090b] bg-grid-pattern text-zinc-900 dark:text-zinc-100 flex flex-col justify-between p-4 sm:p-6 transition-colors overflow-hidden">
+      {/* Ambient Lighting Cones */}
+      <div className="fixed top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-gradient-to-tr from-blue-600/15 via-indigo-500/10 to-transparent blur-[120px] pointer-events-none -z-0" />
       {/* Top Header */}
-      <header className="max-w-5xl mx-auto w-full flex items-center justify-between pt-2">
+      <header className="relative z-10 max-w-5xl mx-auto w-full flex items-center justify-between pt-2">
         <Logo size="sm" subtitle="IAM" />
         <ThemeToggle variant="segmented" />
       </header>
 
       {/* Clerk-Style Center Auth Card */}
-      <main className="my-auto w-full max-w-[420px] mx-auto py-6">
-        <div className="rounded-2xl border border-zinc-200/90 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/90 backdrop-blur-xl shadow-xl shadow-zinc-950/5 dark:shadow-2xl dark:shadow-black/60 overflow-hidden transition-all">
+      <main className="relative z-10 my-auto w-full max-w-[440px] mx-auto py-6">
+        <div className="rounded-3xl border border-zinc-200/90 dark:border-white/[0.08] bg-white dark:bg-[#111116]/95 backdrop-blur-2xl shadow-xl shadow-zinc-950/5 dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.07),0_20px_50px_-10px_rgba(0,0,0,0.7)] overflow-hidden transition-all">
           {/* Card Header with Centered Emblem */}
           <div className="p-7 pb-4 text-center">
-            <div className="h-10 w-10 rounded-xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center mx-auto mb-3.5 shadow-sm">
-              <Shield className="h-5 w-5" />
+            <div className="relative h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 text-white flex items-center justify-center mx-auto mb-3.5 shadow-lg shadow-blue-500/25 ring-4 ring-blue-500/10">
+              <Shield className="h-6 w-6 text-white stroke-[2.4]" />
             </div>
             <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
               Create your account

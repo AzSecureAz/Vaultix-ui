@@ -31,7 +31,7 @@ interface AnimatedNavGroupProps {
 function AnimatedNavGroup({ items, onItemClick }: AnimatedNavGroupProps) {
   const location = useLocation()
   const containerRef = useRef<HTMLDivElement>(null)
-  const isMountedRef = useRef(false)
+  const [isMounted, setIsMounted] = useState(false)
   const [indicator, setIndicator] = useState<{ top: number; height: number; opacity: number }>({
     top: 0,
     height: 0,
@@ -62,7 +62,7 @@ function AnimatedNavGroup({ items, onItemClick }: AnimatedNavGroupProps) {
 
     const raf = requestAnimationFrame(() => {
       updateIndicator()
-      isMountedRef.current = true
+      setIsMounted(true)
     })
 
     window.addEventListener('resize', updateIndicator)
@@ -78,7 +78,7 @@ function AnimatedNavGroup({ items, onItemClick }: AnimatedNavGroupProps) {
       <div
         className={cn(
           'absolute left-0 right-0 rounded-xl pointer-events-none select-none z-0',
-          isMountedRef.current ? 'transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]' : 'transition-none'
+          isMounted ? 'transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]' : 'transition-none'
         )}
         style={{
           transform: `translate3d(0, ${indicator.top}px, 0)`,
@@ -87,9 +87,9 @@ function AnimatedNavGroup({ items, onItemClick }: AnimatedNavGroupProps) {
         }}
       >
         {/* High-visibility active background card */}
-        <div className="w-full h-full rounded-xl bg-zinc-200/90 dark:bg-zinc-800 border border-zinc-300 dark:border-white/20 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12),0_2px_8px_rgba(0,0,0,0.5)]" />
+        <div className="w-full h-full rounded-xl bg-zinc-200/80 dark:bg-zinc-800/90 border border-zinc-300/80 dark:border-white/10 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1),0_2px_8px_rgba(0,0,0,0.4)]" />
         {/* Vibrant blue accent indicator bar on left edge */}
-        <div className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-blue-600 dark:bg-blue-400 shadow-[0_0_10px_rgba(37,99,235,0.8)]" />
+        <div className="absolute left-1 top-2.5 bottom-2.5 w-1 rounded-full bg-blue-600 dark:bg-blue-400 shadow-[0_0_10px_rgba(37,99,235,0.8)]" />
       </div>
 
       {items.map((item) => {
@@ -148,7 +148,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
       { to: '/dashboard', label: 'Profile Details', icon: User },
       { to: '/connected-accounts', label: 'Connected Accounts', icon: Link2 },
       { to: '/mfa', label: 'Two-Step Verification', icon: Shield },
-      { to: '/passkeys', label: 'Passkeys', icon: Fingerprint },
+      { to: '/passkeys', label: 'Passkeys (FIDO2)', icon: Fingerprint },
       { to: '/sessions', label: 'Active Sessions', icon: Smartphone },
     ],
     []
@@ -160,7 +160,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
     if (hasUserAccess) list.push({ to: '/admin/users', label: 'Users Directory', icon: Users })
     if (hasRoleAccess) list.push({ to: '/admin/roles', label: 'Roles Directory', icon: ShieldCheck })
     if (hasPermissionAccess) list.push({ to: '/admin/permissions', label: 'Permissions Directory', icon: Lock })
-    if (hasKeyAccess) list.push({ to: '/admin/signing-keys', label: 'Signing Keys', icon: KeyRound })
+    if (hasKeyAccess) list.push({ to: '/admin/signing-keys', label: 'Signing Keys (JWKS)', icon: KeyRound })
     return list
   }, [hasUserAccess, hasRoleAccess, hasPermissionAccess, hasKeyAccess])
 
@@ -186,25 +186,29 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
         )}
       </div>
 
-      {/* Clerk-Style Sidebar Profile Widget */}
+      {/* Sidebar Profile Widget */}
       <div className="p-3 border-t border-zinc-200/80 dark:border-white/[0.08] bg-zinc-50/50 dark:bg-white/[0.02]">
-        <div className="flex items-center gap-2.5 p-1 rounded-xl">
+        <NavLink
+          to="/dashboard"
+          onClick={onClose}
+          className="flex items-center gap-2.5 p-1.5 rounded-xl hover:bg-zinc-100/70 dark:hover:bg-white/[0.04] transition-colors cursor-pointer group"
+        >
           <div className="relative">
-            <div className="h-8 w-8 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center text-xs font-bold tracking-wider shrink-0 shadow-2xs">
+            <div className="h-8 w-8 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center text-xs font-bold tracking-wider shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
               {initials}
             </div>
             <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#0c0c10]" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-200 truncate">
+            <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               {user?.full_name || user?.username || 'User'}
             </p>
             <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400">
-              <Shield className="h-2.5 w-2.5" />
+              <Shield className="h-2.5 w-2.5 text-blue-500" />
               <span className="truncate uppercase font-mono tracking-tight">{primaryRole}</span>
             </div>
           </div>
-        </div>
+        </NavLink>
       </div>
     </>
   )
@@ -214,8 +218,11 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
       {/* Desktop Sticky Sidebar */}
       <aside className="hidden md:flex w-60 border-r border-zinc-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0c0c10] flex-col shrink-0 h-screen sticky top-0 select-none transition-colors">
         {/* Brand Header */}
-        <div className="h-14 flex items-center px-5 border-b border-zinc-200/80 dark:border-white/[0.08]">
+        <div className="h-14 flex items-center justify-between px-5 border-b border-zinc-200/80 dark:border-white/[0.08]">
           <Logo size="sm" subtitle="IAM" />
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold">
+            v2.4
+          </span>
         </div>
         {navContent}
       </aside>
