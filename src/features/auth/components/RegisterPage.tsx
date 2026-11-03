@@ -18,6 +18,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { authApi } from '../api/authApi'
 import { GoogleSignInButton } from './GoogleSignInButton'
 import { GitHubSignInButton } from './GitHubSignInButton'
+import { LegalModal, type LegalModalType } from '@/components/ui/LegalModal'
 
 export function RegisterPage() {
   const navigate = useNavigate()
@@ -36,6 +37,7 @@ export function RegisterPage() {
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [isSuccess, setIsSuccess] = useState(false)
+  const [legalModalType, setLegalModalType] = useState<LegalModalType>(null)
 
   // Password rules validation
   const hasMinLength = password.length >= 8
@@ -520,14 +522,38 @@ export function RegisterPage() {
       </main>
 
       {/* Screen Bottom Footer */}
-      <footer className="max-w-5xl mx-auto w-full flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-400 dark:text-zinc-500 pb-2 gap-3">
+      <footer className="relative z-10 max-w-5xl mx-auto w-full flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 pb-2 gap-3 font-medium">
         <p>&copy; {new Date().getFullYear()} Vaultix, Inc.</p>
         <div className="flex items-center gap-5">
-          <a href="#terms" className="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">Terms</a>
-          <a href="#privacy" className="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">Privacy</a>
-          <a href="#security" className="hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">Security</a>
+          <button
+            type="button"
+            onClick={() => setLegalModalType('terms')}
+            className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer"
+          >
+            Terms
+          </button>
+          <button
+            type="button"
+            onClick={() => setLegalModalType('privacy')}
+            className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer"
+          >
+            Privacy
+          </button>
+          <button
+            type="button"
+            onClick={() => setLegalModalType('security')}
+            className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer"
+          >
+            Security
+          </button>
         </div>
       </footer>
+
+      <LegalModal
+        type={legalModalType}
+        isOpen={!!legalModalType}
+        onClose={() => setLegalModalType(null)}
+      />
     </div>
   )
 }
