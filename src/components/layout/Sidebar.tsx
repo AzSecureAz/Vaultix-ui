@@ -73,7 +73,7 @@ function AnimatedNavGroup({ items, onItemClick }: AnimatedNavGroupProps) {
   }, [location.pathname, items])
 
   return (
-    <nav ref={containerRef} className="relative space-y-1">
+    <nav ref={containerRef} className="relative space-y-1.5">
       {/* Sliding Active Highlight Pill */}
       <div
         className={cn(
@@ -87,7 +87,7 @@ function AnimatedNavGroup({ items, onItemClick }: AnimatedNavGroupProps) {
         }}
       >
         {/* High-visibility active background card */}
-        <div className="w-full h-full rounded-xl bg-zinc-200/80 dark:bg-zinc-800/90 border border-zinc-300/80 dark:border-white/10 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1),0_2px_8px_rgba(0,0,0,0.4)]" />
+        <div className="w-full h-full rounded-xl bg-zinc-200/90 dark:bg-zinc-800 border border-zinc-300 dark:border-white/15 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12),0_2px_8px_rgba(0,0,0,0.5)]" />
         {/* Vibrant blue accent indicator bar on left edge */}
         <div className="absolute left-1 top-2.5 bottom-2.5 w-1 rounded-full bg-blue-600 dark:bg-blue-400 shadow-[0_0_10px_rgba(37,99,235,0.8)]" />
       </div>
@@ -103,18 +103,18 @@ function AnimatedNavGroup({ items, onItemClick }: AnimatedNavGroupProps) {
             data-active={active}
             onClick={onItemClick}
             className={cn(
-              'group relative z-10 flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors duration-150 select-none cursor-pointer',
+              'group relative z-10 flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 select-none cursor-pointer',
               active
-                ? 'text-zinc-950 dark:text-white font-semibold'
-                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/60 dark:hover:bg-white/[0.04]'
+                ? 'text-zinc-950 dark:text-white font-bold'
+                : 'text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100/80 dark:hover:bg-white/[0.05]'
             )}
           >
             <Icon
               className={cn(
-                'h-3.5 w-3.5 shrink-0 transition-all duration-200',
+                'h-4.5 w-4.5 shrink-0 transition-all duration-200',
                 active
-                  ? 'text-blue-600 dark:text-blue-400 scale-110 drop-shadow-[0_0_8px_rgba(37,99,235,0.4)]'
-                  : 'text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-200'
+                  ? 'text-blue-600 dark:text-blue-400 scale-110 drop-shadow-[0_0_8px_rgba(37,99,235,0.5)]'
+                  : 'text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-800 dark:group-hover:text-zinc-200'
               )}
             />
             <span className="truncate">{item.label}</span>
@@ -167,9 +167,9 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   const navContent = (
     <>
       {/* Navigation Links */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+      <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-6">
         <div>
-          <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1.5">
+          <p className="px-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
             Account Management
           </p>
           <AnimatedNavGroup items={accountNavItems} onItemClick={onClose} />
@@ -178,7 +178,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
         {/* Administration Section */}
         {hasAdminAccess && adminNavItems.length > 0 && (
           <div>
-            <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1.5">
+            <p className="px-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
               Administration
             </p>
             <AnimatedNavGroup items={adminNavItems} onItemClick={onClose} />
@@ -187,25 +187,25 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
       </div>
 
       {/* Sidebar Profile Widget */}
-      <div className="p-3 border-t border-zinc-200/80 dark:border-white/[0.08] bg-zinc-50/50 dark:bg-white/[0.02]">
+      <div className="p-3.5 border-t border-zinc-200 dark:border-white/[0.08] bg-zinc-50/70 dark:bg-white/[0.02]">
         <NavLink
           to="/dashboard"
           onClick={onClose}
-          className="flex items-center gap-2.5 p-1.5 rounded-xl hover:bg-zinc-100/70 dark:hover:bg-white/[0.04] transition-colors cursor-pointer group"
+          className="flex items-center gap-3 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-white/[0.05] transition-colors cursor-pointer group"
         >
           <div className="relative">
-            <div className="h-8 w-8 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center text-xs font-bold tracking-wider shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+            <div className="h-9 w-9 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center text-xs font-bold tracking-wider shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
               {initials}
             </div>
-            <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#0c0c10]" />
+            <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#0c0c10]" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               {user?.full_name || user?.username || 'User'}
             </p>
-            <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400">
-              <Shield className="h-2.5 w-2.5 text-blue-500" />
-              <span className="truncate uppercase font-mono tracking-tight">{primaryRole}</span>
+            <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+              <Shield className="h-3 w-3 text-blue-500" />
+              <span className="truncate uppercase font-mono">{primaryRole}</span>
             </div>
           </div>
         </NavLink>
@@ -216,13 +216,10 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   return (
     <>
       {/* Desktop Sticky Sidebar */}
-      <aside className="hidden md:flex w-60 border-r border-zinc-200/80 dark:border-white/[0.08] bg-white dark:bg-[#0c0c10] flex-col shrink-0 h-screen sticky top-0 select-none transition-colors">
+      <aside className="hidden md:flex w-64 border-r border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#0c0c10] flex-col shrink-0 h-screen sticky top-0 select-none transition-colors">
         {/* Brand Header */}
-        <div className="h-14 flex items-center justify-between px-5 border-b border-zinc-200/80 dark:border-white/[0.08]">
-          <Logo size="sm" subtitle="IAM" />
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold">
-            v2.4
-          </span>
+        <div className="h-14 flex items-center px-5 border-b border-zinc-200 dark:border-white/[0.08]">
+          <Logo size="md" subtitle="IAM" />
         </div>
         {navContent}
       </aside>
@@ -235,16 +232,16 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
             onClick={onClose}
           />
 
-          <aside className="fixed inset-y-0 left-0 w-64 max-w-[80vw] bg-white dark:bg-[#0c0c10] border-r border-zinc-200 dark:border-white/[0.08] z-50 flex flex-col shadow-2xl animate-in slide-in-from-left duration-200 select-none">
-            <div className="h-14 flex items-center justify-between px-5 border-b border-zinc-200/80 dark:border-white/[0.08]">
-              <Logo size="sm" subtitle="IAM" />
+          <aside className="fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-white dark:bg-[#0c0c10] border-r border-zinc-200 dark:border-white/[0.08] z-50 flex flex-col shadow-2xl animate-in slide-in-from-left duration-200 select-none">
+            <div className="h-14 flex items-center justify-between px-5 border-b border-zinc-200 dark:border-white/[0.08]">
+              <Logo size="md" subtitle="IAM" />
               <button
                 type="button"
                 onClick={onClose}
                 className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
                 title="Close navigation"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
             {navContent}

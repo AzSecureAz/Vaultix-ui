@@ -73,9 +73,9 @@ export function DashboardPage() {
     if (user.passkey_enabled) score += 20
     if (user.phone_number_verified) score += 10
 
-    if (score >= 90) return { score, level: 'Maximum Protection', color: 'text-emerald-500 dark:text-emerald-400', bg: 'bg-emerald-500' }
-    if (score >= 65) return { score, level: 'Strong Posture', color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-500' }
-    return { score, level: 'Hardening Recommended', color: 'text-amber-500 dark:text-amber-400', bg: 'bg-amber-500' }
+    if (score >= 90) return { score, level: 'Maximum Protection', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-500' }
+    if (score >= 65) return { score, level: 'Strong Posture', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-500' }
+    return { score, level: 'Hardening Recommended', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-500' }
   }, [user])
 
   /* Group effective permissions by domain prefix (e.g. user, role, key, permission) */
@@ -87,25 +87,25 @@ export function DashboardPage() {
         label: 'Users Management',
         icon: User,
         color: 'text-blue-600 dark:text-blue-400',
-        badgeBg: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20',
+        badgeBg: 'bg-blue-500/15 text-blue-800 dark:text-blue-200 border-blue-500/30',
       },
       role: {
         label: 'Role Governance',
         icon: ShieldCheck,
         color: 'text-purple-600 dark:text-purple-400',
-        badgeBg: 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20',
+        badgeBg: 'bg-purple-500/15 text-purple-800 dark:text-purple-200 border-purple-500/30',
       },
       key: {
         label: 'Cryptographic Keys',
         icon: KeyRound,
         color: 'text-amber-600 dark:text-amber-400',
-        badgeBg: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20',
+        badgeBg: 'bg-amber-500/15 text-amber-800 dark:text-amber-200 border-amber-500/30',
       },
       permission: {
         label: 'Permissions Directory',
         icon: Shield,
         color: 'text-emerald-600 dark:text-emerald-400',
-        badgeBg: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20',
+        badgeBg: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-200 border-emerald-500/30',
       },
     }
 
@@ -117,8 +117,8 @@ export function DashboardPage() {
         const meta = domainMeta[domain] || {
           label: domain.charAt(0).toUpperCase() + domain.slice(1),
           icon: Shield,
-          color: 'text-zinc-600 dark:text-zinc-400',
-          badgeBg: 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/20',
+          color: 'text-zinc-700 dark:text-zinc-300',
+          badgeBg: 'bg-zinc-500/15 text-zinc-800 dark:text-zinc-200 border-zinc-500/30',
         }
         groups[domain] = { domain, ...meta, actions: [] }
       }
@@ -146,8 +146,8 @@ export function DashboardPage() {
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-3 text-sm text-zinc-500">
-          <Clock className="h-6 w-6 animate-spin text-blue-500" />
+        <div className="flex flex-col items-center gap-3 text-base text-zinc-600 dark:text-zinc-300 font-medium">
+          <Clock className="h-7 w-7 animate-spin text-blue-500" />
           <span>Synchronizing security context...</span>
         </div>
       </div>
@@ -155,45 +155,40 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8 pb-16 min-w-0">
-      {/* Header & Page Title */}
+    <div className="max-w-5xl mx-auto space-y-7 sm:space-y-9 pb-20 min-w-0">
+      {/* Header & Page Title (Clean, no 'Production' mark) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-              Account Command Center
-            </h1>
-            <Badge variant="primary" className="text-[10px] font-mono uppercase tracking-wider py-0 px-1.5">
-              Production
-            </Badge>
-          </div>
-          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-950 dark:text-white">
+            Account Command Center
+          </h1>
+          <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-300 font-medium mt-1">
             Enterprise identity credentials, multi-factor security policies, and RBAC governance.
           </p>
         </div>
 
-        {/* Global Quick Action: Sign Out Everywhere */}
+        {/* Global Quick Action: Terminate Sessions */}
         <Button
           variant="outline"
-          size="sm"
+          size="default"
           onClick={() => setIsLogoutAllOpen(true)}
-          className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 self-start sm:self-auto shadow-2xs border-zinc-200/90 dark:border-white/10"
+          className="h-9 px-4 text-xs sm:text-sm font-semibold text-zinc-700 dark:text-zinc-300 hover:text-red-600 dark:hover:text-red-400 self-start sm:self-auto border-zinc-300 dark:border-zinc-700 shadow-2xs"
         >
-          <ShieldAlert className="h-3.5 w-3.5 mr-1.5" />
+          <ShieldAlert className="h-4 w-4 mr-2" />
           <span>Terminate all sessions</span>
         </Button>
       </div>
 
-      {/* Hero Profile Card with Glass Ambient Glow */}
-      <div className="relative p-5 sm:p-7 rounded-3xl border border-zinc-200/90 dark:border-white/[0.08] bg-white dark:bg-[#111116]/90 backdrop-blur-xl shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.07),0_16px_40px_-8px_rgba(0,0,0,0.6)] overflow-hidden transition-all">
-        {/* Subtle decorative glow behind avatar */}
+      {/* Hero Profile Card with High-Visibility Typography & Contrast */}
+      <div className="relative p-6 sm:p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#111116] backdrop-blur-xl shadow-sm dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08),0_16px_40px_-8px_rgba(0,0,0,0.6)] overflow-hidden transition-all">
+        {/* Decorative glow */}
         <div className="absolute top-0 right-0 w-80 h-40 bg-gradient-to-bl from-blue-500/10 via-indigo-500/5 to-transparent blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-4 sm:gap-5 min-w-0">
+          <div className="flex items-center gap-5 sm:gap-6 min-w-0">
             {/* Avatar with Status Ring */}
             <div className="relative shrink-0">
-              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-zinc-950 text-white flex items-center justify-center text-xl sm:text-2xl font-bold tracking-wider shadow-lg shadow-blue-500/20 ring-4 ring-white dark:ring-[#111116]">
+              <div className="h-20 w-20 sm:h-22 sm:w-22 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-zinc-950 text-white flex items-center justify-center text-2xl sm:text-3xl font-bold tracking-wider shadow-lg shadow-blue-500/25 ring-4 ring-white dark:ring-[#111116]">
                 {user.username ? user.username.slice(0, 2).toUpperCase() : 'VX'}
               </div>
               <span
@@ -204,34 +199,34 @@ export function DashboardPage() {
               </span>
             </div>
 
-            <div className="space-y-1 min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100 truncate">
+            <div className="space-y-1.5 min-w-0 flex-1">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h2 className="text-xl sm:text-2xl font-bold text-zinc-950 dark:text-zinc-50 truncate">
                   {user.full_name || user.username}
                 </h2>
                 {user.email_verified && (
-                  <Badge variant="success" dot pulse className="text-[10px] py-0.5 px-2 h-5 shrink-0">
+                  <Badge variant="success" dot pulse className="text-xs py-0.5 px-2.5 h-6 shrink-0 font-semibold">
                     Verified
                   </Badge>
                 )}
                 {user.roles && user.roles.length > 0 && (
-                  <Badge variant="default" className="font-mono text-[10px] sm:text-[11px] px-2 py-0.5 uppercase tracking-wide">
+                  <Badge variant="default" className="font-mono text-xs px-2.5 py-0.5 uppercase tracking-wide font-bold">
                     {user.roles[0].replace('ROLE_', '')}
                   </Badge>
                 )}
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 flex-wrap">
-                <span className="font-mono">@{user.username}</span>
+              <div className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 font-medium flex-wrap">
+                <span className="font-mono text-zinc-800 dark:text-zinc-200">@{user.username}</span>
                 <span>&bull;</span>
                 <span className="truncate">{user.email}</span>
                 {!user.email_verified && (
                   <button
                     type="button"
                     onClick={() => setIsVerifyModalOpen(true)}
-                    className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30 transition-all cursor-pointer shadow-2xs active:scale-95 shrink-0 select-none"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 dark:text-amber-200 bg-amber-500/15 hover:bg-amber-500/25 px-3 py-1 rounded-full border border-amber-500/40 transition-all cursor-pointer shadow-2xs active:scale-95 shrink-0 select-none"
                   >
-                    <Mail className="h-3 w-3" />
+                    <Mail className="h-3.5 w-3.5" />
                     <span>Verify Email</span>
                   </button>
                 )}
@@ -239,20 +234,20 @@ export function DashboardPage() {
 
               {/* User ID Quick Copy */}
               <div className="pt-1 flex items-center gap-2">
-                <span className="text-[11px] text-zinc-400 font-mono">ID:</span>
-                <span className="text-[11px] font-mono text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-white/[0.04] px-2 py-0.5 rounded border border-zinc-200/80 dark:border-white/10 truncate max-w-[200px] sm:max-w-xs">
+                <span className="text-xs text-zinc-500 dark:text-zinc-400 font-mono font-semibold">ID:</span>
+                <span className="text-xs font-mono font-medium text-zinc-900 dark:text-zinc-100 bg-zinc-100 dark:bg-white/[0.06] px-2.5 py-1 rounded-lg border border-zinc-300 dark:border-white/15 truncate max-w-[220px] sm:max-w-sm">
                   {user.id}
                 </span>
                 <button
                   type="button"
                   onClick={handleCopyId}
-                  className="p-1 rounded text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
                   title="Copy User ID"
                 >
                   {copiedId ? (
-                    <Check className="h-3.5 w-3.5 text-emerald-500" />
+                    <Check className="h-4 w-4 text-emerald-500 stroke-[2.5]" />
                   ) : (
-                    <Copy className="h-3.5 w-3.5" />
+                    <Copy className="h-4 w-4" />
                   )}
                 </button>
               </div>
@@ -260,24 +255,24 @@ export function DashboardPage() {
           </div>
 
           {/* Quick Profile Edit Actions */}
-          <div className="flex items-center gap-2.5 flex-wrap self-start md:self-center pt-3 md:pt-0 border-t md:border-t-0 border-zinc-100 dark:border-white/[0.06]">
+          <div className="flex items-center gap-3 flex-wrap self-start md:self-center pt-3 md:pt-0 border-t md:border-t-0 border-zinc-200 dark:border-zinc-800">
             <Button
               type="button"
               variant="outline"
-              size="sm"
+              size="default"
               onClick={() => setIsChangeFullNameOpen(true)}
-              className="h-8 text-xs font-medium"
+              className="h-9 px-4 text-xs sm:text-sm font-semibold border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 shadow-2xs"
             >
               Edit Name
             </Button>
             <Button
               type="button"
               variant="outline"
-              size="sm"
+              size="default"
               onClick={() => setIsChangePasswordOpen(true)}
-              className="h-8 text-xs font-medium"
+              className="h-9 px-4 text-xs sm:text-sm font-semibold border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 shadow-2xs"
             >
-              <KeyRound className="h-3.5 w-3.5 mr-1 text-zinc-400" />
+              <KeyRound className="h-4 w-4 mr-1.5 text-zinc-500" />
               Password
             </Button>
           </div>
@@ -285,21 +280,21 @@ export function DashboardPage() {
       </div>
 
       {/* Security Posture Health Score Banner */}
-      <Card className="overflow-hidden border-blue-500/20 bg-gradient-to-r from-blue-500/[0.03] via-indigo-500/[0.02] to-transparent">
-        <div className="p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-5">
-          <div className="space-y-1.5 flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-blue-500" />
-              <h3 className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+      <Card className="overflow-hidden border border-blue-500/25 bg-gradient-to-r from-blue-500/[0.05] via-indigo-500/[0.03] to-transparent shadow-sm">
+        <div className="p-6 sm:p-7 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2 flex-1 min-w-0">
+            <div className="flex items-center gap-2.5">
+              <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <h3 className="text-base sm:text-lg font-bold tracking-tight text-zinc-950 dark:text-white">
                 Security Posture Score: <span className={securityHealth.color}>{securityHealth.score}% ({securityHealth.level})</span>
               </h3>
             </div>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-sm text-zinc-600 dark:text-zinc-300 font-medium">
               Evaluates hardware key compliance, multi-factor verification, and email ownership.
             </p>
 
             {/* Health Progress Track */}
-            <div className="w-full h-2 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden mt-3 max-w-md">
+            <div className="w-full h-3 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden mt-3 max-w-lg">
               <div
                 className={`h-full rounded-full transition-all duration-700 ${securityHealth.bg}`}
                 style={{ width: `${securityHealth.score}%` }}
@@ -307,42 +302,42 @@ export function DashboardPage() {
             </div>
           </div>
 
-          {/* Security Checklist Pills */}
-          <div className="flex items-center gap-2 flex-wrap shrink-0">
+          {/* Security Checklist Actions */}
+          <div className="flex items-center gap-2.5 flex-wrap shrink-0">
             {user.email_verified ? (
-              <Badge variant="success" dot className="text-xs">Email Verified</Badge>
+              <Badge variant="success" dot className="text-xs sm:text-sm px-3 py-1 font-semibold">Email Verified</Badge>
             ) : (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setIsVerifyModalOpen(true)}
-                className="h-7 text-xs border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20"
+                className="h-8 px-3.5 text-xs sm:text-sm font-semibold border-amber-500/40 text-amber-700 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20"
               >
                 Verify Email (+25%)
               </Button>
             )}
 
             {(user.mfa_enabled || user.sms_mfa_enabled) ? (
-              <Badge variant="success" dot className="text-xs">2FA Guarded</Badge>
+              <Badge variant="success" dot className="text-xs sm:text-sm px-3 py-1 font-semibold">2FA Guarded</Badge>
             ) : (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => navigate('/mfa')}
-                className="h-7 text-xs border-blue-500/30 text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20"
+                className="h-8 px-3.5 text-xs sm:text-sm font-semibold border-blue-500/40 text-blue-700 dark:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20"
               >
                 Enable 2FA (+25%)
               </Button>
             )}
 
             {user.passkey_enabled ? (
-              <Badge variant="success" dot className="text-xs">Passkey Active</Badge>
+              <Badge variant="success" dot className="text-xs sm:text-sm px-3 py-1 font-semibold">Passkey Active</Badge>
             ) : (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => navigate('/passkeys')}
-                className="h-7 text-xs border-purple-500/30 text-purple-600 dark:text-purple-400 bg-purple-500/10 hover:bg-purple-500/20"
+                className="h-8 px-3.5 text-xs sm:text-sm font-semibold border-purple-500/40 text-purple-700 dark:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20"
               >
                 Add Passkey (+20%)
               </Button>
@@ -352,80 +347,88 @@ export function DashboardPage() {
       </Card>
 
       {/* 4 Modern Stat / Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         {/* Card 1: Identity State */}
-        <Card glow className="p-4 sm:p-5 flex flex-col justify-between space-y-3">
+        <Card glow className="p-5 sm:p-6 flex flex-col justify-between space-y-4 border border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Identity Status</span>
-            <div className="h-8 w-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-              <User className="h-4 w-4" />
+            <span className="text-xs sm:text-sm font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
+              Identity Status
+            </span>
+            <div className="h-9 w-9 rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+              <User className="h-5 w-5" />
             </div>
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            <div className="flex items-center gap-2.5">
+              <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-950 dark:text-white">
                 {user.status || 'ACTIVE'}
               </span>
-              <span className="relative flex h-2 w-2">
+              <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
               </span>
             </div>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
+            <p className="text-xs sm:text-sm font-medium text-zinc-600 dark:text-zinc-400 mt-1 truncate">
               {user.roles?.length || 1} Role{user.roles?.length !== 1 ? 's' : ''} assigned
             </p>
           </div>
         </Card>
 
         {/* Card 2: 2FA Authentication */}
-        <Card glow className="p-4 sm:p-5 flex flex-col justify-between space-y-3">
+        <Card glow className="p-5 sm:p-6 flex flex-col justify-between space-y-4 border border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Two-Factor Auth</span>
-            <div className="h-8 w-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-              <ShieldCheck className="h-4 w-4" />
+            <span className="text-xs sm:text-sm font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
+              Two-Factor Auth
+            </span>
+            <div className="h-9 w-9 rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+              <ShieldCheck className="h-5 w-5" />
             </div>
           </div>
           <div>
-            <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-950 dark:text-white">
               {user.mfa_enabled ? 'TOTP Active' : user.sms_mfa_enabled ? 'SMS Active' : 'Disabled'}
             </span>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+            <p className="text-xs sm:text-sm font-medium text-zinc-600 dark:text-zinc-400 mt-1">
               {user.mfa_enabled || user.sms_mfa_enabled ? 'Hardware / OTP Guarded' : 'Action recommended'}
             </p>
           </div>
         </Card>
 
         {/* Card 3: Passkeys / WebAuthn */}
-        <Card glow className="p-4 sm:p-5 flex flex-col justify-between space-y-3">
+        <Card glow className="p-5 sm:p-6 flex flex-col justify-between space-y-4 border border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">FIDO2 Passkeys</span>
-            <div className="h-8 w-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <Fingerprint className="h-4 w-4" />
+            <span className="text-xs sm:text-sm font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
+              FIDO2 Passkeys
+            </span>
+            <div className="h-9 w-9 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <Fingerprint className="h-5 w-5" />
             </div>
           </div>
           <div>
-            <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-950 dark:text-white">
               {user.passkey_enabled ? 'Enabled' : 'None'}
             </span>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+            <p className="text-xs sm:text-sm font-medium text-zinc-600 dark:text-zinc-400 mt-1">
               {user.passkey_enabled ? 'Biometric login available' : 'Passwordless security'}
             </p>
           </div>
         </Card>
 
         {/* Card 4: Last Sign In */}
-        <Card glow className="p-4 sm:p-5 flex flex-col justify-between space-y-3">
+        <Card glow className="p-5 sm:p-6 flex flex-col justify-between space-y-4 border border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Last Sign-In</span>
-            <div className="h-8 w-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-              <Clock className="h-4 w-4" />
+            <span className="text-xs sm:text-sm font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
+              Last Sign-In
+            </span>
+            <div className="h-9 w-9 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <Clock className="h-5 w-5" />
             </div>
           </div>
           <div>
-            <span className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 block truncate">
+            <span className="text-base sm:text-lg font-bold tracking-tight text-zinc-950 dark:text-white block truncate">
               {formatDate(user.last_login_at)}
             </span>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+            <p className="text-xs sm:text-sm font-medium text-zinc-600 dark:text-zinc-400 mt-1">
               Verified session token
             </p>
           </div>
@@ -433,8 +436,8 @@ export function DashboardPage() {
       </div>
 
       {/* Segmented Section Tabs */}
-      <div className="border-b border-zinc-200/80 dark:border-white/[0.08]">
-        <nav className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <div className="border-b border-zinc-200 dark:border-zinc-800">
+        <nav className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-3 scrollbar-none">
           {[
             { id: 'profile' as const, label: 'Profile Details', icon: User },
             { id: 'security' as const, label: 'Security & Access', icon: ShieldCheck },
@@ -448,13 +451,13 @@ export function DashboardPage() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer whitespace-nowrap select-none ${
+                className={`flex items-center gap-2.5 px-4.5 sm:px-5 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold transition-all cursor-pointer whitespace-nowrap select-none ${
                   active
-                    ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 font-semibold shadow-xs'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-white/[0.04]'
+                    ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 font-bold shadow-md'
+                    : 'text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.06]'
                 }`}
               >
-                <Icon className={`h-3.5 w-3.5 ${active ? 'text-blue-400 dark:text-blue-600' : 'text-zinc-400'}`} />
+                <Icon className={`h-4.5 w-4.5 ${active ? 'text-blue-400 dark:text-blue-600' : 'text-zinc-500'}`} />
                 <span>{tab.label}</span>
               </button>
             )
@@ -464,24 +467,24 @@ export function DashboardPage() {
 
       {/* Tab 1: Profile Details */}
       {activeTab === 'profile' && (
-        <Card className="overflow-hidden">
-          <CardHeader className="p-4 sm:p-6 pb-3 border-b border-zinc-100 dark:border-white/[0.06]">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
-              <CardTitle>Profile Details</CardTitle>
+        <Card className="overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <CardHeader className="p-6 sm:p-7 pb-4 border-b border-zinc-200 dark:border-zinc-800">
+            <div className="flex items-center gap-2.5">
+              <User className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
+              <CardTitle className="text-base sm:text-lg font-bold">Profile Details</CardTitle>
             </div>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">
               Personal identity information and contact endpoints associated with your account
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-0 divide-y divide-zinc-100 dark:divide-white/[0.06] text-xs sm:text-sm">
+          <CardContent className="p-0 divide-y divide-zinc-200 dark:divide-zinc-800 text-sm sm:text-base">
             {/* Full Name */}
-            <div className="px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-zinc-50/50 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:w-44 shrink-0">
+            <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
+              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0">
                 Full Name
               </span>
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <span className="text-zinc-900 dark:text-zinc-100 font-medium">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-zinc-950 dark:text-zinc-100 font-medium">
                   {user.full_name || 'Not provided'}
                 </span>
                 <Button
@@ -489,7 +492,7 @@ export function DashboardPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsChangeFullNameOpen(true)}
-                  className="h-6 text-[11px] px-2 py-0 cursor-pointer"
+                  className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
                 >
                   {user.full_name ? 'Change name' : 'Add name'}
                 </Button>
@@ -497,12 +500,12 @@ export function DashboardPage() {
             </div>
 
             {/* Username */}
-            <div className="px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-zinc-50/50 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:w-44 shrink-0">
+            <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
+              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0">
                 Username
               </span>
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <span className="text-zinc-900 dark:text-zinc-100 font-mono font-medium">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-zinc-950 dark:text-zinc-100 font-mono font-semibold">
                   @{user.username}
                 </span>
                 <Button
@@ -510,7 +513,7 @@ export function DashboardPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsChangeUsernameOpen(true)}
-                  className="h-6 text-[11px] px-2 py-0 cursor-pointer"
+                  className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
                 >
                   Change username
                 </Button>
@@ -518,21 +521,21 @@ export function DashboardPage() {
             </div>
 
             {/* Email Address */}
-            <div className="px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-zinc-50/50 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:w-44 shrink-0 flex items-center gap-1.5">
-                <Mail className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+            <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
+              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0 flex items-center gap-2">
+                <Mail className="h-4 w-4 text-zinc-500 shrink-0" />
                 Email Address
               </span>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-zinc-900 dark:text-zinc-100 font-medium break-all">{user.email}</span>
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-zinc-950 dark:text-zinc-100 font-medium break-all">{user.email}</span>
                 {user.email_verified ? (
-                  <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1 shrink-0">
-                    <CheckCircle2 className="h-3 w-3" />
+                  <span className="text-xs sm:text-sm text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1.5 shrink-0">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                     Verified Primary
                   </span>
                 ) : (
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs text-amber-700 dark:text-amber-400 font-semibold px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30">
                       Unverified
                     </span>
                     <Button
@@ -540,7 +543,7 @@ export function DashboardPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => setIsVerifyModalOpen(true)}
-                      className="h-6 text-[11px] px-2 py-0 cursor-pointer"
+                      className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-amber-500/40 text-amber-700 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 cursor-pointer shadow-2xs"
                     >
                       Verify email
                     </Button>
@@ -551,7 +554,7 @@ export function DashboardPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsChangeEmailOpen(true)}
-                  className="h-6 text-[11px] px-2 py-0 cursor-pointer"
+                  className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
                 >
                   Change email
                 </Button>
@@ -559,34 +562,34 @@ export function DashboardPage() {
             </div>
 
             {/* Phone Number */}
-            <div className="px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-zinc-50/50 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:w-44 shrink-0 flex items-center gap-1.5">
-                <Phone className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+            <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
+              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0 flex items-center gap-2">
+                <Phone className="h-4 w-4 text-zinc-500 shrink-0" />
                 Phone Number
               </span>
               {user.phone_number ? (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <div className="inline-flex items-center gap-1.5">
-                    <span className="text-zinc-900 dark:text-zinc-100 font-mono text-xs sm:text-sm">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="inline-flex items-center gap-2">
+                    <span className="text-zinc-950 dark:text-zinc-100 font-mono text-sm sm:text-base font-medium">
                       {showPhoneNumber ? user.phone_number : maskPhoneNumber(user.phone_number)}
                     </span>
                     <button
                       type="button"
                       onClick={() => setShowPhoneNumber(!showPhoneNumber)}
-                      className="p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/[0.06] rounded transition-colors cursor-pointer"
+                      className="p-1.5 text-zinc-500 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.06] rounded-lg transition-colors cursor-pointer"
                       title={showPhoneNumber ? 'Hide phone number' : 'Show phone number'}
                     >
-                      {showPhoneNumber ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      {showPhoneNumber ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                   {user.phone_number_verified ? (
-                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1 shrink-0">
-                      <CheckCircle2 className="h-3 w-3" />
+                    <span className="text-xs sm:text-sm text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1.5 shrink-0">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                       Verified
                     </span>
                   ) : (
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs text-amber-700 dark:text-amber-400 font-semibold px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30">
                         Unverified
                       </span>
                       <Button
@@ -594,7 +597,7 @@ export function DashboardPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => setIsVerifyPhoneOpen(true)}
-                        className="h-6 text-[11px] px-2 py-0 cursor-pointer"
+                        className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-amber-500/40 text-amber-700 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 cursor-pointer shadow-2xs"
                       >
                         Verify phone
                       </Button>
@@ -605,20 +608,20 @@ export function DashboardPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setIsChangePhoneOpen(true)}
-                    className="h-6 text-[11px] px-2 py-0 cursor-pointer"
+                    className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
                   >
                     Change phone
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-zinc-500 dark:text-zinc-400 text-xs">No phone number attached</span>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-zinc-500 dark:text-zinc-400 text-sm">No phone number attached</span>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => setIsChangePhoneOpen(true)}
-                    className="h-6 text-[11px] px-2 py-0 cursor-pointer"
+                    className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
                   >
                     Add phone
                   </Button>
@@ -627,12 +630,12 @@ export function DashboardPage() {
             </div>
 
             {/* Created Timestamp */}
-            <div className="px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1 hover:bg-zinc-50/50 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:w-44 shrink-0 flex items-center gap-1.5">
-                <Calendar className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+            <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
+              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0 flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-zinc-500 shrink-0" />
                 Member Since
               </span>
-              <span className="text-zinc-600 dark:text-zinc-400 font-medium">
+              <span className="text-zinc-700 dark:text-zinc-300 font-semibold text-sm sm:text-base">
                 {formatDate(user.created_at)}
               </span>
             </div>
@@ -642,34 +645,34 @@ export function DashboardPage() {
 
       {/* Tab 2: Security & Access */}
       {activeTab === 'security' && (
-        <Card className="overflow-hidden">
-          <CardHeader className="p-4 sm:p-6 pb-3 border-b border-zinc-100 dark:border-white/[0.06]">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
-              <CardTitle>Security &amp; Authentication Factors</CardTitle>
+        <Card className="overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <CardHeader className="p-6 sm:p-7 pb-4 border-b border-zinc-200 dark:border-zinc-800">
+            <div className="flex items-center gap-2.5">
+              <ShieldCheck className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
+              <CardTitle className="text-base sm:text-lg font-bold">Security &amp; Authentication Factors</CardTitle>
             </div>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">
               Hardware passkeys, multi-factor policies, and credentials hardening
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-0 divide-y divide-zinc-100 dark:divide-white/[0.06] text-xs sm:text-sm">
+          <CardContent className="p-0 divide-y divide-zinc-200 dark:divide-zinc-800 text-sm sm:text-base">
             {/* Two-Factor Authentication */}
-            <div className="px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-zinc-50/50 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:w-44 shrink-0">
+            <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
+              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0">
                 Two-Factor Authentication
               </span>
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-3 flex-wrap">
                 {user.mfa_enabled ? (
-                  <Badge variant="success" dot pulse className="text-xs">
+                  <Badge variant="success" dot pulse className="text-xs sm:text-sm px-3 py-1 font-semibold">
                     Enabled (Authenticator App)
                   </Badge>
                 ) : user.sms_mfa_enabled ? (
-                  <Badge variant="success" dot pulse className="text-xs">
+                  <Badge variant="success" dot pulse className="text-xs sm:text-sm px-3 py-1 font-semibold">
                     Enabled (SMS OTP)
                   </Badge>
                 ) : (
-                  <Badge variant="secondary" className="text-xs">
-                    <ShieldAlert className="h-3 w-3 text-zinc-400 mr-1" />
+                  <Badge variant="secondary" className="text-xs sm:text-sm px-3 py-1 font-semibold">
+                    <ShieldAlert className="h-3.5 w-3.5 text-zinc-500 mr-1.5" />
                     Not Configured
                   </Badge>
                 )}
@@ -678,7 +681,7 @@ export function DashboardPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/mfa')}
-                  className="h-6 text-[11px] px-2 py-0 cursor-pointer"
+                  className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
                 >
                   Configure 2FA
                 </Button>
@@ -686,23 +689,23 @@ export function DashboardPage() {
             </div>
 
             {/* Passkeys / WebAuthn */}
-            <div className="px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-zinc-50/50 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:w-44 shrink-0 flex items-center gap-1.5">
-                <Fingerprint className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+            <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
+              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0 flex items-center gap-2">
+                <Fingerprint className="h-4 w-4 text-zinc-500 shrink-0" />
                 Passkeys (FIDO2)
               </span>
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-3 flex-wrap">
                 {user.passkey_enabled ? (
-                  <Badge variant="success" dot className="text-xs">Active</Badge>
+                  <Badge variant="success" dot className="text-xs sm:text-sm px-3 py-1 font-semibold">Active</Badge>
                 ) : (
-                  <span className="text-zinc-500 dark:text-zinc-400 text-xs">None registered</span>
+                  <span className="text-zinc-500 dark:text-zinc-400 text-sm">None registered</span>
                 )}
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/passkeys')}
-                  className="h-6 text-[11px] px-2 py-0 cursor-pointer"
+                  className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
                 >
                   {user.passkey_enabled ? 'Manage passkeys' : 'Register passkey'}
                 </Button>
@@ -710,23 +713,23 @@ export function DashboardPage() {
             </div>
 
             {/* Connected OAuth Accounts */}
-            <div className="px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-zinc-50/50 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:w-44 shrink-0 flex items-center gap-1.5">
-                <Link2 className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+            <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
+              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0 flex items-center gap-2">
+                <Link2 className="h-4 w-4 text-zinc-500 shrink-0" />
                 Connected Accounts
               </span>
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-3 flex-wrap">
                 {(user.has_social_accounts || (user as any).hasSocialAccounts) ? (
-                  <Badge variant="success" dot className="text-xs">Connected</Badge>
+                  <Badge variant="success" dot className="text-xs sm:text-sm px-3 py-1 font-semibold">Connected</Badge>
                 ) : (
-                  <span className="text-zinc-500 dark:text-zinc-400 text-xs">None linked</span>
+                  <span className="text-zinc-500 dark:text-zinc-400 text-sm">None linked</span>
                 )}
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/connected-accounts')}
-                  className="h-6 text-[11px] px-2 py-0 cursor-pointer"
+                  className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
                 >
                   Manage accounts
                 </Button>
@@ -734,34 +737,34 @@ export function DashboardPage() {
             </div>
 
             {/* Password Management */}
-            <div className="px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-zinc-50/50 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:w-44 shrink-0 flex items-center gap-1.5">
-                <KeyRound className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+            <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
+              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0 flex items-center gap-2">
+                <KeyRound className="h-4 w-4 text-zinc-500 shrink-0" />
                 Password Credentials
               </span>
               <div className="flex items-center gap-3">
                 {(user.has_password === false || (user as any).hasPassword === false) ? (
                   <>
-                    <span className="text-zinc-500 dark:text-zinc-400 text-xs">Not configured</span>
+                    <span className="text-zinc-500 dark:text-zinc-400 text-sm">Not configured</span>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       onClick={() => setIsChangePasswordOpen(true)}
-                      className="h-6 text-[11px] px-2 py-0 cursor-pointer"
+                      className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
                     >
                       Set password
                     </Button>
                   </>
                 ) : (
                   <>
-                    <span className="font-mono text-zinc-500 tracking-widest text-xs">••••••••••••</span>
+                    <span className="font-mono text-zinc-600 dark:text-zinc-300 tracking-widest text-sm font-bold">••••••••••••</span>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       onClick={() => setIsChangePasswordOpen(true)}
-                      className="h-6 text-[11px] px-2 py-0 cursor-pointer"
+                      className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
                     >
                       Change password
                     </Button>
@@ -771,18 +774,18 @@ export function DashboardPage() {
             </div>
 
             {/* Active Sessions Overview */}
-            <div className="px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-zinc-50/50 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:w-44 shrink-0 flex items-center gap-1.5">
-                <Smartphone className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+            <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
+              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0 flex items-center gap-2">
+                <Smartphone className="h-4 w-4 text-zinc-500 shrink-0" />
                 Active Sessions
               </span>
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-3">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/sessions')}
-                  className="h-6 text-[11px] px-2 py-0 cursor-pointer"
+                  className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
                 >
                   Inspect sessions
                 </Button>
@@ -791,7 +794,7 @@ export function DashboardPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsLogoutAllOpen(true)}
-                  className="h-6 text-[11px] px-2 py-0 cursor-pointer text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                  className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:text-white hover:bg-red-600 dark:hover:bg-red-600 cursor-pointer shadow-2xs"
                 >
                   Sign out everywhere
                 </Button>
@@ -803,12 +806,12 @@ export function DashboardPage() {
 
       {/* Tab 3: Roles & Privileges */}
       {activeTab === 'permissions' && (
-        <Card className="overflow-hidden">
-          <CardHeader className="p-4 sm:p-6 pb-3 border-b border-zinc-100 dark:border-white/[0.06]">
+        <Card className="overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <CardHeader className="p-6 sm:p-7 pb-4 border-b border-zinc-200 dark:border-zinc-800">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Shield className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
-                <CardTitle>Roles &amp; Effective Privileges</CardTitle>
+              <div className="flex items-center gap-2.5">
+                <Shield className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
+                <CardTitle className="text-base sm:text-lg font-bold">Roles &amp; Effective Privileges</CardTitle>
               </div>
               {(hasPermission('permission:read') || user.roles?.includes('ROLE_ADMIN')) && (
                 <Button
@@ -816,67 +819,67 @@ export function DashboardPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate('/admin/permissions')}
-                  className="h-7 text-xs text-blue-600 dark:text-blue-400 gap-1 font-medium"
+                  className="h-8 text-xs sm:text-sm text-blue-600 dark:text-blue-400 gap-1.5 font-bold hover:bg-blue-50 dark:hover:bg-blue-950/40"
                 >
                   <span>Permissions Directory</span>
-                  <ExternalLink className="h-3 w-3" />
+                  <ExternalLink className="h-3.5 w-3.5" />
                 </Button>
               )}
             </div>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">
               RBAC roles assigned to your identity and resolved domain capabilities
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-4 sm:p-6 space-y-6">
+          <CardContent className="p-6 sm:p-8 space-y-7">
             {/* Assigned Roles */}
             <div>
-              <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block mb-2">
+              <span className="text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider block mb-3">
                 Assigned RBAC Roles
               </span>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2.5 flex-wrap">
                 {user.roles && user.roles.length > 0 ? (
                   user.roles.map((role: string) => (
-                    <Badge key={role} variant="default" className="font-mono text-xs px-3 py-1">
+                    <Badge key={role} variant="default" className="font-mono text-xs sm:text-sm px-3.5 py-1.5 font-bold">
                       {role}
                     </Badge>
                   ))
                 ) : (
-                  <span className="text-xs text-zinc-500">No roles assigned</span>
+                  <span className="text-sm text-zinc-500">No roles assigned</span>
                 )}
               </div>
             </div>
 
             {/* Effective Permissions Grid */}
             {user.permissions && user.permissions.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block">
+                  <span className="text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider block">
                     Domain Capabilities ({user.permissions.length})
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {groupedPermissions.map((group) => {
                     const GroupIcon = group.icon
                     return (
                       <div
                         key={group.domain}
-                        className="p-3.5 rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] bg-zinc-50/50 dark:bg-white/[0.02] space-y-2.5"
+                        className="p-4 sm:p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 space-y-3"
                       >
-                        <div className="flex items-center gap-2">
-                          <GroupIcon className={`h-4 w-4 ${group.color}`} />
-                          <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                        <div className="flex items-center gap-2.5">
+                          <GroupIcon className={`h-4.5 w-4.5 ${group.color}`} />
+                          <span className="text-sm font-bold text-zinc-950 dark:text-white">
                             {group.label}
                           </span>
-                          <span className="text-[10px] text-zinc-400 font-mono ml-auto">
+                          <span className="text-xs text-zinc-500 font-mono font-medium ml-auto">
                             {group.actions.length} action{group.actions.length > 1 ? 's' : ''}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1.5 flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap">
                           {group.actions.map((act) => (
                             <span
                               key={act}
-                              className={`text-[11px] font-mono font-medium px-2 py-0.5 rounded-md border ${group.badgeBg}`}
+                              className={`text-xs font-mono font-bold px-2.5 py-1 rounded-md border ${group.badgeBg}`}
                             >
                               {act}
                             </span>
@@ -888,7 +891,7 @@ export function DashboardPage() {
                 </div>
               </div>
             ) : (
-              <p className="text-xs text-zinc-500">No direct permissions resolved.</p>
+              <p className="text-sm text-zinc-500">No direct permissions resolved.</p>
             )}
           </CardContent>
         </Card>
@@ -896,34 +899,34 @@ export function DashboardPage() {
 
       {/* Tab 4: Danger Zone */}
       {activeTab === 'danger' && (
-        <Card className="overflow-hidden border-red-200/80 dark:border-red-950/60 bg-red-500/[0.02] dark:bg-red-950/10">
-          <CardHeader className="p-4 sm:p-6 pb-3 border-b border-red-200/50 dark:border-red-900/30">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
-              <CardTitle className="text-red-600 dark:text-red-400">Account Termination Zone</CardTitle>
+        <Card className="overflow-hidden border border-red-300 dark:border-red-900/60 bg-red-500/[0.03] dark:bg-red-950/15 shadow-sm">
+          <CardHeader className="p-6 sm:p-7 pb-4 border-b border-red-200 dark:border-red-900/40">
+            <div className="flex items-center gap-2.5">
+              <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              <CardTitle className="text-base sm:text-lg font-bold text-red-600 dark:text-red-400">Account Termination Zone</CardTitle>
             </div>
-            <CardDescription className="text-zinc-500 dark:text-zinc-400">
+            <CardDescription className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300">
               Irreversible actions that affect your entire account, tokens, and data access
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-4 sm:p-6 divide-y divide-red-200/50 dark:divide-red-900/30 space-y-4 text-xs sm:text-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
-              <div className="space-y-1">
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100 block">
+          <CardContent className="p-6 sm:p-8 space-y-5 text-sm sm:text-base">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+              <div className="space-y-1.5 max-w-xl">
+                <span className="text-base font-bold text-zinc-950 dark:text-white block">
                   Permanently Delete Account
                 </span>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-xl">
+                <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed font-medium">
                   Initiates complete deletion of your identity record, invalidates all issued JWT tokens, revokes passkeys, and starts the 90-day retention grace cycle.
                 </p>
               </div>
               <Button
                 type="button"
                 variant="destructive"
-                size="sm"
+                size="default"
                 onClick={() => setIsDeleteAccountOpen(true)}
-                className="shrink-0 text-xs px-3 h-8 shadow-xs"
+                className="shrink-0 text-sm px-4 h-9 font-bold shadow-xs cursor-pointer"
               >
-                <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                <Trash2 className="h-4 w-4 mr-2" />
                 <span>Delete Account</span>
               </Button>
             </div>
