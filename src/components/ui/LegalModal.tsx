@@ -249,3 +249,4 @@ export function LegalModal({ type, isOpen, onClose }: LegalModalProps) {
     document.body
   )
 }
+
