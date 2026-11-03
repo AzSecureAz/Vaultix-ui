@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { Logo } from '@/components/ui/Logo'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import {
@@ -30,7 +31,9 @@ export function EmailRevertPage() {
   const handleRevert = async (tokenToUse: string) => {
     const cleanToken = tokenToUse.trim()
     if (!cleanToken) {
-      setError('Please provide a valid revert security token.')
+      const msg = 'Please provide a valid revert security token.'
+      setError(msg)
+      toast.error(msg)
       return
     }
 
@@ -48,13 +51,15 @@ export function EmailRevertPage() {
         isAuthenticated: false,
         isInitializing: false,
       })
+      toast.success('Your email address has been successfully restored.')
       setSuccess(true)
     } catch (err: any) {
       const errData = err?.response?.data
-      setError(
+      const msg =
         errData?.message ||
-          'Invalid or expired email revert link. The link may have expired or already been used.'
-      )
+        'Invalid or expired email revert link. The link may have expired or already been used.'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -77,30 +82,30 @@ export function EmailRevertPage() {
       </header>
 
       {/* Main Card Content */}
-      <main className="relative z-10 w-full max-w-[440px] mx-auto my-auto py-8">
-        <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl shadow-xl shadow-zinc-950/5 dark:shadow-black/40 p-6 sm:p-8 transition-all">
+      <main className="relative z-10 w-full max-w-[460px] sm:max-w-[480px] mx-auto my-auto py-8">
+        <div className="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/95 dark:bg-[#111116] backdrop-blur-xl shadow-2xl shadow-zinc-950/5 dark:shadow-black/50 p-7 sm:p-9 transition-all space-y-6">
           {success ? (
             /* Success State */
             <div className="text-center space-y-5 animate-in fade-in-50 zoom-in-95 duration-200">
-              <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20 shadow-sm">
-                <CheckCircle2 className="h-7 w-7" />
+              <div className="h-16 w-16 rounded-3xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20 shadow-sm">
+                <CheckCircle2 className="h-8 w-8 stroke-[2.2]" />
               </div>
 
               <div className="space-y-2">
-                <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                <h1 className="text-2xl font-extrabold tracking-tight text-zinc-950 dark:text-white">
                   Email Address Restored!
                 </h1>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                <p className="text-sm text-zinc-600 dark:text-zinc-300 font-medium leading-relaxed">
                   Your Vaultix account has been reverted to your previous email address.
                 </p>
               </div>
 
-              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-left space-y-1.5">
-                <div className="flex items-center gap-2 text-xs font-semibold text-amber-700 dark:text-amber-400">
+              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-left space-y-2">
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-700 dark:text-amber-400">
                   <ShieldCheck className="h-4 w-4 shrink-0" />
                   <span>Security Protection Activated</span>
                 </div>
-                <p className="text-xs text-amber-800 dark:text-amber-300/90 leading-relaxed">
+                <p className="text-xs text-amber-800 dark:text-amber-300/90 leading-relaxed font-medium">
                   All active sessions across all devices have been terminated. For your protection, your previous password was cleared. Please reset your password to regain access.
                 </p>
               </div>
@@ -117,7 +122,7 @@ export function EmailRevertPage() {
                     })
                     navigate('/forgot-password')
                   }}
-                  className="w-full h-11 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 font-medium rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full h-11 sm:h-12 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 font-bold text-sm sm:text-base rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                 >
                   <KeyRound className="h-4 w-4" />
                   <span>Set New Password Now</span>
@@ -125,7 +130,7 @@ export function EmailRevertPage() {
 
                 <Link
                   to="/login"
-                  className="block text-center text-xs font-medium text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
+                  className="block text-center text-xs sm:text-sm font-semibold text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
                 >
                   Return to Sign In
                 </Link>
@@ -134,31 +139,31 @@ export function EmailRevertPage() {
           ) : (
             /* Confirmation / Action State */
             <div className="space-y-6">
-              <div className="text-center space-y-2">
-                <div className="h-12 w-12 rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto border border-red-500/20 shadow-sm mb-3">
-                  <ShieldAlert className="h-6 w-6" />
+              <div className="text-center space-y-2.5">
+                <div className="h-14 w-14 rounded-3xl bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto border border-red-500/20 shadow-sm mb-2">
+                  <ShieldAlert className="h-7 w-7" />
                 </div>
-                <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                <h1 className="text-2xl font-extrabold tracking-tight text-zinc-950 dark:text-white">
                   Emergency Email Revert
                 </h1>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-sm mx-auto">
+                <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-sm mx-auto font-medium">
                   Did you not authorize an email change on your Vaultix account? Reverting will immediately restore your address and lock out unauthorized access.
                 </p>
               </div>
 
               {error && (
-                <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 flex items-start gap-2.5 text-xs text-red-700 dark:text-red-300 animate-in fade-in-50 duration-150">
+                <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 flex items-start gap-2.5 text-xs sm:text-sm text-red-700 dark:text-red-300 animate-in fade-in-50 duration-150 font-medium">
                   <AlertCircle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400 mt-0.5" />
                   <span className="leading-relaxed">{error}</span>
                 </div>
               )}
 
-              <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/60 text-xs text-zinc-600 dark:text-zinc-300 space-y-2">
-                <p className="font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-                  <RotateCcw className="h-3.5 w-3.5 text-red-500" />
+              <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/60 text-xs sm:text-sm text-zinc-700 dark:text-zinc-300 space-y-2">
+                <p className="font-bold text-zinc-950 dark:text-zinc-100 flex items-center gap-1.5">
+                  <RotateCcw className="h-4 w-4 text-red-500" />
                   What happens when you revert:
                 </p>
-                <ul className="list-disc pl-4 space-y-1 text-zinc-500 dark:text-zinc-400">
+                <ul className="list-disc pl-5 space-y-1.5 text-zinc-600 dark:text-zinc-400 font-medium">
                   <li>Your previous email address is immediately restored.</li>
                   <li>All active intruder sessions and tokens are terminated.</li>
                   <li>Your password hash is wiped to prevent further unauthorized access.</li>
@@ -166,10 +171,10 @@ export function EmailRevertPage() {
               </div>
 
               {!initialToken && (
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <label
                     htmlFor="revertToken"
-                    className="block text-xs font-medium text-zinc-700 dark:text-zinc-300"
+                    className="block text-sm font-bold text-zinc-900 dark:text-zinc-100"
                   >
                     Security Revert Token
                   </label>
@@ -179,7 +184,7 @@ export function EmailRevertPage() {
                     value={token}
                     onChange={(e) => setToken(e.target.value)}
                     placeholder="Enter security revert token from email"
-                    className="h-11 rounded-xl text-xs font-mono"
+                    className="h-11 sm:h-12 rounded-xl text-sm font-mono border-zinc-300 dark:border-zinc-700/80"
                   />
                 </div>
               )}
@@ -188,7 +193,7 @@ export function EmailRevertPage() {
                 type="button"
                 disabled={loading || !token.trim()}
                 onClick={() => handleRevert(token)}
-                className="w-full h-11 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="w-full h-11 sm:h-12 bg-red-600 hover:bg-red-700 text-white font-bold text-sm sm:text-base rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-95"
               >
                 {loading ? (
                   <>
@@ -203,12 +208,12 @@ export function EmailRevertPage() {
                 )}
               </Button>
 
-              <div className="text-center">
+              <div className="text-center pt-1">
                 <Link
                   to="/login"
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
+                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
                 >
-                  <ArrowLeft className="h-3.5 w-3.5" />
+                  <ArrowLeft className="h-4 w-4" />
                   <span>Back to Sign In</span>
                 </Link>
               </div>
@@ -218,7 +223,7 @@ export function EmailRevertPage() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 w-full max-w-7xl mx-auto text-center py-4 text-xs text-zinc-400">
+      <footer className="relative z-10 w-full max-w-7xl mx-auto text-center py-4 text-xs font-medium text-zinc-500">
         &copy; {new Date().getFullYear()} Vaultix Inc. All rights reserved.
       </footer>
     </div>

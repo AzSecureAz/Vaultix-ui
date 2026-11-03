@@ -51,6 +51,7 @@ interface GoogleSignInButtonProps {
   icon?: React.ReactNode
   label?: string
   mode?: 'full' | 'compact'
+  size?: 'default' | 'lg' | 'sm'
 }
 
 export function GoogleSignInButton({
@@ -64,6 +65,7 @@ export function GoogleSignInButton({
   icon,
   label,
   mode = 'full',
+  size = 'default',
 }: GoogleSignInButtonProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isRendered, setIsRendered] = useState(false)
@@ -185,9 +187,10 @@ export function GoogleSignInButton({
         : 'Continue with Google')
 
   const isCompact = mode === 'compact'
+  const isLg = size === 'lg'
 
   return (
-    <div className={`relative overflow-hidden rounded-lg group ${isCompact ? 'inline-block' : 'w-full'} ${className}`}>
+    <div className={`relative overflow-hidden group ${isLg ? 'rounded-xl' : 'rounded-lg'} ${isCompact ? 'inline-block' : 'w-full'} ${className}`}>
       {/* 1. Custom Vaultix Button */}
       <Button
         type="button"
@@ -198,13 +201,15 @@ export function GoogleSignInButton({
         className={
           isCompact
             ? `h-8 font-medium text-xs rounded-lg border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white flex items-center justify-center px-3 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50 ${buttonClassName}`
-            : `w-full h-10 font-medium text-xs sm:text-sm rounded-lg border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50 ${buttonClassName}`
+            : isLg
+              ? `w-full h-11 sm:h-12 font-semibold text-sm sm:text-base rounded-xl border-zinc-300 dark:border-zinc-700/80 bg-white dark:bg-zinc-900/80 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2.5 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50 ${buttonClassName}`
+              : `w-full h-10 font-medium text-xs sm:text-sm rounded-lg border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50 ${buttonClassName}`
         }
       >
         {isLoading ? (
-          <Loader2 className={`${isCompact ? 'h-3.5 w-3.5 mr-1.5' : 'h-4 w-4'} animate-spin text-zinc-500`} />
+          <Loader2 className={`${isCompact ? 'h-3.5 w-3.5 mr-1.5' : isLg ? 'h-5 w-5' : 'h-4 w-4'} animate-spin text-zinc-500`} />
         ) : (
-          icon || (isCompact ? <Link2 className="h-3.5 w-3.5 mr-1.5 text-zinc-500" /> : <GoogleIcon className="h-4 w-4 shrink-0" />)
+          icon || (isCompact ? <Link2 className="h-3.5 w-3.5 mr-1.5 text-zinc-500" /> : <GoogleIcon className={`${isLg ? 'h-5 w-5' : 'h-4 w-4'} shrink-0`} />)
         )}
         <span>{isLoading ? 'Verifying with Google...' : defaultLabel}</span>
       </Button>
@@ -212,7 +217,7 @@ export function GoogleSignInButton({
       {/* 2. Invisible Google Native Iframe overlay capturing clicks directly */}
       <div
         ref={containerRef}
-        className={`absolute inset-0 opacity-0 overflow-hidden rounded-lg z-10 [&>div]:w-full [&>div]:h-full [&_iframe]:!w-full [&_iframe]:!h-full [&_iframe]:!scale-150 ${
+        className={`absolute inset-0 opacity-0 overflow-hidden ${isLg ? 'rounded-xl' : 'rounded-lg'} z-10 [&>div]:w-full [&>div]:h-full [&_iframe]:!w-full [&_iframe]:!h-full [&_iframe]:!scale-150 ${
           isRendered ? 'block' : 'hidden'
         } ${
           isLoading || disabled ? 'pointer-events-none' : 'cursor-pointer pointer-events-auto'

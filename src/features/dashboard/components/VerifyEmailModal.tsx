@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Mail, CheckCircle2, AlertCircle, Loader2, X, RefreshCw } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { authApi } from '@/features/auth/api/authApi'
@@ -55,9 +56,12 @@ export const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
     try {
       await authApi.sendEmailVerification()
       setCountdown(60)
+      toast.success(`Verification code dispatched to ${email}`)
     } catch (err: any) {
       const errData = err?.response?.data
-      setError(errData?.message || 'Failed to dispatch verification email. Please try again.')
+      const msg = errData?.message || 'Failed to dispatch verification email. Please try again.'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setResending(false)
     }
@@ -67,7 +71,9 @@ export const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
     if (e) e.preventDefault()
     const cleanOtp = otp.trim()
     if (cleanOtp.length !== 6) {
-      setError('Please enter a valid 6-digit verification code')
+      const msg = 'Please enter a valid 6-digit verification code'
+      setError(msg)
+      toast.error(msg)
       return
     }
 
@@ -77,13 +83,16 @@ export const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
     try {
       await authApi.verifyEmail(cleanOtp)
       setSuccess(true)
+      toast.success('Email verified successfully!')
       await fetchProfile()
       setTimeout(() => {
         onClose()
       }, 1500)
     } catch (err: any) {
       const errData = err?.response?.data
-      setError(errData?.message || 'Invalid or expired verification code')
+      const msg = errData?.message || 'Invalid or expired verification code'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -95,68 +104,68 @@ export const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-md rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl p-6 sm:p-7 z-10 animate-in fade-in-0 zoom-in-95 duration-150">
+      <div className="relative w-full max-w-lg rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl p-7 sm:p-8 z-10 animate-in fade-in-0 zoom-in-95 duration-150">
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+          className="absolute right-5 top-5 p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5" />
         </button>
 
         {success ? (
-          <div className="py-6 text-center space-y-3">
-            <div className="h-12 w-12 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20">
-              <CheckCircle2 className="h-6 w-6" />
+          <div className="py-6 text-center space-y-3.5">
+            <div className="h-14 w-14 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20 shadow-xs">
+              <CheckCircle2 className="h-7 w-7" />
             </div>
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+            <h2 className="text-xl font-bold text-zinc-950 dark:text-white">
               Email Verified Successfully!
             </h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Your email address <span className="font-medium text-zinc-900 dark:text-zinc-200">{email}</span> has been confirmed.
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 font-medium">
+              Your email address <span className="font-bold text-zinc-950 dark:text-zinc-100">{email}</span> has been confirmed.
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {/* Header */}
             <div className="text-center space-y-1.5 pb-2">
-              <div className="h-10 w-10 rounded-xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center mx-auto mb-2 shadow-sm">
-                <Mail className="h-5 w-5" />
+              <div className="h-12 w-12 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center mx-auto mb-3 shadow-md">
+                <Mail className="h-6 w-6" />
               </div>
-              <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+              <h2 className="text-xl font-bold tracking-tight text-zinc-950 dark:text-white">
                 Verify your email
               </h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
                 We sent a 6-digit verification code to{' '}
-                <span className="font-medium text-zinc-900 dark:text-zinc-200 break-all">{email}</span>.
+                <span className="font-bold text-zinc-950 dark:text-white break-all">{email}</span>.
               </p>
             </div>
 
             {/* Form */}
-            <form onSubmit={handleVerify} className="space-y-4">
-              <div className="space-y-1.5 text-center">
-                <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+            <form onSubmit={handleVerify} className="space-y-4.5">
+              <div className="space-y-2 text-center">
+                <label className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
                   Verification Code
                 </label>
                 <Input
                   type="text"
                   maxLength={6}
                   autoFocus
-                  placeholder="000000"
+                  placeholder="000 000"
                   value={otp}
                   onChange={(e) => {
                     const val = e.target.value.replace(/\D/g, '')
                     setOtp(val)
                     if (error) setError(null)
                   }}
-                  className={`h-12 text-center text-xl font-mono font-semibold tracking-[0.4em] rounded-lg bg-zinc-50/50 dark:bg-zinc-950/40 focus:bg-white dark:focus:bg-zinc-900 transition-all ${
-                    error ? 'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-zinc-200 dark:border-zinc-800'
+                  className={`h-12 text-center text-xl font-mono font-bold tracking-[0.4em] rounded-xl bg-zinc-50/60 dark:bg-zinc-950/40 focus:bg-white dark:focus:bg-zinc-900 transition-all ${
+                    error ? 'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-zinc-300 dark:border-zinc-700/80'
                   }`}
                 />
                 {error && (
@@ -170,7 +179,7 @@ export const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
               <Button
                 type="submit"
                 disabled={loading || otp.length !== 6}
-                className="w-full h-10 font-medium text-xs sm:text-sm rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-sm transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+                className="w-full h-11 sm:h-12 font-bold text-sm sm:text-base rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-md transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
@@ -189,18 +198,18 @@ export const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
                 type="button"
                 disabled={countdown > 0 || resending}
                 onClick={handleSendVerification}
-                className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-medium"
+                className="inline-flex items-center gap-2 text-xs sm:text-sm text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-semibold"
               >
                 {resending ? (
                   <>
-                    <RefreshCw className="h-3 w-3 animate-spin" />
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
                     <span>Sending code...</span>
                   </>
                 ) : countdown > 0 ? (
                   <span>Resend code in {countdown}s</span>
                 ) : (
                   <>
-                    <RefreshCw className="h-3 w-3" />
+                    <RefreshCw className="h-3.5 w-3.5" />
                     <span>Didn't receive code? Resend</span>
                   </>
                 )}

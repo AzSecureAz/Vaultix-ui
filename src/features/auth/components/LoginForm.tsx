@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { Logo } from '@/components/ui/Logo'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import {
@@ -89,9 +90,12 @@ export function LoginForm() {
       await authApi.sendLoginSmsOtp(mfaChallenge.mfaToken)
       setSmsSent(true)
       setSmsCountdown(60)
+      toast.success('SMS verification code sent to your phone')
     } catch (err: any) {
       const errData = err?.response?.data
-      setError(errData?.message || 'Failed to send SMS verification code. Please try again.')
+      const msg = errData?.message || 'Failed to send SMS verification code. Please try again.'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setSmsSending(false)
     }
@@ -109,7 +113,9 @@ export function LoginForm() {
     setFieldErrors({})
 
     if (!browserSupportsWebAuthn()) {
-      setError('Passkeys are not supported by this browser.')
+      const msg = 'Passkeys are not supported by this browser.'
+      setError(msg)
+      toast.error(msg)
       return
     }
 
@@ -122,20 +128,26 @@ export function LoginForm() {
 
       if (response.success && response.data) {
         await setAuth(response.data)
+        toast.success('Signed in with passkey')
         navigate('/dashboard')
       } else {
-        setError(response.message || 'Passkey authentication failed.')
+        const msg = response.message || 'Passkey authentication failed.'
+        setError(msg)
+        toast.error(msg)
       }
     } catch (err: any) {
       console.error('Passkey authentication error:', err)
       if (err.name === 'NotAllowedError') {
-        setError('Passkey prompt was cancelled.')
+        const msg = 'Passkey prompt was cancelled.'
+        setError(msg)
+        toast.error(msg)
       } else {
         const msg =
           err?.response?.data?.message ||
           err?.message ||
           'Failed to sign in with passkey.'
         setError(msg)
+        toast.error(msg)
       }
     } finally {
       setPasskeyLoading(false)
@@ -169,20 +181,25 @@ export function LoginForm() {
           setMfaCode('')
           setSmsSent(false)
           setSmsCountdown(0)
+          toast.info('Additional identity verification required')
         } else {
           await setAuth(response.data)
+          toast.success('Signed in with Google')
           navigate('/dashboard')
         }
       } else {
-        setError(response.message || 'Google authentication failed.')
+        const msg = response.message || 'Google authentication failed.'
+        setError(msg)
+        toast.error(msg)
       }
     } catch (err: any) {
       const errData = err?.response?.data
-      setError(
+      const msg =
         errData?.message ||
-          errData?.error ||
-          'Failed to authenticate with Google.'
-      )
+        errData?.error ||
+        'Failed to authenticate with Google.'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setGoogleLoading(false)
     }
@@ -219,30 +236,38 @@ export function LoginForm() {
           setMfaCode('')
           setSmsSent(false)
           setSmsCountdown(0)
+          toast.info('Two-factor verification challenge required')
         } else {
           await setAuth(response.data)
+          toast.success('Signed in successfully!')
           navigate('/dashboard')
         }
       } else {
-        setError(response.message || 'Authentication failed. Please verify your credentials.')
+        const msg = response.message || 'Authentication failed. Please verify your credentials.'
+        setError(msg)
+        toast.error(msg)
       }
     } catch (err: any) {
       const errData = err?.response?.data
       if (errData?.errors && typeof errData.errors === 'object' && Object.keys(errData.errors).length > 0) {
         setFieldErrors(errData.errors)
-        // Show global error only if there are errors that do not map to our inputs
         const unhandled = Object.entries(errData.errors).filter(
           ([key]) => key !== 'identifier' && key !== 'password' && key !== 'username' && key !== 'email'
         )
         if (unhandled.length > 0) {
-          setError(unhandled.map(([, val]) => val).join('. '))
+          const msg = unhandled.map(([, val]) => val).join('. ')
+          setError(msg)
+          toast.error(msg)
+        } else {
+          toast.error('Please resolve the highlighted field errors.')
         }
       } else {
-        setError(
+        const msg =
           errData?.message ||
-            errData?.error ||
-            'Invalid username or password'
-        )
+          errData?.error ||
+          'Invalid username or password'
+        setError(msg)
+        toast.error(msg)
       }
     } finally {
       setLoading(false)
@@ -264,13 +289,18 @@ export function LoginForm() {
 
       if (response.success && response.data) {
         await setAuth(response.data)
+        toast.success('Identity verified! Welcome back.')
         navigate('/dashboard')
       } else {
-        setError(response.message || 'MFA verification failed')
+        const msg = response.message || 'MFA verification failed'
+        setError(msg)
+        toast.error(msg)
       }
     } catch (err: any) {
       const errData = err?.response?.data
-      setError(errData?.message || 'Invalid verification code')
+      const msg = errData?.message || 'Invalid verification code'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setMfaLoading(false)
     }
@@ -279,25 +309,26 @@ export function LoginForm() {
   return (
     <div className="relative min-h-screen bg-[#fafbfc] dark:bg-[#09090b] bg-grid-pattern text-zinc-900 dark:text-zinc-100 flex flex-col justify-between p-4 sm:p-6 transition-colors overflow-hidden">
       {/* Ambient Lighting Cones */}
-      <div className="fixed top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-gradient-to-tr from-blue-600/15 via-indigo-500/10 to-transparent blur-[120px] pointer-events-none -z-0" />
+      <div className="fixed top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[450px] bg-gradient-to-tr from-blue-600/15 via-indigo-500/10 to-transparent blur-[140px] pointer-events-none -z-0" />
+
       {/* Top Header */}
       <header className="relative z-10 max-w-5xl mx-auto w-full flex items-center justify-between pt-2">
         <Logo size="sm" subtitle="IAM" />
         <ThemeToggle variant="segmented" />
       </header>
 
-      {/* Clerk-Style Center Auth Card */}
-      <main className="relative z-10 my-auto w-full max-w-[420px] mx-auto py-6">
+      {/* Center Auth Card */}
+      <main className="relative z-10 my-auto w-full max-w-[460px] sm:max-w-[480px] mx-auto py-6">
         <div className="rounded-3xl border border-zinc-200/90 dark:border-white/[0.08] bg-white dark:bg-[#111116]/95 backdrop-blur-2xl shadow-xl shadow-zinc-950/5 dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.07),0_20px_50px_-10px_rgba(0,0,0,0.7)] overflow-hidden transition-all">
           {/* Card Header with Centered Emblem */}
-          <div className="p-7 pb-4 text-center">
-            <div className="relative h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 text-white flex items-center justify-center mx-auto mb-3.5 shadow-lg shadow-blue-500/25 ring-4 ring-blue-500/10">
-              <Shield className="h-6 w-6 text-white stroke-[2.4]" />
+          <div className="p-7 sm:p-8 pb-4 sm:pb-5 text-center">
+            <div className="relative h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 text-white flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/25 ring-4 ring-blue-500/10">
+              <Shield className="h-7 w-7 text-white stroke-[2.4]" />
             </div>
-            <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-950 dark:text-white">
               {mfaChallenge ? 'Two-step verification' : 'Sign in to Vaultix'}
             </h1>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1.5 font-medium">
               {mfaChallenge
                 ? 'Confirm your identity using an authorized factor'
                 : 'Welcome back! Please enter your details.'}
@@ -305,31 +336,39 @@ export function LoginForm() {
           </div>
 
           {/* Card Body */}
-          <div className="px-7 pb-7">
+          <div className="px-7 sm:px-8 pb-7 sm:pb-8">
             {error && (
-              <div className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-2">
-                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+              <div className="mb-4.5 rounded-xl border border-red-500/20 bg-red-500/10 px-3.5 py-2.5 text-xs sm:text-sm text-red-600 dark:text-red-400 font-medium flex items-center gap-2.5">
+                <AlertCircle className="h-4 w-4 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
             {!mfaChallenge ? (
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 {/* Google Sign In */}
                 <GoogleSignInButton
                   onSuccess={handleGoogleLogin}
-                  onError={(msg) => setError(msg)}
+                  onError={(msg) => {
+                    setError(msg)
+                    toast.error(msg)
+                  }}
                   disabled={googleLoading || passkeyLoading || loading}
                   isLoading={googleLoading}
                   text="continue_with"
+                  size="lg"
                 />
 
                 {/* GitHub Sign In */}
                 <GitHubSignInButton
                   action="login"
-                  onError={(msg) => setError(msg)}
+                  onError={(msg) => {
+                    setError(msg)
+                    toast.error(msg)
+                  }}
                   disabled={googleLoading || passkeyLoading || loading}
                   text="continue_with"
+                  size="lg"
                 />
 
                 {/* Sign in with Passkey Button */}
@@ -338,141 +377,141 @@ export function LoginForm() {
                   variant="outline"
                   onClick={handlePasskeyLogin}
                   disabled={passkeyLoading || googleLoading || loading}
-                  className="w-full h-10 font-medium text-xs sm:text-sm rounded-lg border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50"
+                  className="w-full h-11 sm:h-12 font-semibold text-sm sm:text-base rounded-xl border-zinc-300 dark:border-zinc-700/80 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2.5 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50"
                 >
                   {passkeyLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-zinc-500" />
+                    <Loader2 className="h-5 w-5 animate-spin text-zinc-500" />
                   ) : (
-                    <Fingerprint className="h-4 w-4 text-zinc-700 dark:text-zinc-300" />
+                    <Fingerprint className="h-5 w-5 text-zinc-800 dark:text-zinc-200" />
                   )}
                   <span>{passkeyLoading ? 'Verifying with passkey...' : 'Sign in with a passkey'}</span>
                 </Button>
 
                 {/* Divider */}
-                <div className="relative my-1">
+                <div className="relative my-2">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white dark:bg-zinc-900 px-2 text-zinc-400 text-[10px] font-medium tracking-wider">
+                    <span className="bg-white dark:bg-[#111116] px-3 text-zinc-500 dark:text-zinc-400 text-xs font-semibold tracking-wider">
                       or continue with password
                     </span>
                   </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                <form onSubmit={handleSubmit} className="space-y-4.5">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
                       Username or email
                     </label>
-                  <Input
-                    type="text"
-                    required
-                    placeholder="Enter your username or email"
-                    value={usernameOrEmail}
-                    onChange={(e) => {
-                      setUsernameOrEmail(e.target.value)
-                      if (fieldErrors.identifier || fieldErrors.username || fieldErrors.email) {
-                        setFieldErrors((prev) => {
-                          const next = { ...prev }
-                          delete next.identifier
-                          delete next.username
-                          delete next.email
-                          return next
-                        })
-                      }
-                    }}
-                    autoComplete="username"
-                    autoFocus
-                    className={`h-10 text-xs sm:text-sm rounded-lg bg-zinc-50/50 dark:bg-zinc-950/40 focus:bg-white dark:focus:bg-zinc-900 transition-all ${
-                      fieldErrors.identifier || fieldErrors.username || fieldErrors.email
-                        ? 'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-red-900 dark:text-red-200'
-                        : 'border-zinc-200 dark:border-zinc-800'
-                    }`}
-                  />
-                  {(fieldErrors.identifier || fieldErrors.username || fieldErrors.email) && (
-                    <p className="text-[11px] text-red-600 dark:text-red-400 font-medium flex items-center gap-1 mt-1 animate-in fade-in-50 duration-150">
-                      <AlertCircle className="h-3 w-3 shrink-0" />
-                      <span>{fieldErrors.identifier || fieldErrors.username || fieldErrors.email}</span>
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                      Password
-                    </label>
-                    <Link
-                      to="/forgot-password"
-                      className="text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
-                  <div className="relative">
                     <Input
-                      type={showPassword ? 'text' : 'password'}
+                      type="text"
                       required
-                      placeholder="Enter your password"
-                      value={password}
+                      placeholder="Enter your username or email"
+                      value={usernameOrEmail}
                       onChange={(e) => {
-                        setPassword(e.target.value)
-                        if (fieldErrors.password) {
+                        setUsernameOrEmail(e.target.value)
+                        if (fieldErrors.identifier || fieldErrors.username || fieldErrors.email) {
                           setFieldErrors((prev) => {
                             const next = { ...prev }
-                            delete next.password
+                            delete next.identifier
+                            delete next.username
+                            delete next.email
                             return next
                           })
                         }
                       }}
-                      autoComplete="current-password"
-                      className={`h-10 pr-10 text-xs sm:text-sm rounded-lg bg-zinc-50/50 dark:bg-zinc-950/40 focus:bg-white dark:focus:bg-zinc-900 transition-all ${
-                        fieldErrors.password
+                      autoComplete="username"
+                      autoFocus
+                      className={`h-11 sm:h-12 text-sm sm:text-base px-4 rounded-xl bg-zinc-50/60 dark:bg-zinc-950/40 focus:bg-white dark:focus:bg-zinc-900 transition-all font-medium ${
+                        fieldErrors.identifier || fieldErrors.username || fieldErrors.email
                           ? 'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-red-900 dark:text-red-200'
-                          : 'border-zinc-200 dark:border-zinc-800'
+                          : 'border-zinc-300 dark:border-zinc-700/80'
                       }`}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-0.5 cursor-pointer"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
+                    {(fieldErrors.identifier || fieldErrors.username || fieldErrors.email) && (
+                      <p className="text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-1.5 mt-1 animate-in fade-in-50 duration-150">
+                        <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                        <span>{fieldErrors.identifier || fieldErrors.username || fieldErrors.email}</span>
+                      </p>
+                    )}
                   </div>
-                  {fieldErrors.password && (
-                    <p className="text-[11px] text-red-600 dark:text-red-400 font-medium flex items-center gap-1 mt-1 animate-in fade-in-50 duration-150">
-                      <AlertCircle className="h-3 w-3 shrink-0" />
-                      <span>{fieldErrors.password}</span>
-                    </p>
-                  )}
-                </div>
 
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full mt-2 h-10 font-medium text-xs sm:text-sm rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-sm transition-all active:scale-[0.99] disabled:opacity-50"
-                >
-                  {loading ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Signing in...</span>
-                    </span>
-                  ) : (
-                    <span>Continue</span>
-                  )}
-                </Button>
-              </form>
-            </div>
-          ) : (
-              <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                        Password
+                      </label>
+                      <Link
+                        to="/forgot-password"
+                        className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        placeholder="Enter your password"
+                        value={password}
+                        onChange={(e) => {
+                          setPassword(e.target.value)
+                          if (fieldErrors.password) {
+                            setFieldErrors((prev) => {
+                              const next = { ...prev }
+                              delete next.password
+                              return next
+                            })
+                          }
+                        }}
+                        autoComplete="current-password"
+                        className={`h-11 sm:h-12 pr-11 text-sm sm:text-base px-4 rounded-xl bg-zinc-50/60 dark:bg-zinc-950/40 focus:bg-white dark:focus:bg-zinc-900 transition-all font-medium ${
+                          fieldErrors.password
+                            ? 'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-red-900 dark:text-red-200'
+                            : 'border-zinc-300 dark:border-zinc-700/80'
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-1 cursor-pointer"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4.5 w-4.5" />
+                        ) : (
+                          <Eye className="h-4.5 w-4.5" />
+                        )}
+                      </button>
+                    </div>
+                    {fieldErrors.password && (
+                      <p className="text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-1.5 mt-1 animate-in fade-in-50 duration-150">
+                        <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                        <span>{fieldErrors.password}</span>
+                      </p>
+                    )}
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full mt-2 h-11 sm:h-12 font-bold text-sm sm:text-base rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-md transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+                  >
+                    {loading ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                        <span>Signing in...</span>
+                      </span>
+                    ) : (
+                      <span>Continue</span>
+                    )}
+                  </Button>
+                </form>
+              </div>
+            ) : (
+              <div className="space-y-4.5">
                 {/* Method Switcher Tabs */}
-                <div className={`grid ${mfaChallenge?.smsMfaEnabled && mfaChallenge?.totpEnabled !== false ? 'grid-cols-3' : 'grid-cols-2'} gap-1 bg-zinc-100 dark:bg-zinc-950 p-1 rounded-lg border border-zinc-200 dark:border-zinc-800 text-xs`}>
+                <div className={`grid ${mfaChallenge?.smsMfaEnabled && mfaChallenge?.totpEnabled !== false ? 'grid-cols-3' : 'grid-cols-2'} gap-1.5 bg-zinc-100 dark:bg-zinc-950 p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs sm:text-sm`}>
                   {mfaChallenge?.totpEnabled !== false && (
                     <button
                       type="button"
@@ -481,13 +520,13 @@ export function LoginForm() {
                         setMfaCode('')
                         setError(null)
                       }}
-                      className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md transition-all cursor-pointer ${
+                      className={`flex items-center justify-center gap-2 py-2 px-2.5 rounded-lg transition-all cursor-pointer ${
                         mfaMethod === 'totp'
-                          ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white font-medium shadow-xs'
-                          : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
+                          ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white font-bold shadow-xs'
+                          : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-200 font-medium'
                       }`}
                     >
-                      <Smartphone className="h-3.5 w-3.5" />
+                      <Smartphone className="h-4 w-4" />
                       <span>App</span>
                     </button>
                   )}
@@ -503,13 +542,13 @@ export function LoginForm() {
                           handleSendLoginSmsOtp()
                         }
                       }}
-                      className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md transition-all cursor-pointer ${
+                      className={`flex items-center justify-center gap-2 py-2 px-2.5 rounded-lg transition-all cursor-pointer ${
                         mfaMethod === 'sms'
-                          ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white font-medium shadow-xs'
-                          : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
+                          ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white font-bold shadow-xs'
+                          : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-200 font-medium'
                       }`}
                     >
-                      <MessageSquare className="h-3.5 w-3.5" />
+                      <MessageSquare className="h-4 w-4" />
                       <span>SMS</span>
                     </button>
                   )}
@@ -521,32 +560,32 @@ export function LoginForm() {
                       setMfaCode('')
                       setError(null)
                     }}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md transition-all cursor-pointer ${
+                    className={`flex items-center justify-center gap-2 py-2 px-2.5 rounded-lg transition-all cursor-pointer ${
                       mfaMethod === 'recovery'
-                        ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white font-medium shadow-xs'
-                        : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
+                        ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white font-bold shadow-xs'
+                        : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-200 font-medium'
                     }`}
                   >
-                    <ShieldAlert className="h-3.5 w-3.5" />
+                    <ShieldAlert className="h-4 w-4" />
                     <span>Recovery</span>
                   </button>
                 </div>
 
                 {/* Factor Form Bodies */}
                 {mfaMethod === 'totp' && (
-                  <form onSubmit={handleMfaSubmit} className="space-y-4">
-                    <div className="p-3 bg-zinc-50 dark:bg-zinc-950/80 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs text-zinc-700 dark:text-zinc-300 space-y-1">
-                      <div className="flex items-center gap-1.5 font-medium text-zinc-900 dark:text-zinc-200">
-                        <KeyRound className="h-3.5 w-3.5 text-zinc-500" />
+                  <form onSubmit={handleMfaSubmit} className="space-y-4.5">
+                    <div className="p-4 bg-zinc-50 dark:bg-zinc-950/80 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs sm:text-sm text-zinc-700 dark:text-zinc-300 space-y-1.5">
+                      <div className="flex items-center gap-2 font-semibold text-zinc-900 dark:text-zinc-100">
+                        <KeyRound className="h-4 w-4 text-blue-500" />
                         <span>Authenticator App</span>
                       </div>
-                      <p className="text-zinc-500 dark:text-zinc-400 text-[11px] leading-relaxed">
-                        Enter the 6-digit TOTP code from Google Authenticator, 1Password, or Authy.
+                      <p className="text-zinc-600 dark:text-zinc-400 text-xs leading-relaxed font-medium">
+                        Enter the 6-digit code from Google Authenticator, 1Password, or Authy.
                       </p>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
                         Verification Code
                       </label>
                       <Input
@@ -557,11 +596,11 @@ export function LoginForm() {
                         onChange={(e) => setMfaCode(e.target.value.trim())}
                         autoFocus
                         maxLength={8}
-                        className="text-center tracking-widest font-mono text-base h-11 rounded-lg"
+                        className="text-center tracking-widest font-mono text-xl h-12 rounded-xl border-zinc-300 dark:border-zinc-700/80"
                       />
                     </div>
 
-                    <div className="flex gap-2 pt-1">
+                    <div className="flex gap-2.5 pt-1">
                       <Button
                         type="button"
                         variant="outline"
@@ -569,16 +608,16 @@ export function LoginForm() {
                           setMfaChallenge(null)
                           setMfaCode('')
                         }}
-                        className="w-1/3 text-xs h-10 rounded-lg"
+                        className="w-1/3 text-sm h-11 sm:h-12 rounded-xl font-semibold border-zinc-300 dark:border-zinc-700"
                       >
-                        <ArrowLeft className="h-3 w-3 mr-1" /> Back
+                        <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Back
                       </Button>
                       <Button
                         type="submit"
                         disabled={mfaLoading || !mfaCode}
-                        className="flex-1 text-xs h-10 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950"
+                        className="flex-1 text-sm sm:text-base font-bold h-11 sm:h-12 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950"
                       >
-                        {mfaLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
+                        {mfaLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
                         <span>Verify Code</span>
                       </Button>
                     </div>
@@ -586,15 +625,15 @@ export function LoginForm() {
                 )}
 
                 {mfaMethod === 'sms' && (
-                  <form onSubmit={handleMfaSubmit} className="space-y-4">
-                    <div className="p-3 bg-zinc-50 dark:bg-zinc-950/80 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs text-zinc-700 dark:text-zinc-300 space-y-1">
+                  <form onSubmit={handleMfaSubmit} className="space-y-4.5">
+                    <div className="p-4 bg-zinc-50 dark:bg-zinc-950/80 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs sm:text-sm text-zinc-700 dark:text-zinc-300 space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 font-medium text-zinc-900 dark:text-zinc-200">
-                          <MessageSquare className="h-3.5 w-3.5 text-zinc-500" />
+                        <div className="flex items-center gap-2 font-semibold text-zinc-900 dark:text-zinc-100">
+                          <MessageSquare className="h-4 w-4 text-emerald-500" />
                           <span>SMS Text Message</span>
                         </div>
                         {smsCountdown > 0 ? (
-                          <span className="text-[11px] text-zinc-400 font-mono">
+                          <span className="text-xs text-zinc-500 font-mono font-medium">
                             Resend in {smsCountdown}s
                           </span>
                         ) : (
@@ -602,21 +641,21 @@ export function LoginForm() {
                             type="button"
                             onClick={handleSendLoginSmsOtp}
                             disabled={smsSending}
-                            className="text-[11px] text-zinc-900 dark:text-zinc-100 hover:underline font-medium cursor-pointer"
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-bold cursor-pointer"
                           >
                             {smsSending ? 'Sending...' : smsSent ? 'Resend code' : 'Send code'}
                           </button>
                         )}
                       </div>
-                      <p className="text-zinc-500 dark:text-zinc-400 text-[11px] leading-relaxed">
+                      <p className="text-zinc-600 dark:text-zinc-400 text-xs leading-relaxed font-medium">
                         {smsSent
                           ? `A 6-digit verification code has been sent to your phone ${mfaChallenge.maskedPhoneNumber ? `(${mfaChallenge.maskedPhoneNumber})` : ''}.`
                           : `Click above to send a verification code to your phone ${mfaChallenge.maskedPhoneNumber ? `(${mfaChallenge.maskedPhoneNumber})` : ''}.`}
                       </p>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
                         Verification Code
                       </label>
                       <Input
@@ -627,11 +666,11 @@ export function LoginForm() {
                         onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
                         autoFocus
                         maxLength={6}
-                        className="text-center tracking-widest font-mono text-base h-11 rounded-lg"
+                        className="text-center tracking-widest font-mono text-xl h-12 rounded-xl border-zinc-300 dark:border-zinc-700/80"
                       />
                     </div>
 
-                    <div className="flex gap-2 pt-1">
+                    <div className="flex gap-2.5 pt-1">
                       <Button
                         type="button"
                         variant="outline"
@@ -639,16 +678,16 @@ export function LoginForm() {
                           setMfaChallenge(null)
                           setMfaCode('')
                         }}
-                        className="w-1/3 text-xs h-10 rounded-lg cursor-pointer"
+                        className="w-1/3 text-sm h-11 sm:h-12 rounded-xl font-semibold border-zinc-300 dark:border-zinc-700 cursor-pointer"
                       >
-                        <ArrowLeft className="h-3 w-3 mr-1" /> Back
+                        <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Back
                       </Button>
                       <Button
                         type="submit"
                         disabled={mfaLoading || mfaCode.length < 6}
-                        className="flex-1 text-xs h-10 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 cursor-pointer"
+                        className="flex-1 text-sm sm:text-base font-bold h-11 sm:h-12 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 cursor-pointer"
                       >
-                        {mfaLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
+                        {mfaLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
                         <span>Verify SMS Code</span>
                       </Button>
                     </div>
@@ -656,33 +695,33 @@ export function LoginForm() {
                 )}
 
                 {mfaMethod === 'recovery' && (
-                  <form onSubmit={handleMfaSubmit} className="space-y-4">
-                    <div className="p-3 bg-zinc-50 dark:bg-zinc-950/80 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs text-zinc-700 dark:text-zinc-300 space-y-1">
-                      <div className="flex items-center gap-1.5 font-medium text-zinc-900 dark:text-zinc-200">
-                        <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />
+                  <form onSubmit={handleMfaSubmit} className="space-y-4.5">
+                    <div className="p-4 bg-zinc-50 dark:bg-zinc-950/80 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs sm:text-sm text-zinc-700 dark:text-zinc-300 space-y-1.5">
+                      <div className="flex items-center gap-2 font-semibold text-zinc-900 dark:text-zinc-100">
+                        <ShieldAlert className="h-4 w-4 text-amber-500" />
                         <span>Emergency Recovery Code</span>
                       </div>
-                      <p className="text-zinc-500 dark:text-zinc-400 text-[11px] leading-relaxed">
+                      <p className="text-zinc-600 dark:text-zinc-400 text-xs leading-relaxed font-medium">
                         Enter one of your emergency recovery codes. Each code can only be used once.
                       </p>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
                         Recovery Code
                       </label>
                       <Input
                         type="text"
                         required
-                        placeholder="xxxxx-xxxxx"
+                        placeholder="XXXXX-XXXXX"
                         value={mfaCode}
                         onChange={(e) => setMfaCode(e.target.value.trim())}
                         autoFocus
-                        className="font-mono text-center text-sm h-11 uppercase tracking-wider rounded-lg"
+                        className="font-mono text-center text-base sm:text-lg h-12 uppercase tracking-wider rounded-xl border-zinc-300 dark:border-zinc-700/80"
                       />
                     </div>
 
-                    <div className="flex gap-2 pt-1">
+                    <div className="flex gap-2.5 pt-1">
                       <Button
                         type="button"
                         variant="outline"
@@ -690,16 +729,16 @@ export function LoginForm() {
                           setMfaChallenge(null)
                           setMfaCode('')
                         }}
-                        className="w-1/3 text-xs h-10 rounded-lg"
+                        className="w-1/3 text-sm h-11 sm:h-12 rounded-xl font-semibold border-zinc-300 dark:border-zinc-700"
                       >
-                        <ArrowLeft className="h-3 w-3 mr-1" /> Back
+                        <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Back
                       </Button>
                       <Button
                         type="submit"
                         disabled={mfaLoading || !mfaCode}
-                        className="flex-1 text-xs h-10 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950"
+                        className="flex-1 text-sm sm:text-base font-bold h-11 sm:h-12 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950"
                       >
-                        {mfaLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
+                        {mfaLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
                         <span>Redeem Code</span>
                       </Button>
                     </div>
@@ -709,13 +748,13 @@ export function LoginForm() {
             )}
           </div>
 
-          {/* Clerk Signature Card Footer */}
+          {/* Footer Card */}
           {!mfaChallenge && (
-            <div className="px-7 py-4 border-t border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/70 dark:bg-zinc-950/50 text-center text-xs text-zinc-500 dark:text-zinc-400">
+            <div className="px-7 sm:px-8 py-4.5 border-t border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-950/50 text-center text-sm text-zinc-600 dark:text-zinc-400 font-medium">
               Don&apos;t have an account?{' '}
               <Link
                 to="/register"
-                className="font-semibold text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                className="font-bold text-zinc-950 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors ml-1"
               >
                 Sign up
               </Link>
@@ -723,35 +762,35 @@ export function LoginForm() {
           )}
         </div>
 
-        {/* Clerk Signature "Secured by" Badge */}
-        <div className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-zinc-400 dark:text-zinc-500 font-medium tracking-wide">
-          <Shield className="h-3 w-3 text-zinc-400 dark:text-zinc-500" />
+        {/* Secured by Badge */}
+        <div className="mt-4 flex items-center justify-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 font-medium tracking-wide">
+          <Shield className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
           <span>FIDO2 / WebAuthn &bull; Secured by Vaultix IAM</span>
         </div>
       </main>
 
       {/* Screen Bottom Footer */}
-      <footer className="relative z-10 max-w-5xl mx-auto w-full flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 pb-2 gap-3 font-medium">
+      <footer className="relative z-10 max-w-5xl mx-auto w-full flex flex-col sm:flex-row items-center justify-between text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 pb-2 gap-3 font-medium">
         <p>&copy; {new Date().getFullYear()} Vaultix, Inc.</p>
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-6">
           <button
             type="button"
             onClick={() => setLegalModalType('terms')}
-            className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer"
+            className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer font-semibold"
           >
             Terms
           </button>
           <button
             type="button"
             onClick={() => setLegalModalType('privacy')}
-            className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer"
+            className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer font-semibold"
           >
             Privacy
           </button>
           <button
             type="button"
             onClick={() => setLegalModalType('security')}
-            className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer"
+            className="hover:text-zinc-950 dark:hover:text-white transition-colors cursor-pointer font-semibold"
           >
             Security
           </button>

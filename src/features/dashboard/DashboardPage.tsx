@@ -261,7 +261,7 @@ export function DashboardPage() {
               variant="outline"
               size="default"
               onClick={() => setIsChangeFullNameOpen(true)}
-              className="h-9 px-4 text-xs sm:text-sm font-semibold border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 shadow-2xs"
+              className="h-9 px-4 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 shadow-xs cursor-pointer active:scale-95"
             >
               Edit Name
             </Button>
@@ -270,7 +270,7 @@ export function DashboardPage() {
               variant="outline"
               size="default"
               onClick={() => setIsChangePasswordOpen(true)}
-              className="h-9 px-4 text-xs sm:text-sm font-semibold border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 shadow-2xs"
+              className="h-9 px-4 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 shadow-xs cursor-pointer active:scale-95"
             >
               <KeyRound className="h-4 w-4 mr-1.5 text-zinc-500" />
               Password
@@ -480,7 +480,7 @@ export function DashboardPage() {
           <CardContent className="p-0 divide-y divide-zinc-200 dark:divide-zinc-800 text-sm sm:text-base">
             {/* Full Name */}
             <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0">
+              <span className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 sm:w-56 shrink-0">
                 Full Name
               </span>
               <div className="flex items-center gap-3 flex-wrap">
@@ -492,7 +492,7 @@ export function DashboardPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsChangeFullNameOpen(true)}
-                  className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
+                  className="h-9 px-4 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-xs active:scale-[0.98]"
                 >
                   {user.full_name ? 'Change name' : 'Add name'}
                 </Button>
@@ -501,7 +501,7 @@ export function DashboardPage() {
 
             {/* Username */}
             <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0">
+              <span className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 sm:w-56 shrink-0">
                 Username
               </span>
               <div className="flex items-center gap-3 flex-wrap">
@@ -513,7 +513,7 @@ export function DashboardPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsChangeUsernameOpen(true)}
-                  className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
+                  className="h-9 px-4 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-xs active:scale-[0.98]"
                 >
                   Change username
                 </Button>
@@ -522,7 +522,7 @@ export function DashboardPage() {
 
             {/* Email Address */}
             <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0 flex items-center gap-2">
+              <span className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 sm:w-56 shrink-0 flex items-center gap-2">
                 <Mail className="h-4 w-4 text-zinc-500 shrink-0" />
                 Email Address
               </span>
@@ -543,7 +543,7 @@ export function DashboardPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => setIsVerifyModalOpen(true)}
-                      className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-amber-500/40 text-amber-700 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 cursor-pointer shadow-2xs"
+                      className="h-9 px-4 text-xs sm:text-sm font-bold rounded-xl border border-amber-500/40 text-amber-800 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 cursor-pointer shadow-xs active:scale-[0.98]"
                     >
                       Verify email
                     </Button>
@@ -554,7 +554,7 @@ export function DashboardPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsChangeEmailOpen(true)}
-                  className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
+                  className="h-9 px-4 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-xs active:scale-[0.98]"
                 >
                   Change email
                 </Button>
@@ -563,7 +563,7 @@ export function DashboardPage() {
 
             {/* Phone Number */}
             <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0 flex items-center gap-2">
+              <span className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 sm:w-56 shrink-0 flex items-center gap-2">
                 <Phone className="h-4 w-4 text-zinc-500 shrink-0" />
                 Phone Number
               </span>
@@ -597,7 +597,7 @@ export function DashboardPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => setIsVerifyPhoneOpen(true)}
-                        className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-amber-500/40 text-amber-700 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 cursor-pointer shadow-2xs"
+                        className="h-9 px-4 text-xs sm:text-sm font-bold rounded-xl border border-amber-500/40 text-amber-800 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 cursor-pointer shadow-xs active:scale-[0.98]"
                       >
                         Verify phone
                       </Button>
@@ -608,7 +608,7 @@ export function DashboardPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setIsChangePhoneOpen(true)}
-                    className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
+                    className="h-9 px-4 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-xs active:scale-[0.98]"
                   >
                     Change phone
                   </Button>
@@ -621,7 +621,7 @@ export function DashboardPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setIsChangePhoneOpen(true)}
-                    className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
+                    className="h-9 px-4 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-xs active:scale-[0.98]"
                   >
                     Add phone
                   </Button>
@@ -631,7 +631,7 @@ export function DashboardPage() {
 
             {/* Created Timestamp */}
             <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0 flex items-center gap-2">
+              <span className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 sm:w-56 shrink-0 flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-zinc-500 shrink-0" />
                 Member Since
               </span>
@@ -658,7 +658,7 @@ export function DashboardPage() {
           <CardContent className="p-0 divide-y divide-zinc-200 dark:divide-zinc-800 text-sm sm:text-base">
             {/* Two-Factor Authentication */}
             <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0">
+              <span className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 sm:w-56 shrink-0">
                 Two-Factor Authentication
               </span>
               <div className="flex items-center gap-3 flex-wrap">
@@ -681,7 +681,7 @@ export function DashboardPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/mfa')}
-                  className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
+                  className="h-9 px-4 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-xs active:scale-[0.98]"
                 >
                   Configure 2FA
                 </Button>
@@ -690,7 +690,7 @@ export function DashboardPage() {
 
             {/* Passkeys / WebAuthn */}
             <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0 flex items-center gap-2">
+              <span className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 sm:w-56 shrink-0 flex items-center gap-2">
                 <Fingerprint className="h-4 w-4 text-zinc-500 shrink-0" />
                 Passkeys (FIDO2)
               </span>
@@ -705,7 +705,7 @@ export function DashboardPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/passkeys')}
-                  className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
+                  className="h-9 px-4 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-xs active:scale-[0.98]"
                 >
                   {user.passkey_enabled ? 'Manage passkeys' : 'Register passkey'}
                 </Button>
@@ -714,7 +714,7 @@ export function DashboardPage() {
 
             {/* Connected OAuth Accounts */}
             <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0 flex items-center gap-2">
+              <span className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 sm:w-56 shrink-0 flex items-center gap-2">
                 <Link2 className="h-4 w-4 text-zinc-500 shrink-0" />
                 Connected Accounts
               </span>
@@ -729,7 +729,7 @@ export function DashboardPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/connected-accounts')}
-                  className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
+                  className="h-9 px-4 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-xs active:scale-[0.98]"
                 >
                   Manage accounts
                 </Button>
@@ -738,7 +738,7 @@ export function DashboardPage() {
 
             {/* Password Management */}
             <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0 flex items-center gap-2">
+              <span className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 sm:w-56 shrink-0 flex items-center gap-2">
                 <KeyRound className="h-4 w-4 text-zinc-500 shrink-0" />
                 Password Credentials
               </span>
@@ -751,7 +751,7 @@ export function DashboardPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => setIsChangePasswordOpen(true)}
-                      className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
+                      className="h-9 px-4 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-xs active:scale-[0.98]"
                     >
                       Set password
                     </Button>
@@ -764,7 +764,7 @@ export function DashboardPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => setIsChangePasswordOpen(true)}
-                      className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
+                      className="h-9 px-4 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-xs active:scale-[0.98]"
                     >
                       Change password
                     </Button>
@@ -775,7 +775,7 @@ export function DashboardPage() {
 
             {/* Active Sessions Overview */}
             <div className="px-6 sm:px-8 py-4.5 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
-              <span className="text-sm sm:text-base font-semibold text-zinc-800 dark:text-zinc-200 sm:w-56 shrink-0 flex items-center gap-2">
+              <span className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 sm:w-56 shrink-0 flex items-center gap-2">
                 <Smartphone className="h-4 w-4 text-zinc-500 shrink-0" />
                 Active Sessions
               </span>
@@ -785,7 +785,7 @@ export function DashboardPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/sessions')}
-                  className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-2xs"
+                  className="h-9 px-4 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-xs active:scale-[0.98]"
                 >
                   Inspect sessions
                 </Button>
@@ -794,7 +794,7 @@ export function DashboardPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsLogoutAllOpen(true)}
-                  className="h-8.5 px-3.5 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:text-white hover:bg-red-600 dark:hover:bg-red-600 cursor-pointer shadow-2xs"
+                  className="h-9 px-4 text-xs sm:text-sm font-bold rounded-xl border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:text-white hover:bg-red-600 dark:hover:bg-red-600 cursor-pointer shadow-xs active:scale-[0.98]"
                 >
                   Sign out everywhere
                 </Button>
@@ -924,7 +924,7 @@ export function DashboardPage() {
                 variant="destructive"
                 size="default"
                 onClick={() => setIsDeleteAccountOpen(true)}
-                className="shrink-0 text-sm px-4 h-9 font-bold shadow-xs cursor-pointer"
+                className="shrink-0 text-sm px-5 h-10 font-bold rounded-xl shadow-md cursor-pointer bg-red-600 hover:bg-red-700 text-white active:scale-95 transition-all"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 <span>Delete Account</span>

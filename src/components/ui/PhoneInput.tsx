@@ -35,6 +35,7 @@ export interface PhoneInputProps {
   disabled?: boolean;
   className?: string;
   hasError?: boolean;
+  size?: 'default' | 'lg';
 }
 
 export const PhoneInput: React.FC<PhoneInputProps> = ({
@@ -45,6 +46,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
   disabled = false,
   className = '',
   hasError = false,
+  size = 'default',
 }) => {
   // Dynamically resolve default country from user's browser/timezone or provided override
   const [selectedCountry, setSelectedCountry] = useState<Country>(() => {
@@ -87,7 +89,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
         setLocalNumber(value.slice(matched.dial.length).replace(/\D/g, ''));
       }
     }
-  }, [value]);
+  }, [value, selectedCountry.code]);
 
   // Handle outside click to close dropdown
   useEffect(() => {
@@ -163,13 +165,17 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
     updatePhoneNumber(selectedCountry, digitsOnly);
   };
 
+  const isLg = size === 'lg';
+
   return (
     <div className={`relative ${className}`}>
       <div
-        className={`flex items-center rounded-lg border bg-zinc-50/50 dark:bg-zinc-950/40 focus-within:bg-white dark:focus-within:bg-zinc-900 transition-all overflow-visible ${
+        className={`flex items-center border bg-zinc-50/60 dark:bg-zinc-950/40 focus-within:bg-white dark:focus-within:bg-zinc-900 transition-all overflow-visible ${
+          isLg ? 'rounded-xl' : 'rounded-lg'
+        } ${
           hasError
             ? 'border-red-500/80 focus-within:border-red-500 focus-within:ring-2 focus-within:ring-red-500/20'
-            : 'border-zinc-200 dark:border-zinc-800 focus-within:border-zinc-400 dark:focus-within:border-zinc-600 focus-within:ring-2 focus-within:ring-zinc-950/5 dark:focus-within:ring-zinc-100/5'
+            : 'border-zinc-300 dark:border-zinc-700/80 focus-within:border-zinc-500 dark:focus-within:border-zinc-500 focus-within:ring-2 focus-within:ring-zinc-950/5 dark:focus-within:ring-zinc-100/5'
         }`}
       >
         {/* Country Selector Trigger */}
@@ -179,16 +185,22 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
           onClick={() => setIsOpen(!isOpen)}
           aria-haspopup="listbox"
           aria-expanded={isOpen}
-          className="flex items-center gap-1.5 px-3 py-2 border-r border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/50 transition-colors text-xs font-medium text-zinc-800 dark:text-zinc-200 shrink-0 cursor-pointer disabled:opacity-50 select-none h-10"
+          className={`flex items-center gap-2 border-r border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 transition-colors font-medium text-zinc-900 dark:text-zinc-100 shrink-0 cursor-pointer disabled:opacity-50 select-none ${
+            isLg ? 'h-11 sm:h-12 px-3.5 text-sm sm:text-base' : 'h-10 px-3 text-xs'
+          }`}
         >
-          <CountryFlag code={selectedCountry.code} flag={selectedCountry.flag} />
-          <span className="text-xs font-mono font-medium text-zinc-600 dark:text-zinc-400">
+          <CountryFlag
+            code={selectedCountry.code}
+            flag={selectedCountry.flag}
+            className={isLg ? 'w-5.5 h-4' : 'w-5 h-3.5'}
+          />
+          <span className="font-mono font-semibold text-zinc-700 dark:text-zinc-300">
             {selectedCountry.dial}
           </span>
           <ChevronDown
-            className={`h-3 w-3 text-zinc-400 transition-transform duration-150 ${
-              isOpen ? 'rotate-180' : ''
-            }`}
+            className={`transition-transform duration-150 text-zinc-400 ${
+              isLg ? 'h-3.5 w-3.5' : 'h-3 w-3'
+            } ${isOpen ? 'rotate-180' : ''}`}
           />
         </button>
 
@@ -203,7 +215,9 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
           onChange={handleNumberChange}
           onKeyDown={handleKeyDown}
           autoComplete="tel-national"
-          className="w-full h-10 px-3 bg-transparent text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none font-mono"
+          className={`w-full bg-transparent text-zinc-950 dark:text-zinc-50 placeholder:text-zinc-400 focus:outline-none font-mono font-medium ${
+            isLg ? 'h-11 sm:h-12 px-3.5 text-sm sm:text-base' : 'h-10 px-3 text-xs sm:text-sm'
+          }`}
         />
       </div>
 
@@ -228,7 +242,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
             </div>
           </div>
 
-          {/* List of Countries (All 245+ ISO 3166-1 Entries) */}
+          {/* List of Countries */}
           <div className="overflow-y-auto divide-y divide-zinc-50 dark:divide-zinc-800/40 p-1">
             {filteredCountries.length === 0 ? (
               <div className="py-6 text-center text-xs text-zinc-500">

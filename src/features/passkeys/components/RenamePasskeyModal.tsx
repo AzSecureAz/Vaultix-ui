@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Edit3, Loader2, AlertCircle, X } from 'lucide-react'
@@ -35,7 +36,9 @@ export function RenamePasskeyModal({
     e.preventDefault()
     const trimmed = label.trim()
     if (!trimmed) {
-      setError('Please provide a valid passkey name')
+      const msg = 'Please provide a valid passkey name'
+      setError(msg)
+      toast.error(msg)
       return
     }
 
@@ -44,6 +47,7 @@ export function RenamePasskeyModal({
 
     try {
       await authApi.updatePasskeyLabel(passkey.id, trimmed)
+      toast.success('Passkey renamed successfully.')
       onSuccess()
       onClose()
     } catch (err: any) {
@@ -53,6 +57,7 @@ export function RenamePasskeyModal({
         err?.message ||
         'Failed to rename passkey.'
       setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -66,30 +71,30 @@ export function RenamePasskeyModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="relative w-full max-w-md p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl space-y-4 animate-in zoom-in-95 duration-150 text-zinc-900 dark:text-zinc-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg p-7 sm:p-8 rounded-3xl bg-white dark:bg-[#121216] border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-6 animate-in zoom-in-95 duration-200 text-zinc-950 dark:text-zinc-50">
         <button
           type="button"
           onClick={handleClose}
           disabled={loading}
-          className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer"
+          className="absolute top-6 right-6 p-2 rounded-xl text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5" />
         </button>
 
-        <div className="space-y-2">
-          <div className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-900 dark:text-zinc-100 mb-1 border border-zinc-200 dark:border-zinc-700">
-            <Edit3 className="h-5 w-5" />
+        <div className="space-y-2.5">
+          <div className="h-12 w-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-500/20 shadow-xs">
+            <Edit3 className="h-6 w-6 stroke-[2]" />
           </div>
-          <h2 className="text-base font-semibold">Rename Passkey</h2>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Update the nickname for this passkey to easily identify it in the future.
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Rename Passkey</h2>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">
+            Update the friendly nickname for this authenticator to easily identify it in the future.
           </p>
         </div>
 
-        <form onSubmit={handleRename} className="space-y-4 pt-1">
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+        <form onSubmit={handleRename} className="space-y-5 pt-1">
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
               Passkey Name
             </label>
             <Input
@@ -104,40 +109,40 @@ export function RenamePasskeyModal({
               disabled={loading}
               maxLength={128}
               autoFocus
-              className={`h-9 text-xs rounded-lg transition-all ${
+              className={`h-11 sm:h-12 text-sm sm:text-base rounded-xl font-medium border-zinc-300 dark:border-zinc-700/80 transition-all ${
                 error
-                  ? 'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-red-900 dark:text-red-200'
-                  : 'border-zinc-200 dark:border-zinc-800'
+                  ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-red-900 dark:text-red-200'
+                  : ''
               }`}
             />
           </div>
 
           {error && (
-            <p className="text-[11px] text-red-600 dark:text-red-400 font-medium flex items-center gap-1.5 animate-in fade-in-50 duration-150">
-              <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+            <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 font-semibold flex items-center gap-2 animate-in fade-in-50 duration-150">
+              <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{error}</span>
             </p>
           )}
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-3">
             <Button
               type="button"
               variant="outline"
-              size="sm"
+              size="default"
               onClick={handleClose}
               disabled={loading}
-              className="text-xs h-9 px-3 cursor-pointer"
+              className="h-11 sm:h-12 px-5 text-sm sm:text-base font-bold rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading || !label.trim()}
-              className="text-xs h-9 px-4 cursor-pointer bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950"
+              className="h-11 sm:h-12 px-6 text-sm sm:text-base font-bold rounded-xl cursor-pointer bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-md active:scale-95 transition-all"
             >
               {loading ? (
-                <span className="flex items-center gap-1.5">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   <span>Saving...</span>
                 </span>
               ) : (

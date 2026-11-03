@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   ShieldAlert,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { authApi } from '@/features/auth/api/authApi'
@@ -62,6 +63,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
     try {
       await authApi.deleteAccount()
       setSuccess(true)
+      toast.success('Account scheduled for permanent purge in 90 days.')
 
       // Wipe client auth credentials
       useAuthStore.setState({
@@ -89,6 +91,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
         errData?.error ||
         'Failed to delete account. Please ensure your elevation is valid and try again.'
       setError(msg)
+      toast.error(msg)
       setLoading(false)
     }
   }
@@ -102,53 +105,53 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
       />
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-md rounded-2xl border border-red-200 dark:border-red-900/60 bg-white dark:bg-zinc-900 shadow-2xl p-6 sm:p-7 z-10 animate-in fade-in-0 zoom-in-95 duration-150">
+      <div className="relative w-full max-w-lg rounded-3xl border border-red-300 dark:border-red-900/60 bg-white dark:bg-zinc-900 shadow-2xl p-7 sm:p-8 z-10 animate-in fade-in-0 zoom-in-95 duration-150">
         {/* Close Button */}
         {!loading && !success && (
           <button
             type="button"
             onClick={handleClose}
-            className="absolute right-4 top-4 p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+            className="absolute right-5 top-5 p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
             aria-label="Close"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         )}
 
         {success ? (
-          <div className="py-6 text-center space-y-3">
-            <div className="h-12 w-12 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20">
-              <CheckCircle2 className="h-6 w-6" />
+          <div className="py-6 text-center space-y-3.5">
+            <div className="h-14 w-14 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20 shadow-xs">
+              <CheckCircle2 className="h-7 w-7" />
             </div>
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-              Account Deleted Successfully
+            <h2 className="text-xl font-bold text-zinc-950 dark:text-white">
+              Account Scheduled for Deletion
             </h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto font-medium leading-relaxed">
               Your account is now scheduled for permanent purge in 90 days. All active sessions have been signed out. Redirecting to login...
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {/* Header */}
-            <div className="space-y-1">
-              <div className="h-10 w-10 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center mb-3 border border-red-200 dark:border-red-900/50">
-                <Trash2 className="h-5 w-5" />
+            <div className="space-y-1.5">
+              <div className="h-12 w-12 rounded-2xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center mb-3 border border-red-200 dark:border-red-900/50 shadow-xs">
+                <Trash2 className="h-6 w-6" />
               </div>
-              <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+              <h2 className="text-xl font-bold tracking-tight text-zinc-950 dark:text-white">
                 Delete Account
               </h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 font-medium">
                 Permanently schedule your Vaultix account for deletion.
               </p>
             </div>
 
             {/* Warning Banner */}
-            <div className="p-3.5 rounded-xl bg-red-50/70 dark:bg-red-950/20 border border-red-200/60 dark:border-red-900/40 space-y-2 text-xs text-red-800 dark:text-red-300">
-              <div className="flex items-center gap-1.5 font-semibold text-red-900 dark:text-red-200">
-                <AlertTriangle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+            <div className="p-4 rounded-2xl bg-red-50/80 dark:bg-red-950/20 border border-red-200/80 dark:border-red-900/50 space-y-2 text-xs sm:text-sm text-red-800 dark:text-red-300">
+              <div className="flex items-center gap-2 font-bold text-red-900 dark:text-red-200">
+                <AlertTriangle className="h-4.5 w-4.5 shrink-0 text-red-600 dark:text-red-400" />
                 <span>90-Day Retention Policy</span>
               </div>
-              <ul className="list-disc pl-5 space-y-1 text-[11px] leading-relaxed text-red-700 dark:text-red-300/90">
+              <ul className="list-disc pl-5 space-y-1.5 text-xs leading-relaxed text-red-700 dark:text-red-300/90 font-medium">
                 <li>
                   All active sessions, credentials, and refresh tokens will be terminated immediately.
                 </li>
@@ -163,17 +166,17 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
 
             {/* Error Banner */}
             {error && (
-              <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-2">
-                <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
+              <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-3.5 py-2.5 text-xs sm:text-sm text-red-600 dark:text-red-400 font-medium flex items-center gap-2.5">
+                <ShieldAlert className="h-4 w-4 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleDelete} className="space-y-4 pt-1">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+            <form onSubmit={handleDelete} className="space-y-4.5 pt-1">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
                   To confirm, type your username{' '}
-                  <span className="font-mono font-semibold text-zinc-950 dark:text-white">
+                  <span className="font-mono font-bold text-zinc-950 dark:text-white">
                     {username}
                   </span>
                 </label>
@@ -186,34 +189,34 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                   onChange={(e) => setTypedUsername(e.target.value)}
                   disabled={loading}
                   autoComplete="off"
-                  className="h-10 text-xs sm:text-sm font-mono rounded-lg bg-zinc-50/50 dark:bg-zinc-950/40 focus:bg-white dark:focus:bg-zinc-900 transition-all border-zinc-200 dark:border-zinc-800"
+                  className="h-11 sm:h-12 text-sm sm:text-base font-mono rounded-xl bg-zinc-50/60 dark:bg-zinc-950/40 focus:bg-white dark:focus:bg-zinc-900 transition-all border-zinc-300 dark:border-zinc-700 font-bold"
                 />
               </div>
 
               {/* Sudo Hint */}
-              <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/40 p-2.5 rounded-lg border border-zinc-200/60 dark:border-zinc-800">
-                <Lock className="h-3 w-3 text-zinc-400 shrink-0" />
+              <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/40 p-3 rounded-xl border border-zinc-200/80 dark:border-zinc-800 font-medium">
+                <Lock className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
                 <span>Requires fresh identity verification within 60 seconds (password, passkey, or authenticator).</span>
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-2.5">
+              <div className="pt-2 flex items-center justify-end gap-3">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleClose}
                   disabled={loading}
-                  className="h-9 px-3.5 text-xs cursor-pointer"
+                  className="h-11 px-4 text-sm font-semibold rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={loading || !isConfirmed}
-                  className="h-9 px-4 text-xs font-medium rounded-lg bg-red-600 hover:bg-red-700 text-white shadow-sm transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+                  className="h-11 px-5 text-sm font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-md transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       <span>Deleting account...</span>
                     </span>
                   ) : (

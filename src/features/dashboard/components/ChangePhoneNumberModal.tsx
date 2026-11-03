@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Phone, CheckCircle2, AlertCircle, Loader2, X, RefreshCw, ArrowLeft, Eye, EyeOff } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PhoneInput } from '@/components/ui/PhoneInput'
@@ -92,10 +93,12 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
       await authApi.requestPhoneNumberChange(clean)
       setStep('verify')
       setCountdown(60)
+      toast.success(`Verification code dispatched to ${clean}`)
     } catch (err: any) {
       const errData = err?.response?.data
       if (errData?.errors && typeof errData.errors === 'object') {
         setFieldErrors(errData.errors)
+        toast.error('Please resolve the errors below')
       } else {
         const msg = errData?.message || errData?.error || 'Failed to request phone number verification code'
         if (
@@ -109,6 +112,7 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
         } else {
           setError(msg)
         }
+        toast.error(msg)
       }
     } finally {
       setLoading(false)
@@ -123,9 +127,12 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
       const clean = newPhoneNumber.trim().replace(/[\s-]/g, '')
       await authApi.requestPhoneNumberChange(clean)
       setCountdown(60)
+      toast.success('Verification code resent successfully')
     } catch (err: any) {
       const errData = err?.response?.data
-      setError(errData?.message || 'Failed to resend verification code. Please wait and try again.')
+      const msg = errData?.message || 'Failed to resend verification code. Please wait and try again.'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setResending(false)
     }
@@ -136,7 +143,9 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
     e.preventDefault()
     const cleanOtp = otp.trim()
     if (cleanOtp.length !== 6) {
-      setError('Please enter a valid 6-digit verification code')
+      const msg = 'Please enter a valid 6-digit verification code'
+      setError(msg)
+      toast.error(msg)
       return
     }
 
@@ -146,13 +155,16 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
     try {
       await authApi.confirmPhoneNumberChange(cleanOtp)
       setSuccess(true)
+      toast.success(isAdding ? 'Phone number added successfully!' : 'Phone number updated successfully!')
       await fetchProfile()
       setTimeout(() => {
         handleClose()
       }, 1500)
     } catch (err: any) {
       const errData = err?.response?.data
-      setError(errData?.message || 'Invalid or expired verification code')
+      const msg = errData?.message || 'Invalid or expired verification code'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -166,20 +178,20 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
         onClick={handleClose}
       />
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-md rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl p-6 sm:p-7 z-10 animate-in fade-in-0 zoom-in-95 duration-150">
+      <div className="relative w-full max-w-lg rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl p-7 sm:p-8 z-10 animate-in fade-in-0 zoom-in-95 duration-150">
         {/* Close Button */}
         {!success && (
           <button
             type="button"
             onClick={handleClose}
-            className="absolute right-4 top-4 p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+            className="absolute right-5 top-5 p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         )}
 
@@ -192,7 +204,7 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
               setError(null)
               setOtp('')
             }}
-            className="absolute left-4 top-4 p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer flex items-center gap-1 text-xs"
+            className="absolute left-5 top-5 p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Back</span>
@@ -200,48 +212,48 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
         )}
 
         {success ? (
-          <div className="py-6 text-center space-y-3">
-            <div className="h-12 w-12 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20">
-              <CheckCircle2 className="h-6 w-6" />
+          <div className="py-6 text-center space-y-3.5">
+            <div className="h-14 w-14 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20 shadow-xs">
+              <CheckCircle2 className="h-7 w-7" />
             </div>
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+            <h2 className="text-xl font-bold text-zinc-950 dark:text-white">
               {isAdding ? 'Phone Number Added Successfully!' : 'Phone Number Changed Successfully!'}
             </h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
               Your phone number has been updated to{' '}
-              <span className="font-mono font-medium text-zinc-900 dark:text-zinc-200">{newPhoneNumber}</span>.
+              <span className="font-mono font-bold text-zinc-950 dark:text-zinc-100">{newPhoneNumber}</span>.
             </p>
           </div>
         ) : step === 'request' ? (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {/* Header */}
             <div className="text-center space-y-1.5 pb-2">
-              <div className="h-10 w-10 rounded-xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center mx-auto mb-2 shadow-sm">
-                <Phone className="h-5 w-5" />
+              <div className="h-12 w-12 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center mx-auto mb-3 shadow-md">
+                <Phone className="h-6 w-6" />
               </div>
-              <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+              <h2 className="text-xl font-bold tracking-tight text-zinc-950 dark:text-white">
                 {isAdding ? 'Add Phone Number' : 'Change Phone Number'}
               </h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
                 {isAdding
                   ? "Enter your international phone number. We'll send an SMS verification code to confirm ownership."
                   : "Enter your new international phone number. We'll send an SMS verification code to verify ownership."}
               </p>
             </div>
 
-            {/* General Error (if not tied to field) */}
+            {/* General Error Banner */}
             {error && (
-              <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-2">
-                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+              <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-3.5 py-2.5 text-xs sm:text-sm text-red-600 dark:text-red-400 font-medium flex items-center gap-2.5">
+                <AlertCircle className="h-4 w-4 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
             {/* Form */}
-            <form onSubmit={handleRequestChange} className="space-y-4">
+            <form onSubmit={handleRequestChange} className="space-y-4.5">
               {currentPhoneNumber && (
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
                     Current Phone Number
                   </label>
                   <div className="relative">
@@ -249,27 +261,26 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
                       type="text"
                       disabled
                       value={showCurrentPhone ? currentPhoneNumber : maskPhoneNumber(currentPhoneNumber)}
-                      className="h-10 pr-10 rounded-lg bg-zinc-100/70 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400 font-mono text-xs border-zinc-200 dark:border-zinc-800 cursor-not-allowed select-none"
+                      className="h-11 sm:h-12 pr-11 rounded-xl bg-zinc-100/70 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 font-mono text-sm border-zinc-300 dark:border-zinc-700/80 cursor-not-allowed select-none font-semibold"
                     />
                     <button
                       type="button"
                       onClick={() => setShowCurrentPhone(!showCurrentPhone)}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-700/60"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer rounded"
                       title={showCurrentPhone ? 'Hide phone number' : 'Show phone number'}
-                      aria-label={showCurrentPhone ? 'Hide phone number' : 'Show phone number'}
                     >
                       {showCurrentPhone ? (
-                        <EyeOff className="h-4 w-4" />
+                        <EyeOff className="h-4.5 w-4.5" />
                       ) : (
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-4.5 w-4.5" />
                       )}
                     </button>
                   </div>
                 </div>
               )}
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
                   {isAdding ? 'Phone Number' : 'New Phone Number'}
                 </label>
                 <PhoneInput
@@ -283,6 +294,7 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
                   }}
                   hasError={!!(fieldErrors.newPhoneNumber || fieldErrors.new_phone_number)}
                   placeholder="98765 43210"
+                  size="lg"
                 />
                 {(fieldErrors.newPhoneNumber || fieldErrors.new_phone_number) ? (
                   <p className="text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-1.5 pt-1 animate-in fade-in-0 duration-150">
@@ -290,22 +302,30 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
                     <span>{fieldErrors.newPhoneNumber || fieldErrors.new_phone_number}</span>
                   </p>
                 ) : (
-                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                    Select country dial code &amp; enter phone number
+                  <p className="text-xs text-zinc-500 font-medium">
+                    Select country dial code &amp; enter mobile phone number
                   </p>
                 )}
               </div>
 
-              <div className="pt-2">
+              <div className="pt-2 flex items-center justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleClose}
+                  className="h-11 px-4 text-sm font-semibold rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer"
+                >
+                  Cancel
+                </Button>
                 <Button
                   type="submit"
                   disabled={loading || !newPhoneNumber.trim() || !isValidPhone || !isDifferent}
-                  className="w-full h-10 font-medium text-xs sm:text-sm rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-sm transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+                  className="h-11 px-5 text-sm font-bold rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-md transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Sending verification code...</span>
+                      <span>Sending code...</span>
                     </span>
                   ) : (
                     <span>Send Verification Code</span>
@@ -316,61 +336,63 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
           </div>
         ) : (
           /* Step 2: Verification */
-          <div className="space-y-4">
+          <div className="space-y-5">
             {/* Header */}
             <div className="text-center space-y-1.5 pb-2">
-              <div className="h-10 w-10 rounded-xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center mx-auto mb-2 shadow-sm">
-                <Phone className="h-5 w-5" />
+              <div className="h-12 w-12 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center mx-auto mb-3 shadow-md">
+                <Phone className="h-6 w-6" />
               </div>
-              <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+              <h2 className="text-xl font-bold tracking-tight text-zinc-950 dark:text-white">
                 Confirm phone verification
               </h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
                 We sent a 6-digit verification code to{' '}
-                <span className="font-mono font-medium text-zinc-900 dark:text-zinc-200">{newPhoneNumber}</span>.
+                <span className="font-mono font-bold text-zinc-950 dark:text-white">{newPhoneNumber}</span>.
               </p>
             </div>
 
+            {/* Error Banner */}
+            {error && (
+              <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-3.5 py-2.5 text-xs sm:text-sm text-red-600 dark:text-red-400 font-medium flex items-center gap-2.5">
+                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
             {/* Form */}
-            <form onSubmit={handleConfirmChange} className="space-y-4">
-              <div className="space-y-1.5 text-center">
-                <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+            <form onSubmit={handleConfirmChange} className="space-y-4.5">
+              <div className="space-y-2 text-center">
+                <label className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
                   Verification Code
                 </label>
                 <Input
                   type="text"
                   maxLength={6}
                   autoFocus
-                  placeholder="000000"
+                  placeholder="000 000"
                   value={otp}
                   onChange={(e) => {
                     const val = e.target.value.replace(/\D/g, '')
                     setOtp(val)
                     if (error) setError(null)
                   }}
-                  className={`h-12 text-center text-xl font-mono font-semibold tracking-[0.4em] rounded-lg bg-zinc-50/50 dark:bg-zinc-950/40 focus:bg-white dark:focus:bg-zinc-900 transition-all ${
+                  className={`h-12 text-center text-xl font-mono font-bold tracking-[0.4em] rounded-xl bg-zinc-50/60 dark:bg-zinc-950/40 focus:bg-white dark:focus:bg-zinc-900 transition-all ${
                     error
                       ? 'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                      : 'border-zinc-200 dark:border-zinc-800'
+                      : 'border-zinc-300 dark:border-zinc-700/80'
                   }`}
                 />
-                {error && (
-                  <p className="text-xs text-red-600 dark:text-red-400 font-medium flex items-center justify-center gap-1.5 pt-1 animate-in fade-in-0 duration-150">
-                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                    <span>{error}</span>
-                  </p>
-                )}
               </div>
 
               <Button
                 type="submit"
                 disabled={loading || otp.length !== 6}
-                className="w-full h-10 font-medium text-xs sm:text-sm rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-sm transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+                className="w-full h-11 sm:h-12 font-bold text-sm sm:text-base rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-md transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Verifying & updating...</span>
+                    <span>Verifying...</span>
                   </span>
                 ) : (
                   <span>Confirm Phone Number</span>
@@ -384,18 +406,18 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
                 type="button"
                 disabled={countdown > 0 || resending}
                 onClick={handleResendOtp}
-                className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-medium"
+                className="inline-flex items-center gap-2 text-xs sm:text-sm text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-semibold"
               >
                 {resending ? (
                   <>
-                    <RefreshCw className="h-3 w-3 animate-spin" />
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
                     <span>Sending code...</span>
                   </>
                 ) : countdown > 0 ? (
                   <span>Resend code in {countdown}s</span>
                 ) : (
                   <>
-                    <RefreshCw className="h-3 w-3" />
+                    <RefreshCw className="h-3.5 w-3.5" />
                     <span>Didn't receive code? Resend</span>
                   </>
                 )}

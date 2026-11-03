@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { authApi } from '../api/authApi'
 import { useAuthStore } from '@/stores/authStore'
@@ -39,7 +40,9 @@ export function GitHubCallbackPage() {
           return
         }
         setLoading(false)
-        setError(oauthErrorDesc || 'GitHub authorization was denied or canceled.')
+        const msg = oauthErrorDesc || 'GitHub authorization was denied or canceled.'
+        setError(msg)
+        toast.error(msg)
         return
       }
 
@@ -53,7 +56,9 @@ export function GitHubCallbackPage() {
           return
         }
         setLoading(false)
-        setError('Missing authorization code from GitHub callback.')
+        const msg = 'Missing authorization code from GitHub callback.'
+        setError(msg)
+        toast.error(msg)
         return
       }
 
@@ -67,7 +72,9 @@ export function GitHubCallbackPage() {
           return
         }
         setLoading(false)
-        setError('Security check failed: OAuth state mismatch. Please try again.')
+        const msg = 'Security check failed: OAuth state mismatch. Please try again.'
+        setError(msg)
+        toast.error(msg)
         return
       }
 
@@ -94,12 +101,15 @@ export function GitHubCallbackPage() {
             })
           } else {
             setLoading(false)
-            setError(res.message || 'Failed to link GitHub account.')
+            const msg = res.message || 'Failed to link GitHub account.'
+            setError(msg)
+            toast.error(msg)
           }
         } else {
           const res = await authApi.loginWithGitHub(code, redirectUri)
           if (res.success && res.data) {
             if (res.data.mfa_required && res.data.mfa_token) {
+              toast.info('Two-factor authentication challenge required.')
               navigate('/login', {
                 replace: true,
                 state: {
@@ -114,21 +124,25 @@ export function GitHubCallbackPage() {
               })
             } else {
               await setAuth(res.data)
+              toast.success('Signed in with GitHub successfully.')
               navigate('/dashboard', { replace: true })
             }
           } else {
             setLoading(false)
-            setError(res.message || 'Authentication with GitHub failed.')
+            const msg = res.message || 'Authentication with GitHub failed.'
+            setError(msg)
+            toast.error(msg)
           }
         }
       } catch (err: any) {
         setLoading(false)
         const errData = err?.response?.data
-        setError(
+        const msg =
           errData?.message ||
-            errData?.error ||
-            'Failed to complete GitHub authentication. Please try again.'
-        )
+          errData?.error ||
+          'Failed to complete GitHub authentication. Please try again.'
+        setError(msg)
+        toast.error(msg)
       }
     }
 
@@ -137,37 +151,39 @@ export function GitHubCallbackPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-[#090a0f] bg-grid-pattern flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden select-none transition-colors">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md z-10 px-4 sm:px-0">
-        <div className="rounded-2xl border border-zinc-200/90 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/90 backdrop-blur-xl shadow-xl shadow-zinc-950/5 dark:shadow-2xl dark:shadow-black/60 overflow-hidden transition-all p-7 text-center">
-          <div className="h-11 w-11 rounded-xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center mx-auto mb-4 shadow-sm">
-            <GitHubIcon className="h-6 w-6 text-white dark:text-zinc-950" />
+      <div className="sm:mx-auto sm:w-full sm:max-w-[460px] z-10 px-4 sm:px-0">
+        <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white/95 dark:bg-[#111116] backdrop-blur-xl shadow-2xl shadow-zinc-950/5 dark:shadow-2xl dark:shadow-black/60 overflow-hidden transition-all p-8 sm:p-9 text-center space-y-4">
+          <div className="h-14 w-14 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center mx-auto shadow-md">
+            <GitHubIcon className="h-7 w-7 text-white dark:text-zinc-950" />
           </div>
 
-          <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-            {action === 'link' ? 'Connecting GitHub Account' : 'Authenticating with GitHub'}
-          </h2>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            {loading
-              ? 'Exchanging secure authorization credentials with GitHub servers...'
-              : error
-              ? 'Could not complete GitHub authentication'
-              : 'Authentication complete, redirecting...'}
-          </p>
+          <div className="space-y-1">
+            <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-zinc-950 dark:text-white">
+              {action === 'link' ? 'Connecting GitHub Account' : 'Authenticating with GitHub'}
+            </h2>
+            <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 font-medium">
+              {loading
+                ? 'Exchanging secure authorization credentials with GitHub servers...'
+                : error
+                ? 'Could not complete GitHub authentication'
+                : 'Authentication complete, redirecting...'}
+            </p>
+          </div>
 
-          <div className="mt-6">
+          <div className="mt-4">
             {loading && (
-              <div className="py-6 flex flex-col items-center justify-center gap-3">
-                <Loader2 className="h-6 w-6 animate-spin text-zinc-600 dark:text-zinc-400" />
-                <span className="text-xs text-zinc-500">Verifying identity...</span>
+              <div className="py-8 flex flex-col items-center justify-center gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
+                <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-300">Verifying secure OAuth credentials...</span>
               </div>
             )}
 
             {error && (
-              <div className="space-y-4">
-                <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-600 dark:text-red-400 font-medium flex items-start gap-2.5 text-left">
-                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+              <div className="space-y-4 text-left">
+                <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-xs sm:text-sm text-red-600 dark:text-red-400 font-medium flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
                   <div className="space-y-1">
-                    <p className="font-semibold">Authentication Error</p>
+                    <p className="font-bold text-red-700 dark:text-red-300">Authentication Error</p>
                     <p className="leading-relaxed">{error}</p>
                   </div>
                 </div>
@@ -177,7 +193,7 @@ export function GitHubCallbackPage() {
                     type="button"
                     variant="outline"
                     onClick={() => navigate(action === 'link' ? '/connected-accounts' : '/login', { replace: true })}
-                    className="w-full h-10 text-xs sm:text-sm font-medium rounded-lg border-zinc-200 dark:border-zinc-800 cursor-pointer"
+                    className="w-full h-11 text-sm font-bold rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer active:scale-95"
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     <span>Return to {action === 'link' ? 'Connected Accounts' : 'Login'}</span>

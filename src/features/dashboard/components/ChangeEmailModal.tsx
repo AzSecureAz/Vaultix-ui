@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Mail, CheckCircle2, AlertCircle, Loader2, X, RefreshCw, ArrowLeft } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { authApi } from '@/features/auth/api/authApi'
@@ -83,10 +84,12 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
       await authApi.requestEmailChange(clean)
       setStep('verify')
       setCountdown(60)
+      toast.success(`Verification code dispatched to ${clean}`)
     } catch (err: any) {
       const errData = err?.response?.data
       if (errData?.errors && typeof errData.errors === 'object') {
         setFieldErrors(errData.errors)
+        toast.error('Please resolve the errors below')
       } else {
         const msg = errData?.message || errData?.error || 'Failed to request email change'
         if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('registered') || msg.toLowerCase().includes('taken')) {
@@ -96,6 +99,7 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
         } else {
           setError(msg)
         }
+        toast.error(msg)
       }
     } finally {
       setLoading(false)
@@ -109,9 +113,12 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
     try {
       await authApi.requestEmailChange(newEmail.trim().toLowerCase())
       setCountdown(60)
+      toast.success('Verification code resent successfully')
     } catch (err: any) {
       const errData = err?.response?.data
-      setError(errData?.message || 'Failed to resend verification code. Please wait and try again.')
+      const msg = errData?.message || 'Failed to resend verification code. Please wait and try again.'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setResending(false)
     }
@@ -122,7 +129,9 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
     e.preventDefault()
     const cleanOtp = otp.trim()
     if (cleanOtp.length !== 6) {
-      setError('Please enter a valid 6-digit verification code')
+      const msg = 'Please enter a valid 6-digit verification code'
+      setError(msg)
+      toast.error(msg)
       return
     }
 
@@ -132,13 +141,16 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
     try {
       await authApi.confirmEmailChange(cleanOtp)
       setSuccess(true)
+      toast.success('Email updated successfully!')
       await fetchProfile()
       setTimeout(() => {
         handleClose()
       }, 1500)
     } catch (err: any) {
       const errData = err?.response?.data
-      setError(errData?.message || 'Invalid or expired verification code')
+      const msg = errData?.message || 'Invalid or expired verification code'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -150,20 +162,20 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
         onClick={handleClose}
       />
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-md rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl p-6 sm:p-7 z-10 animate-in fade-in-0 zoom-in-95 duration-150">
+      <div className="relative w-full max-w-lg rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl p-7 sm:p-8 z-10 animate-in fade-in-0 zoom-in-95 duration-150">
         {/* Close Button */}
         {!success && (
           <button
             type="button"
             onClick={handleClose}
-            className="absolute right-4 top-4 p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+            className="absolute right-5 top-5 p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         )}
 
@@ -175,55 +187,56 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
               setStep('request')
               setError(null)
             }}
-            className="absolute left-4 top-4 p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer flex items-center gap-1 text-xs"
+            className="absolute left-5 top-5 p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
           >
             <ArrowLeft className="h-4 w-4" />
+            <span>Back</span>
           </button>
         )}
 
         {success ? (
-          <div className="py-6 text-center space-y-3">
-            <div className="h-12 w-12 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20">
-              <CheckCircle2 className="h-6 w-6" />
+          <div className="py-6 text-center space-y-3.5">
+            <div className="h-14 w-14 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20 shadow-xs">
+              <CheckCircle2 className="h-7 w-7" />
             </div>
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+            <h2 className="text-xl font-bold text-zinc-950 dark:text-white">
               Email Changed Successfully!
             </h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-xs mx-auto">
-              Your email has been updated to <span className="font-medium text-zinc-900 dark:text-zinc-200">{newEmail}</span>.
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-sm mx-auto font-medium">
+              Your email has been updated to <span className="font-bold text-zinc-950 dark:text-zinc-100">{newEmail}</span>.
             </p>
           </div>
         ) : step === 'request' ? (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {/* Header */}
-            <div className="text-center space-y-1 pb-1">
-              <div className="h-10 w-10 rounded-xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center mx-auto mb-2.5 shadow-sm">
-                <Mail className="h-5 w-5" />
+            <div className="text-center space-y-1.5 pb-1">
+              <div className="h-12 w-12 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center mx-auto mb-3 shadow-md">
+                <Mail className="h-6 w-6" />
               </div>
-              <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+              <h2 className="text-xl font-bold tracking-tight text-zinc-950 dark:text-white">
                 Change your email
               </h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 font-medium">
                 Enter your new email address to receive a verification code
               </p>
             </div>
 
             {/* General Error Banner */}
             {error && (
-              <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-2">
-                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+              <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-3.5 py-2.5 text-xs sm:text-sm text-red-600 dark:text-red-400 font-medium flex items-center gap-2.5">
+                <AlertCircle className="h-4 w-4 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleRequestChange} className="space-y-4">
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <label className="font-medium text-zinc-700 dark:text-zinc-300">
+            <form onSubmit={handleRequestChange} className="space-y-4.5">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <label className="font-semibold text-zinc-800 dark:text-zinc-200">
                     New email address
                   </label>
-                  <span className="text-zinc-400 text-[11px] truncate max-w-[200px]">
-                    Current: <span className="text-zinc-600 dark:text-zinc-300">{currentEmail}</span>
+                  <span className="text-zinc-500 text-xs font-medium truncate max-w-[220px]">
+                    Current: <span className="text-zinc-800 dark:text-zinc-200 font-bold">{currentEmail}</span>
                   </span>
                 </div>
                 <Input
@@ -244,37 +257,37 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
                     }
                   }}
                   autoComplete="email"
-                  className={`h-10 text-xs sm:text-sm rounded-lg bg-zinc-50/50 dark:bg-zinc-950/40 focus:bg-white dark:focus:bg-zinc-900 transition-all ${
+                  className={`h-11 sm:h-12 text-sm sm:text-base px-4 rounded-xl bg-zinc-50/60 dark:bg-zinc-950/40 focus:bg-white dark:focus:bg-zinc-900 transition-all font-medium ${
                     fieldErrors.newEmail || fieldErrors.new_email
                       ? 'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-red-900 dark:text-red-200'
-                      : 'border-zinc-200 dark:border-zinc-800'
+                      : 'border-zinc-300 dark:border-zinc-700/80'
                   }`}
                 />
                 {(fieldErrors.newEmail || fieldErrors.new_email) && (
-                  <p className="text-[11px] text-red-600 dark:text-red-400 font-medium flex items-center gap-1 mt-1 animate-in fade-in-50 duration-150">
-                    <AlertCircle className="h-3 w-3 shrink-0" />
+                  <p className="text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-1.5 mt-1 animate-in fade-in-50 duration-150">
+                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                     <span>{fieldErrors.newEmail || fieldErrors.new_email}</span>
                   </p>
                 )}
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-2.5">
+              <div className="pt-2 flex items-center justify-end gap-3">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleClose}
-                  className="h-9 px-3.5 text-xs cursor-pointer"
+                  className="h-11 px-4 text-sm font-semibold rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={loading || !isValidEmail || !isDifferent}
-                  className="h-9 px-4 text-xs font-medium rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-sm transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+                  className="h-11 px-5 text-sm font-bold rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-md transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       <span>Sending code...</span>
                     </span>
                   ) : (
@@ -285,47 +298,47 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
             </form>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {/* Header */}
             <div className="text-center space-y-1.5 pb-2">
-              <div className="h-10 w-10 rounded-xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center mx-auto mb-2 shadow-sm">
-                <Mail className="h-5 w-5" />
+              <div className="h-12 w-12 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center mx-auto mb-3 shadow-md">
+                <Mail className="h-6 w-6" />
               </div>
-              <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+              <h2 className="text-xl font-bold tracking-tight text-zinc-950 dark:text-white">
                 Verify your new email
               </h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
                 Enter the 6-digit code sent to{' '}
-                <span className="font-medium text-zinc-900 dark:text-zinc-200 break-all">{newEmail}</span>.
+                <span className="font-bold text-zinc-950 dark:text-white break-all">{newEmail}</span>.
               </p>
             </div>
 
             {/* Error Banner */}
             {error && (
-              <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-2">
-                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+              <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-3.5 py-2.5 text-xs sm:text-sm text-red-600 dark:text-red-400 font-medium flex items-center gap-2.5">
+                <AlertCircle className="h-4 w-4 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleConfirmChange} className="space-y-4">
-              <div className="space-y-1.5 text-center">
-                <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+            <form onSubmit={handleConfirmChange} className="space-y-4.5">
+              <div className="space-y-2 text-center">
+                <label className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
                   Verification Code
                 </label>
                 <Input
                   type="text"
                   maxLength={6}
                   autoFocus
-                  placeholder="000000"
+                  placeholder="000 000"
                   value={otp}
                   onChange={(e) => {
                     const val = e.target.value.replace(/\D/g, '')
                     setOtp(val)
                     if (error) setError(null)
                   }}
-                  className={`h-12 text-center text-xl font-mono font-semibold tracking-[0.4em] rounded-lg bg-zinc-50/50 dark:bg-zinc-950/40 focus:bg-white dark:focus:bg-zinc-900 transition-all ${
-                    error ? 'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-zinc-200 dark:border-zinc-800'
+                  className={`h-12 text-center text-xl font-mono font-bold tracking-[0.4em] rounded-xl bg-zinc-50/60 dark:bg-zinc-950/40 focus:bg-white dark:focus:bg-zinc-900 transition-all ${
+                    error ? 'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-zinc-300 dark:border-zinc-700/80'
                   }`}
                 />
               </div>
@@ -333,7 +346,7 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
               <Button
                 type="submit"
                 disabled={loading || otp.length !== 6}
-                className="w-full h-10 font-medium text-xs sm:text-sm rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-sm transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+                className="w-full h-11 sm:h-12 font-bold text-sm sm:text-base rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-md transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
@@ -352,18 +365,18 @@ export const ChangeEmailModal: React.FC<ChangeEmailModalProps> = ({
                 type="button"
                 disabled={countdown > 0 || resending}
                 onClick={handleResendOtp}
-                className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-medium"
+                className="inline-flex items-center gap-2 text-xs sm:text-sm text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-semibold"
               >
                 {resending ? (
                   <>
-                    <RefreshCw className="h-3 w-3 animate-spin" />
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
                     <span>Sending code...</span>
                   </>
                 ) : countdown > 0 ? (
                   <span>Resend code in {countdown}s</span>
                 ) : (
                   <>
-                    <RefreshCw className="h-3 w-3" />
+                    <RefreshCw className="h-3.5 w-3.5" />
                     <span>Didn't receive code? Resend</span>
                   </>
                 )}

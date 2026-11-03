@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Smartphone, Loader2, CheckCircle2, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -24,6 +25,7 @@ export function LogoutOtherModal({ isOpen, onClose, onSuccess }: LogoutOtherModa
     try {
       await logoutOther()
       setSuccess(true)
+      toast.success('Signed out from all other devices successfully.')
       setTimeout(() => {
         setSuccess(false)
         onSuccess?.()
@@ -31,7 +33,9 @@ export function LogoutOtherModal({ isOpen, onClose, onSuccess }: LogoutOtherModa
       }, 900)
     } catch (err: unknown) {
       console.error('Failed to sign out from other devices:', err)
-      setError('Failed to sign out from other devices. Please try again.')
+      const msg = 'Failed to sign out from other devices. Please try again.'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -47,75 +51,73 @@ export function LogoutOtherModal({ isOpen, onClose, onSuccess }: LogoutOtherModa
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="relative w-full max-w-md p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150 text-zinc-900 dark:text-zinc-100">
+      <div className="relative w-full max-w-lg p-7 sm:p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150 text-zinc-900 dark:text-zinc-100">
         <button
           type="button"
           onClick={handleClose}
           disabled={loading}
-          className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer"
+          className="absolute top-5 right-5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer p-1"
           aria-label="Close dialog"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5" />
         </button>
 
         <div className="space-y-2">
-          <div className="h-10 w-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-1 border border-blue-200 dark:border-blue-900/50">
-            <Smartphone className="h-5 w-5" />
+          <div className="h-12 w-12 rounded-2xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-2 border border-blue-200 dark:border-blue-900/50 shadow-xs">
+            <Smartphone className="h-6 w-6" />
           </div>
-          <h2 className="text-base font-semibold">Sign out from other devices?</h2>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <h2 className="text-xl font-bold text-zinc-950 dark:text-white">Sign out from other devices?</h2>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">
             This will immediately terminate all active sessions and refresh tokens on your other phones, tablets, and computers.
           </p>
         </div>
 
         <div className="space-y-4 pt-1">
-          <div className="p-3 rounded-lg bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/40 flex items-start gap-2.5 text-xs text-emerald-800 dark:text-emerald-300">
-            <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-emerald-600 dark:text-emerald-400" />
+          <div className="p-4 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-900/50 flex items-start gap-3 text-xs sm:text-sm text-emerald-800 dark:text-emerald-300 font-medium">
+            <CheckCircle2 className="h-4.5 w-4.5 shrink-0 mt-0.5 text-emerald-600 dark:text-emerald-400" />
             <p className="leading-relaxed">
               Your current device session will remain active, so you will not be interrupted or logged out.
             </p>
           </div>
 
           {error && (
-            <p className="text-[11px] text-red-600 dark:text-red-400 font-medium animate-in fade-in-50 duration-150">
+            <p className="text-xs text-red-600 dark:text-red-400 font-medium animate-in fade-in-50 duration-150">
               {error}
             </p>
           )}
 
           {success && (
-            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium animate-in fade-in-50 duration-150 flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5" />
+            <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold animate-in fade-in-50 duration-150 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
               <span>Signed out from all other devices successfully.</span>
             </p>
           )}
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
-              size="sm"
               onClick={handleClose}
               disabled={loading}
-              className="text-xs h-9 px-3 cursor-pointer"
+              className="h-11 px-4 text-sm font-semibold rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer"
             >
               Cancel
             </Button>
             <Button
               type="button"
-              size="sm"
               onClick={handleLogoutOther}
               disabled={loading || success}
-              className="text-xs h-9 px-3 cursor-pointer bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 font-medium"
+              className="h-11 px-5 text-sm font-bold rounded-xl cursor-pointer bg-zinc-950 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 shadow-md"
             >
               {loading ? (
                 <>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   <span>Signing out others...</span>
                 </>
               ) : success ? (
-                <span>Done</span>
+                <span>Signed out</span>
               ) : (
-                <span>Sign out other devices</span>
+                <span>Sign out other sessions</span>
               )}
             </Button>
           </div>

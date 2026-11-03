@@ -21,6 +21,7 @@ interface GitHubSignInButtonProps {
   isLoading?: boolean
   className?: string
   label?: string
+  size?: 'default' | 'lg' | 'sm'
   onError?: (error: string) => void
 }
 
@@ -31,6 +32,7 @@ export function GitHubSignInButton({
   isLoading: isLoadingProp = false,
   className = '',
   label,
+  size = 'default',
   onError,
 }: GitHubSignInButtonProps) {
   const [internalLoading, setInternalLoading] = useState(false)
@@ -79,18 +81,24 @@ export function GitHubSignInButton({
     }
   }
 
+  const isLg = size === 'lg'
+
   return (
     <Button
       type="button"
       variant="outline"
       onClick={handleGitHubClick}
       disabled={disabled || isLoading}
-      className={`w-full h-10 font-medium text-xs sm:text-sm rounded-lg border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50 ${className}`}
+      className={
+        isLg
+          ? `w-full h-11 sm:h-12 font-semibold text-sm sm:text-base rounded-xl border-zinc-300 dark:border-zinc-700/80 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2.5 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50 ${className}`
+          : `w-full h-10 font-medium text-xs sm:text-sm rounded-lg border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50 ${className}`
+      }
     >
       {isLoading ? (
-        <Loader2 className="h-4 w-4 animate-spin text-zinc-500" />
+        <Loader2 className={`${isLg ? 'h-5 w-5' : 'h-4 w-4'} animate-spin text-zinc-500`} />
       ) : (
-        <GitHubIcon className="h-4 w-4 text-zinc-900 dark:text-zinc-100 shrink-0" />
+        <GitHubIcon className={`${isLg ? 'h-5 w-5' : 'h-4 w-4'} text-zinc-900 dark:text-zinc-100 shrink-0`} />
       )}
       <span>{isLoading ? 'Connecting to GitHub...' : getButtonText()}</span>
     </Button>
