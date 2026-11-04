@@ -25,6 +25,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { authApi } from '@/features/auth/api/authApi'
 import { GoogleIcon, GoogleSignInButton } from '@/features/auth/components/GoogleSignInButton'
 import { GitHubIcon } from '@/features/auth/components/GitHubSignInButton'
+import { maskPhoneNumber } from '@/lib/utils'
 import type { SudoVerifyRequest } from '@/types/api'
 
 type SudoView = 'passkey' | 'methods' | 'password' | 'google' | 'github' | 'sms' | 'recovery'
@@ -56,6 +57,7 @@ export function SudoModal() {
   }, [hasTotp, hasSms])
 
   const [mfaChoice, setMfaChoice] = useState<MfaFactorChoice>(getDefaultMfaChoice())
+  const [showSmsPhone, setShowSmsPhone] = useState(false)
 
   /* Determine initial default view */
   const getInitialView = useCallback((): SudoView => {
@@ -1024,7 +1026,7 @@ export function SudoModal() {
                       Get a code via SMS
                     </p>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
-                      Text message to your registered phone
+                      Text message to your registered phone {user?.phone_number ? `(${maskPhoneNumber(user.phone_number)})` : ''}
                     </p>
                   </div>
                 </div>
@@ -1338,7 +1340,21 @@ export function SudoModal() {
                     SMS Two-Factor Authentication
                   </p>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
-                    We will send a 6-digit verification code to your phone.
+                    We will send a 6-digit verification code to your phone
+                    {user?.phone_number && (
+                      <span className="inline-flex items-center gap-1 font-mono font-bold text-zinc-950 dark:text-white ml-1">
+                        <span>({showSmsPhone ? user.phone_number : maskPhoneNumber(user.phone_number)})</span>
+                        <button
+                          type="button"
+                          onClick={() => setShowSmsPhone(!showSmsPhone)}
+                          className="p-0.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer rounded"
+                          title={showSmsPhone ? 'Hide phone number' : 'Show phone number'}
+                        >
+                          {showSmsPhone ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                        </button>
+                      </span>
+                    )}
+                    .
                   </p>
                 </div>
               </div>

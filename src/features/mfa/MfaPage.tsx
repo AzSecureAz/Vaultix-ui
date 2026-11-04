@@ -424,11 +424,10 @@ export function MfaPage() {
                     if (activationError) setActivationError(null)
                   }}
                   autoFocus
-                  className={`font-mono text-center tracking-[0.4em] text-xl sm:text-2xl font-bold h-12 sm:h-14 rounded-xl border-zinc-300 dark:border-zinc-700/80 bg-white dark:bg-zinc-900 transition-all ${
-                    activationError
+                  className={`font-mono text-center tracking-[0.4em] text-xl sm:text-2xl font-bold h-12 sm:h-14 rounded-xl border-zinc-300 dark:border-zinc-700/80 bg-white dark:bg-zinc-900 transition-all ${activationError
                       ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-red-900 dark:text-red-200'
                       : ''
-                  }`}
+                    }`}
                 />
                 {activationError && (
                   <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 font-semibold flex items-center justify-center gap-1.5 pt-1 animate-in fade-in-0 duration-150">
@@ -562,11 +561,10 @@ export function MfaPage() {
                     if (smsError) setSmsError(null)
                   }}
                   autoFocus
-                  className={`font-mono text-center tracking-[0.4em] text-xl sm:text-2xl font-bold h-12 sm:h-14 rounded-xl border-zinc-300 dark:border-zinc-700/80 bg-white dark:bg-zinc-900 transition-all ${
-                    smsError
+                  className={`font-mono text-center tracking-[0.4em] text-xl sm:text-2xl font-bold h-12 sm:h-14 rounded-xl border-zinc-300 dark:border-zinc-700/80 bg-white dark:bg-zinc-900 transition-all ${smsError
                       ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-red-900 dark:text-red-200'
                       : ''
-                  }`}
+                    }`}
                 />
                 {smsError && (
                   <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 font-semibold flex items-center justify-center gap-1.5 pt-1 animate-in fade-in-0 duration-150">
@@ -700,10 +698,10 @@ export function MfaPage() {
                     {user?.sms_mfa_enabled
                       ? 'Verification codes are sent to'
                       : user?.phone_number && user?.phone_number_verified
-                      ? 'Send one-time passcodes to'
-                      : user?.phone_number && !user?.phone_number_verified
-                      ? 'Phone number'
-                      : 'No phone number attached. Add and verify a phone number first to enable SMS 2FA.'}
+                        ? 'Send one-time passcodes to'
+                        : user?.phone_number && !user?.phone_number_verified
+                          ? 'Phone number'
+                          : 'No phone number attached. Add and verify a phone number first to enable SMS 2FA.'}
                   </span>
                   {user?.phone_number && (
                     <span className="inline-flex items-center gap-1 font-mono font-bold text-zinc-900 dark:text-zinc-100">
@@ -727,8 +725,8 @@ export function MfaPage() {
                       {user?.sms_mfa_enabled
                         ? ''
                         : user?.phone_number_verified
-                        ? 'upon sign-in.'
-                        : 'is unverified. Verify it first to enable SMS 2FA.'}
+                          ? 'upon sign-in.'
+                          : 'is unverified. Verify it first to enable SMS 2FA.'}
                     </span>
                   )}
                 </div>
@@ -926,7 +924,25 @@ export function MfaPage() {
                 Disable SMS Two-Factor Authentication?
               </h2>
               <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
-                This will remove SMS one-time passcodes as a second factor for your account. You will rely on your authenticator app or hardware keys.
+                This will remove SMS one-time passcodes sent to{' '}
+                {user?.phone_number && (
+                  <span className="inline-flex items-center gap-1 font-mono font-bold text-zinc-950 dark:text-white">
+                    <span>{showSmsPhone ? user.phone_number : maskPhoneNumber(user.phone_number)}</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowSmsPhone(!showSmsPhone)}
+                      className="p-0.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer rounded"
+                      title={showSmsPhone ? 'Hide phone number' : 'Show phone number'}
+                    >
+                      {showSmsPhone ? (
+                        <EyeOff className="h-3.5 w-3.5" />
+                      ) : (
+                        <Eye className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  </span>
+                )}{' '}
+                as a second factor for your account. You will rely on your authenticator app or hardware keys.
               </p>
             </div>
 

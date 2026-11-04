@@ -131,7 +131,23 @@ export const VerifyPhoneModal: React.FC<VerifyPhoneModalProps> = ({
               Phone Number Verified Successfully!
             </h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 font-medium">
-              Your phone number <span className="font-mono font-bold text-zinc-950 dark:text-zinc-100">{phoneNumber}</span> has been confirmed.
+              Your phone number{' '}
+              <span className="inline-flex items-center gap-1 font-mono font-bold text-zinc-950 dark:text-zinc-100">
+                <span>{showPhone ? phoneNumber : maskPhoneNumber(phoneNumber)}</span>
+                <button
+                  type="button"
+                  onClick={() => setShowPhone(!showPhone)}
+                  className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer rounded"
+                  title={showPhone ? 'Hide phone number' : 'Show phone number'}
+                >
+                  {showPhone ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </span>{' '}
+              has been confirmed.
             </p>
           </div>
         ) : (

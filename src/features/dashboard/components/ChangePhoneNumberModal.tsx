@@ -31,6 +31,7 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
   const [success, setSuccess] = useState(false)
   const [countdown, setCountdown] = useState(60)
   const [showCurrentPhone, setShowCurrentPhone] = useState(false)
+  const [showNewPhone, setShowNewPhone] = useState(false)
 
   // Countdown timer for resend
   useEffect(() => {
@@ -52,6 +53,7 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
       setSuccess(false)
       setCountdown(60)
       setShowCurrentPhone(false)
+      setShowNewPhone(false)
     }
   }, [isOpen])
 
@@ -347,7 +349,22 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
               </h2>
               <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
                 We sent a 6-digit verification code to{' '}
-                <span className="font-mono font-bold text-zinc-950 dark:text-white">{newPhoneNumber}</span>.
+                <span className="inline-flex items-center gap-1 font-mono font-bold text-zinc-950 dark:text-white">
+                  <span>{showNewPhone ? newPhoneNumber : maskPhoneNumber(newPhoneNumber)}</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPhone(!showNewPhone)}
+                    className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer rounded"
+                    title={showNewPhone ? 'Hide phone number' : 'Show phone number'}
+                  >
+                    {showNewPhone ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </span>
+                .
               </p>
             </div>
 
