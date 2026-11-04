@@ -13,6 +13,7 @@ import {
   Phone,
   Eye,
   EyeOff,
+  ShieldCheck,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -256,56 +257,65 @@ export function MfaPage() {
 
   const otpUrl = setupData?.otpauth_url || setupData?.otpauthUrl
   const qrImageSrc = otpUrl
-    ? `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(otpUrl)}&size=180x180&margin=8`
+    ? `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(otpUrl)}&size=200x200&margin=8`
     : null
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-12">
+    <div className="space-y-7 sm:space-y-8 max-w-5xl mx-auto pb-16">
       {/* Header */}
-      <div className="space-y-1">
-        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2 text-xs font-bold tracking-wider text-blue-600 dark:text-blue-400 uppercase">
+          <ShieldCheck className="h-4 w-4" />
+          <span>Security &bull; Multi-Factor Authentication</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-950 dark:text-white">
           Two-Step Verification
         </h1>
-        <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
-          Add an extra layer of security to your account by requiring an authorized second factor when signing in.
+        <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-300 font-medium">
+          Add an extra layer of security to your account by requiring an authorized second factor (TOTP Authenticator or SMS OTP) when signing in.
         </p>
       </div>
 
       {/* Emergency Recovery Codes Display (Shown on activation or regeneration) */}
       {recoveryCodes.length > 0 && (
-        <Card className="border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20 animate-in fade-in-0 duration-150">
-          <CardHeader className="pb-3 border-b border-amber-200/50 dark:border-amber-800/40">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <KeyRound className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                <CardTitle className="text-sm font-semibold text-amber-900 dark:text-amber-200">
-                  Emergency Recovery Codes
-                </CardTitle>
+        <Card className="border-2 border-amber-500/40 bg-amber-500/10 dark:bg-amber-950/25 rounded-3xl overflow-hidden shadow-sm animate-in fade-in-0 duration-200">
+          <CardHeader className="p-6 sm:p-7 pb-4 border-b border-amber-200/60 dark:border-amber-800/40">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0 border border-amber-500/30">
+                  <KeyRound className="h-5 w-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-base sm:text-lg font-bold text-amber-950 dark:text-amber-100">
+                    Emergency Recovery Codes
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm text-amber-800/80 dark:text-amber-300/80 font-medium">
+                    Save these one-time codes in a password manager. Each code can be redeemed once if you lose device access.
+                  </CardDescription>
+                </div>
               </div>
+
               <Button
                 variant="outline"
-                size="sm"
+                size="default"
                 onClick={copyAllCodes}
-                className="h-7 text-xs border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40 cursor-pointer"
+                className="h-9 px-4 text-xs sm:text-sm font-bold border-amber-400 dark:border-amber-700 bg-white dark:bg-zinc-800 text-amber-950 dark:text-amber-100 hover:bg-amber-100/70 dark:hover:bg-amber-900/40 rounded-xl cursor-pointer shadow-xs self-start sm:self-auto shrink-0"
               >
                 {copiedAllCodes ? (
-                  <Check className="h-3 w-3 mr-1 text-emerald-600 dark:text-emerald-400" />
+                  <Check className="h-4 w-4 mr-1.5 text-emerald-600 dark:text-emerald-400" />
                 ) : (
-                  <Copy className="h-3 w-3 mr-1" />
+                  <Copy className="h-4 w-4 mr-1.5" />
                 )}
-                <span>{copiedAllCodes ? 'Copied' : 'Copy All'}</span>
+                <span>{copiedAllCodes ? 'Copied' : 'Copy All Codes'}</span>
               </Button>
             </div>
-            <CardDescription className="text-xs text-amber-700 dark:text-amber-300/80">
-              Save these one-time codes in a safe place. If you ever lose access to your device, each code can be redeemed once.
-            </CardDescription>
           </CardHeader>
-          <CardContent className="p-4">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-xs">
+          <CardContent className="p-6 sm:p-7">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-sm sm:text-base font-bold">
               {recoveryCodes.map((code, idx) => (
                 <div
                   key={idx}
-                  className="bg-white dark:bg-zinc-900/90 p-2 rounded-lg border border-amber-500/20 text-center font-semibold text-amber-900 dark:text-amber-100 select-all"
+                  className="bg-white dark:bg-zinc-900/90 py-2.5 px-3 rounded-xl border border-amber-500/30 text-center font-bold text-amber-950 dark:text-amber-100 select-all shadow-2xs tracking-wider"
                 >
                   {code}
                 </div>
@@ -315,15 +325,25 @@ export function MfaPage() {
         </Card>
       )}
 
-      {/* Active Setup Flow */}
+      {/* Active TOTP Setup Flow */}
       {setupData && (
-        <Card className="border-zinc-200 dark:border-zinc-800/80 animate-in fade-in-0 zoom-in-95 duration-150">
-          <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
+        <Card className="border border-zinc-200 dark:border-zinc-800 rounded-3xl bg-white dark:bg-[#111116] overflow-hidden shadow-sm animate-in fade-in-0 zoom-in-95 duration-200">
+          <CardHeader className="p-6 sm:p-7 pb-4 border-b border-zinc-200 dark:border-zinc-800">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Smartphone className="h-4 w-4 text-zinc-500" />
-                <CardTitle className="text-sm font-semibold">Set Up Authenticator App</CardTitle>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/20">
+                  <Smartphone className="h-5 w-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-base sm:text-lg font-bold text-zinc-950 dark:text-white">
+                    Set Up Authenticator Application
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 font-medium">
+                    Scan the QR code with Google Authenticator, 1Password, or Authy, then enter the 6-digit code.
+                  </CardDescription>
+                </div>
               </div>
+
               <button
                 type="button"
                 onClick={() => {
@@ -331,67 +351,66 @@ export function MfaPage() {
                   setVerificationCode('')
                   setActivationError(null)
                 }}
-                className="p-1 rounded text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+                className="p-2 rounded-xl text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
-            <CardDescription>
-              Scan the barcode with Google Authenticator, 1Password, or Authy, then enter the 6-digit code.
-            </CardDescription>
           </CardHeader>
-          <CardContent className="p-6 space-y-6">
-            <div className="flex flex-col sm:flex-row items-center gap-6 p-5 rounded-xl bg-zinc-50/70 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80">
+          <CardContent className="p-6 sm:p-8 space-y-6">
+            <div className="flex flex-col md:flex-row items-center gap-6 p-6 rounded-2xl bg-zinc-50/80 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800">
               {qrImageSrc ? (
-                <div className="p-2 bg-white rounded-xl shadow-xs border border-zinc-200 shrink-0">
+                <div className="p-3 bg-white rounded-2xl shadow-sm border border-zinc-200 shrink-0">
                   <img
                     src={qrImageSrc}
                     alt="Authenticator QR Code"
-                    className="w-40 h-40"
+                    className="w-44 h-44 rounded-lg"
                   />
                 </div>
               ) : (
-                <div className="w-40 h-40 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-zinc-400">
-                  <Smartphone className="h-10 w-10" />
+                <div className="w-44 h-44 bg-zinc-100 dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-zinc-400 shrink-0">
+                  <Smartphone className="h-12 w-12" />
                 </div>
               )}
 
-              <div className="space-y-3 flex-1 min-w-0">
+              <div className="space-y-3.5 flex-1 min-w-0">
                 <div>
-                  <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 block mb-1">
+                  <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider block mb-1.5">
                     Manual Secret Key
                   </span>
-                  <div className="flex items-center gap-2">
-                    <code className="text-xs font-mono bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold break-all select-all">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <code className="text-sm font-mono bg-white dark:bg-zinc-900 px-3.5 py-2 rounded-xl border border-zinc-300 dark:border-zinc-700 text-zinc-950 dark:text-white font-bold break-all select-all shadow-2xs">
                       {setupData.secret || '—'}
                     </code>
                     {setupData.secret && (
                       <Button
+                        type="button"
                         variant="outline"
-                        size="sm"
+                        size="default"
                         onClick={() => copySecret(setupData.secret!)}
-                        className="h-8 px-2 text-xs shrink-0 cursor-pointer"
+                        className="h-10 px-3 text-xs sm:text-sm font-bold rounded-xl border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shrink-0 cursor-pointer shadow-xs active:scale-95"
                         title="Copy Key"
                       >
                         {copiedKey ? (
-                          <Check className="h-3 w-3 text-emerald-500" />
+                          <Check className="h-4 w-4 text-emerald-500" />
                         ) : (
-                          <Copy className="h-3 w-3" />
+                          <Copy className="h-4 w-4" />
                         )}
+                        <span className="ml-1.5">{copiedKey ? 'Copied' : 'Copy'}</span>
                       </Button>
                     )}
                   </div>
                 </div>
 
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                  Open your authenticator app, tap <strong>Add account</strong> &bull; <strong>Scan a QR code</strong> (or manually enter the secret key above), then enter the 6-digit confirmation code below.
+                <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 font-medium leading-relaxed">
+                  Open your authenticator app, tap <strong className="font-bold text-zinc-950 dark:text-white">Add account</strong> &bull; <strong className="font-bold text-zinc-950 dark:text-white">Scan a QR code</strong> (or manually enter the secret key above), then enter the 6-digit confirmation code below.
                 </p>
               </div>
             </div>
 
-            <form onSubmit={handleActivate} className="space-y-4 max-w-sm">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+            <form onSubmit={handleActivate} className="space-y-4 max-w-md">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
                   6-Digit Verification Code
                 </label>
                 <Input
@@ -405,21 +424,21 @@ export function MfaPage() {
                     if (activationError) setActivationError(null)
                   }}
                   autoFocus
-                  className={`font-mono text-center tracking-[0.4em] text-lg font-semibold h-12 rounded-lg bg-zinc-50/50 dark:bg-zinc-950/40 transition-all ${
+                  className={`font-mono text-center tracking-[0.4em] text-xl sm:text-2xl font-bold h-12 sm:h-14 rounded-xl border-zinc-300 dark:border-zinc-700/80 bg-white dark:bg-zinc-900 transition-all ${
                     activationError
-                      ? 'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                      : 'border-zinc-200 dark:border-zinc-800'
+                      ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-red-900 dark:text-red-200'
+                      : ''
                   }`}
                 />
                 {activationError && (
-                  <p className="text-xs text-red-600 dark:text-red-400 font-medium flex items-center justify-center gap-1.5 pt-1 animate-in fade-in-0 duration-150">
-                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                  <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 font-semibold flex items-center justify-center gap-1.5 pt-1 animate-in fade-in-0 duration-150">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
                     <span>{activationError}</span>
                   </p>
                 )}
               </div>
 
-              <div className="flex gap-2.5">
+              <div className="flex gap-3">
                 <Button
                   type="button"
                   variant="outline"
@@ -428,18 +447,18 @@ export function MfaPage() {
                     setVerificationCode('')
                     setActivationError(null)
                   }}
-                  className="w-1/3 text-xs h-10 rounded-lg cursor-pointer"
+                  className="w-1/3 text-sm font-bold h-11 sm:h-12 rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={activating || verificationCode.length < 6}
-                  className="flex-1 text-xs h-10 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-sm cursor-pointer"
+                  className="flex-1 text-sm sm:text-base font-bold h-11 sm:h-12 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-md cursor-pointer active:scale-95 transition-all"
                 >
                   {activating ? (
-                    <span className="flex items-center gap-1.5">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       <span>Activating...</span>
                     </span>
                   ) : (
@@ -454,13 +473,23 @@ export function MfaPage() {
 
       {/* Active SMS MFA Setup Flow */}
       {isSmsSetupOpen && (
-        <Card className="border-zinc-200 dark:border-zinc-800/80 animate-in fade-in-0 zoom-in-95 duration-150">
-          <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
+        <Card className="border border-zinc-200 dark:border-zinc-800 rounded-3xl bg-white dark:bg-[#111116] overflow-hidden shadow-sm animate-in fade-in-0 zoom-in-95 duration-200">
+          <CardHeader className="p-6 sm:p-7 pb-4 border-b border-zinc-200 dark:border-zinc-800">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-zinc-500" />
-                <CardTitle className="text-sm font-semibold">Set Up SMS Two-Factor Authentication</CardTitle>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/20">
+                  <MessageSquare className="h-5 w-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-base sm:text-lg font-bold text-zinc-950 dark:text-white">
+                    Set Up SMS Two-Factor Authentication
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 font-medium">
+                    We dispatched a 6-digit verification code to your verified phone number.
+                  </CardDescription>
+                </div>
               </div>
+
               <button
                 type="button"
                 onClick={() => {
@@ -468,47 +497,26 @@ export function MfaPage() {
                   setSmsVerificationCode('')
                   setSmsError(null)
                 }}
-                className="p-1 rounded text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+                className="p-2 rounded-xl text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
-            <CardDescription className="flex items-center gap-1.5 flex-wrap">
-              <span>We sent a 6-digit verification code to</span>
-              <span className="inline-flex items-center gap-1 font-mono font-medium text-zinc-800 dark:text-zinc-200">
-                <span>{showSmsPhone ? user?.phone_number : maskPhoneNumber(user?.phone_number)}</span>
-                <button
-                  type="button"
-                  onClick={() => setShowSmsPhone(!showSmsPhone)}
-                  className="p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                  title={showSmsPhone ? 'Hide phone number' : 'Show phone number'}
-                  aria-label={showSmsPhone ? 'Hide phone number' : 'Show phone number'}
-                >
-                  {showSmsPhone ? (
-                    <EyeOff className="h-3 w-3" />
-                  ) : (
-                    <Eye className="h-3 w-3" />
-                  )}
-                </button>
-              </span>
-              <span>. Enter the code below to enable SMS 2FA.</span>
-            </CardDescription>
           </CardHeader>
-          <CardContent className="p-6 space-y-6">
-            <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-xl bg-zinc-50/70 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80">
-              <div className="h-10 w-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-300 shrink-0">
-                <Phone className="h-5 w-5" />
+          <CardContent className="p-6 sm:p-8 space-y-6">
+            <div className="flex flex-col sm:flex-row items-center gap-4 p-5 rounded-2xl bg-zinc-50/80 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800">
+              <div className="h-12 w-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-800 dark:text-zinc-200 shrink-0 border border-zinc-200 dark:border-zinc-700 shadow-2xs">
+                <Phone className="h-6 w-6" />
               </div>
-              <div className="flex-1 text-xs text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5 flex-wrap">
+              <div className="flex-1 text-xs sm:text-sm text-zinc-700 dark:text-zinc-300 font-medium flex items-center gap-2 flex-wrap">
                 <span>Verification code dispatched to</span>
-                <span className="inline-flex items-center gap-1 font-mono font-medium text-zinc-900 dark:text-zinc-100">
+                <span className="inline-flex items-center gap-1 font-mono font-bold text-zinc-950 dark:text-zinc-100 bg-white dark:bg-zinc-800 px-2.5 py-1 rounded-lg border border-zinc-300 dark:border-zinc-700">
                   <span>{showSmsPhone ? user?.phone_number : maskPhoneNumber(user?.phone_number)}</span>
                   <button
                     type="button"
                     onClick={() => setShowSmsPhone(!showSmsPhone)}
-                    className="p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    className="p-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer rounded"
                     title={showSmsPhone ? 'Hide phone number' : 'Show phone number'}
-                    aria-label={showSmsPhone ? 'Hide phone number' : 'Show phone number'}
                   >
                     {showSmsPhone ? (
                       <EyeOff className="h-3.5 w-3.5" />
@@ -517,30 +525,30 @@ export function MfaPage() {
                     )}
                   </button>
                 </span>
-                <span>. Code expires in 5 minutes.</span>
+                <span>(expires in 5 minutes).</span>
               </div>
               {smsCountdown > 0 ? (
-                <span className="text-xs text-zinc-400 font-mono shrink-0">
+                <span className="text-xs sm:text-sm font-bold text-zinc-500 font-mono shrink-0">
                   Resend in {smsCountdown}s
                 </span>
               ) : (
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  size="default"
                   onClick={handleInitiateSmsSetup}
                   disabled={smsSending}
-                  className="text-xs h-8 px-3 rounded-lg shrink-0 cursor-pointer"
+                  className="text-xs sm:text-sm h-9 px-4 font-bold rounded-xl border-zinc-300 dark:border-zinc-700 shrink-0 cursor-pointer shadow-xs active:scale-95"
                 >
-                  {smsSending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                  {smsSending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
                   <span>Resend Code</span>
                 </Button>
               )}
             </div>
 
-            <form onSubmit={handleActivateSmsMfa} className="space-y-4 max-w-sm">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+            <form onSubmit={handleActivateSmsMfa} className="space-y-4 max-w-md">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
                   6-Digit SMS Verification Code
                 </label>
                 <Input
@@ -554,21 +562,21 @@ export function MfaPage() {
                     if (smsError) setSmsError(null)
                   }}
                   autoFocus
-                  className={`font-mono text-center tracking-[0.4em] text-lg font-semibold h-12 rounded-lg bg-zinc-50/50 dark:bg-zinc-950/40 transition-all ${
+                  className={`font-mono text-center tracking-[0.4em] text-xl sm:text-2xl font-bold h-12 sm:h-14 rounded-xl border-zinc-300 dark:border-zinc-700/80 bg-white dark:bg-zinc-900 transition-all ${
                     smsError
-                      ? 'border-red-500/80 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                      : 'border-zinc-200 dark:border-zinc-800'
+                      ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-red-900 dark:text-red-200'
+                      : ''
                   }`}
                 />
                 {smsError && (
-                  <p className="text-xs text-red-600 dark:text-red-400 font-medium flex items-center justify-center gap-1.5 pt-1 animate-in fade-in-0 duration-150">
-                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                  <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 font-semibold flex items-center justify-center gap-1.5 pt-1 animate-in fade-in-0 duration-150">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
                     <span>{smsError}</span>
                   </p>
                 )}
               </div>
 
-              <div className="flex gap-2.5">
+              <div className="flex gap-3">
                 <Button
                   type="button"
                   variant="outline"
@@ -577,18 +585,18 @@ export function MfaPage() {
                     setSmsVerificationCode('')
                     setSmsError(null)
                   }}
-                  className="w-1/3 text-xs h-10 rounded-lg cursor-pointer"
+                  className="w-1/3 text-sm font-bold h-11 sm:h-12 rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={smsActivating || smsVerificationCode.length < 6}
-                  className="flex-1 text-xs h-10 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-sm cursor-pointer"
+                  className="flex-1 text-sm sm:text-base font-bold h-11 sm:h-12 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-md cursor-pointer active:scale-95 transition-all"
                 >
                   {smsActivating ? (
-                    <span className="flex items-center gap-1.5">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       <span>Activating...</span>
                     </span>
                   ) : (
@@ -601,91 +609,93 @@ export function MfaPage() {
         </Card>
       )}
 
-      {/* Available Verification Factors (Clerk Style) */}
-      <Card>
-        <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
-          <CardTitle className="text-sm font-semibold">Available Verification Factors</CardTitle>
-          <CardDescription>
-            Supported second factors configured for your organization
+      {/* Available Verification Factors Card */}
+      <Card className="overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm rounded-3xl bg-white dark:bg-[#111116]">
+        <CardHeader className="p-6 sm:p-7 pb-4 sm:pb-5 border-b border-zinc-200 dark:border-zinc-800">
+          <CardTitle className="text-base sm:text-lg font-bold text-zinc-950 dark:text-white">
+            Configured Verification Factors
+          </CardTitle>
+          <CardDescription className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 font-medium">
+            Multi-factor authentication mechanisms enabled for your account credentials
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0 divide-y divide-zinc-100 dark:divide-zinc-800/60 text-xs sm:text-sm">
+        <CardContent className="p-0 divide-y divide-zinc-200 dark:divide-zinc-800">
           {/* Factor 1: Authenticator App */}
-          <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
-            <div className="flex items-start gap-3.5">
-              <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-300 shrink-0 mt-0.5">
-                <Smartphone className="h-4 w-4" />
+          <div className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
+            <div className="flex items-start gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-950 dark:text-white shrink-0 border border-zinc-200 dark:border-zinc-700 shadow-2xs">
+                <Smartphone className="h-6 w-6 stroke-[1.8]" />
               </div>
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs sm:text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    Authenticator application
+              <div className="space-y-1">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <span className="text-base font-bold text-zinc-950 dark:text-white">
+                    Authenticator application (TOTP)
                   </span>
                   {user?.mfa_enabled ? (
-                    <Badge variant="success" dot pulse className="text-[10px] py-0 px-2 h-5">
+                    <Badge variant="success" dot pulse className="text-xs py-0.5 px-2.5 font-semibold">
                       Active
                     </Badge>
                   ) : (
-                    <Badge variant="secondary" className="text-[10px] py-0 px-2 h-5">
+                    <Badge variant="secondary" className="text-xs py-0.5 px-2.5 font-semibold text-zinc-700 dark:text-zinc-300">
                       Disabled
                     </Badge>
                   )}
                 </div>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 font-medium">
                   Google Authenticator, Microsoft Authenticator, 1Password, or Authy
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
               {user?.mfa_enabled ? (
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="default"
                   onClick={() => setIsDisableDialogOpen(true)}
                   disabled={disabling}
-                  className="text-xs h-8 px-3 rounded-lg text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-200 dark:border-red-900/40 cursor-pointer"
+                  className="h-10 px-4 text-xs sm:text-sm font-bold rounded-xl border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer shadow-xs active:scale-95"
                 >
-                  {disabling ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : null}
-                  <span>Disable</span>
+                  {disabling ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
+                  <span>Disable 2FA</span>
                 </Button>
               ) : (
                 <Button
                   variant="default"
-                  size="sm"
+                  size="default"
                   onClick={initiateSetup}
                   disabled={loading || !!setupData}
-                  className="text-xs h-8 px-3.5 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-sm cursor-pointer"
+                  className="h-10 px-5 text-xs sm:text-sm font-bold rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-md cursor-pointer active:scale-95"
                 >
-                  {loading ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : null}
-                  <span>Set Up</span>
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
+                  <span>Set Up Authenticator</span>
                 </Button>
               )}
             </div>
           </div>
 
           {/* Factor 2: SMS Text Message */}
-          <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
-            <div className="flex items-start gap-3.5">
-              <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-300 shrink-0 mt-0.5">
-                <MessageSquare className="h-4 w-4" />
+          <div className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
+            <div className="flex items-start gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-950 dark:text-white shrink-0 border border-zinc-200 dark:border-zinc-700 shadow-2xs">
+                <MessageSquare className="h-6 w-6 stroke-[1.8]" />
               </div>
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs sm:text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                    SMS text message
+              <div className="space-y-1">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <span className="text-base font-bold text-zinc-950 dark:text-white">
+                    SMS text message (OTP)
                   </span>
                   {user?.sms_mfa_enabled ? (
-                    <Badge variant="success" dot pulse className="text-[10px] py-0 px-2 h-5">
+                    <Badge variant="success" dot pulse className="text-xs py-0.5 px-2.5 font-semibold">
                       Active
                     </Badge>
                   ) : (
-                    <Badge variant="secondary" className="text-[10px] py-0 px-2 h-5">
+                    <Badge variant="secondary" className="text-xs py-0.5 px-2.5 font-semibold text-zinc-700 dark:text-zinc-300">
                       Disabled
                     </Badge>
                   )}
                 </div>
-                <div className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 flex-wrap">
+                <div className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 font-medium flex items-center gap-1.5 flex-wrap">
                   <span>
                     {user?.sms_mfa_enabled
                       ? 'Verification codes are sent to'
@@ -693,22 +703,21 @@ export function MfaPage() {
                       ? 'Send one-time passcodes to'
                       : user?.phone_number && !user?.phone_number_verified
                       ? 'Phone number'
-                      : 'No phone number registered. Add and verify a phone number first to enable SMS 2FA.'}
+                      : 'No phone number attached. Add and verify a phone number first to enable SMS 2FA.'}
                   </span>
                   {user?.phone_number && (
-                    <span className="inline-flex items-center gap-1 font-mono text-zinc-800 dark:text-zinc-200">
+                    <span className="inline-flex items-center gap-1 font-mono font-bold text-zinc-900 dark:text-zinc-100">
                       <span>{showSmsPhone ? user.phone_number : maskPhoneNumber(user.phone_number)}</span>
                       <button
                         type="button"
                         onClick={() => setShowSmsPhone(!showSmsPhone)}
-                        className="p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        className="p-0.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer rounded"
                         title={showSmsPhone ? 'Hide phone number' : 'Show phone number'}
-                        aria-label={showSmsPhone ? 'Hide phone number' : 'Show phone number'}
                       >
                         {showSmsPhone ? (
-                          <EyeOff className="h-3 w-3" />
+                          <EyeOff className="h-3.5 w-3.5" />
                         ) : (
-                          <Eye className="h-3 w-3" />
+                          <Eye className="h-3.5 w-3.5" />
                         )}
                       </button>
                     </span>
@@ -718,7 +727,7 @@ export function MfaPage() {
                       {user?.sms_mfa_enabled
                         ? ''
                         : user?.phone_number_verified
-                        ? 'upon sign-in'
+                        ? 'upon sign-in.'
                         : 'is unverified. Verify it first to enable SMS 2FA.'}
                     </span>
                   )}
@@ -726,44 +735,44 @@ export function MfaPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
               {user?.sms_mfa_enabled ? (
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="default"
                   onClick={() => setIsDisableSmsDialogOpen(true)}
                   disabled={smsDisabling}
-                  className="text-xs h-8 px-3 rounded-lg text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-200 dark:border-red-900/40 cursor-pointer"
+                  className="h-10 px-4 text-xs sm:text-sm font-bold rounded-xl border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer shadow-xs active:scale-95"
                 >
-                  {smsDisabling ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : null}
-                  <span>Disable</span>
+                  {smsDisabling ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
+                  <span>Disable SMS 2FA</span>
                 </Button>
               ) : user?.phone_number && user?.phone_number_verified ? (
                 <Button
                   variant="default"
-                  size="sm"
+                  size="default"
                   onClick={handleInitiateSmsSetup}
                   disabled={smsSending || isSmsSetupOpen}
-                  className="text-xs h-8 px-3.5 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-sm cursor-pointer"
+                  className="h-10 px-5 text-xs sm:text-sm font-bold rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-md cursor-pointer active:scale-95"
                 >
-                  {smsSending ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : null}
-                  <span>Set Up</span>
+                  {smsSending ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
+                  <span>Set Up SMS 2FA</span>
                 </Button>
               ) : user?.phone_number && !user?.phone_number_verified ? (
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="default"
                   onClick={() => setIsVerifyPhoneOpen(true)}
-                  className="text-xs h-8 px-3.5 rounded-lg border-amber-300 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/20 cursor-pointer"
+                  className="h-10 px-4 text-xs sm:text-sm font-bold rounded-xl border border-amber-500/40 text-amber-800 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 cursor-pointer shadow-xs active:scale-95"
                 >
                   <span>Verify Phone</span>
                 </Button>
               ) : (
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="default"
                   onClick={() => setIsAddPhoneOpen(true)}
-                  className="text-xs h-8 px-3.5 rounded-lg cursor-pointer"
+                  className="h-10 px-4 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-xs active:scale-95"
                 >
                   <span>Add Phone</span>
                 </Button>
@@ -773,82 +782,80 @@ export function MfaPage() {
 
           {/* Factor 3: Emergency Recovery Codes (Visible when any MFA is Active) */}
           {(user?.mfa_enabled || user?.sms_mfa_enabled) && (
-            <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
-              <div className="flex items-start gap-3.5">
-                <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-300 shrink-0 mt-0.5">
-                  <KeyRound className="h-4 w-4" />
+            <div className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-zinc-50/70 dark:hover:bg-white/[0.02] transition-colors">
+              <div className="flex items-start gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-950 dark:text-white shrink-0 border border-zinc-200 dark:border-zinc-700 shadow-2xs">
+                  <KeyRound className="h-6 w-6 stroke-[1.8]" />
                 </div>
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs sm:text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <span className="text-base font-bold text-zinc-950 dark:text-white">
                       Emergency recovery codes
                     </span>
                     {remainingCodes !== null && (
-                      <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4.5 font-mono">
+                      <Badge variant="outline" className="text-xs py-0.5 px-2 font-mono font-bold">
                         {remainingCodes} remaining
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Use one-time backup codes if you lose access to your primary 2FA method
+                  <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 font-medium">
+                    Use one-time emergency backup keys if you lose physical access to your authenticator or mobile device.
                   </p>
                 </div>
               </div>
 
               <Button
                 variant="outline"
-                size="sm"
+                size="default"
                 onClick={() => setIsRegenerateDialogOpen(true)}
                 disabled={regenerating}
-                className="text-xs h-8 px-3 rounded-lg cursor-pointer"
+                className="h-10 px-4 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer shadow-xs active:scale-95 shrink-0 self-end sm:self-center"
               >
-                <RefreshCw className="h-3 w-3 mr-1.5" />
-                <span>Regenerate codes</span>
+                <RefreshCw className="h-4 w-4 mr-1.5 text-zinc-500" />
+                <span>Regenerate Codes</span>
               </Button>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Disable Confirmation Modal */}
+      {/* Disable TOTP Confirmation Modal */}
       {isDisableDialogOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-            onClick={() => !disabling && setIsDisableDialogOpen(false)}
-          />
-          <div className="relative w-full max-w-md rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl p-6 sm:p-7 z-10 animate-in fade-in-0 zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-lg p-7 sm:p-8 rounded-3xl bg-white dark:bg-[#121216] border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-6 text-zinc-950 dark:text-zinc-50 animate-in zoom-in-95 duration-200">
             <div className="text-center space-y-3">
-              <div className="h-12 w-12 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto border border-red-500/20">
-                <AlertTriangle className="h-6 w-6" />
+              <div className="h-14 w-14 rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto border border-red-500/20 shadow-xs">
+                <AlertTriangle className="h-7 w-7" />
               </div>
-              <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-950 dark:text-white">
                 Disable Two-Factor Authentication?
               </h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                This will remove your authenticator app verification factor and delete all emergency recovery codes. Your account will only be protected by your password.
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
+                This will remove your authenticator app factor and delete all emergency recovery codes. Your account will only be protected by your password.
               </p>
             </div>
 
-            <div className="flex gap-2.5 pt-6">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-2">
               <Button
                 type="button"
                 variant="outline"
+                size="default"
                 disabled={disabling}
                 onClick={() => setIsDisableDialogOpen(false)}
-                className="w-1/2 text-xs h-10 rounded-lg cursor-pointer"
+                className="h-11 sm:h-12 px-5 text-sm sm:text-base font-bold rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer"
               >
                 Cancel
               </Button>
               <Button
                 type="button"
+                variant="destructive"
                 disabled={disabling}
                 onClick={handleDisableTotp}
-                className="w-1/2 text-xs h-10 rounded-lg bg-red-600 hover:bg-red-700 text-white shadow-sm cursor-pointer"
+                className="h-11 sm:h-12 px-6 text-sm sm:text-base font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-md cursor-pointer active:scale-95 transition-all"
               >
                 {disabling ? (
-                  <span className="flex items-center gap-1.5">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     <span>Disabling...</span>
                   </span>
                 ) : (
@@ -862,31 +869,28 @@ export function MfaPage() {
 
       {/* Regenerate Recovery Codes Confirmation Modal */}
       {isRegenerateDialogOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-            onClick={() => !regenerating && setIsRegenerateDialogOpen(false)}
-          />
-          <div className="relative w-full max-w-md rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl p-6 sm:p-7 z-10 animate-in fade-in-0 zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-lg p-7 sm:p-8 rounded-3xl bg-white dark:bg-[#121216] border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-6 text-zinc-950 dark:text-zinc-50 animate-in zoom-in-95 duration-200">
             <div className="text-center space-y-3">
-              <div className="h-12 w-12 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto border border-amber-500/20">
-                <KeyRound className="h-6 w-6" />
+              <div className="h-14 w-14 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto border border-amber-500/20 shadow-xs">
+                <KeyRound className="h-7 w-7" />
               </div>
-              <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-950 dark:text-white">
                 Regenerate Emergency Recovery Codes?
               </h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                Generating new recovery codes will immediately invalidate any unused codes you previously saved. Make sure to save the new codes safely.
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
+                Generating new recovery codes will immediately invalidate any unused codes you previously saved. Make sure to copy and store the new codes in a secure vault.
               </p>
             </div>
 
-            <div className="flex gap-2.5 pt-6">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-2">
               <Button
                 type="button"
                 variant="outline"
+                size="default"
                 disabled={regenerating}
                 onClick={() => setIsRegenerateDialogOpen(false)}
-                className="w-1/2 text-xs h-10 rounded-lg cursor-pointer"
+                className="h-11 sm:h-12 px-5 text-sm sm:text-base font-bold rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer"
               >
                 Cancel
               </Button>
@@ -894,11 +898,11 @@ export function MfaPage() {
                 type="button"
                 disabled={regenerating}
                 onClick={handleRegenerateCodes}
-                className="w-1/2 text-xs h-10 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-sm cursor-pointer"
+                className="h-11 sm:h-12 px-6 text-sm sm:text-base font-bold rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 shadow-md cursor-pointer active:scale-95 transition-all"
               >
                 {regenerating ? (
-                  <span className="flex items-center gap-1.5">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     <span>Generating...</span>
                   </span>
                 ) : (
@@ -909,45 +913,44 @@ export function MfaPage() {
           </div>
         </div>
       )}
+
       {/* Disable SMS MFA Confirmation Modal */}
       {isDisableSmsDialogOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-            onClick={() => !smsDisabling && setIsDisableSmsDialogOpen(false)}
-          />
-          <div className="relative w-full max-w-md rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl p-6 sm:p-7 z-10 animate-in fade-in-0 zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-lg p-7 sm:p-8 rounded-3xl bg-white dark:bg-[#121216] border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-6 text-zinc-950 dark:text-zinc-50 animate-in zoom-in-95 duration-200">
             <div className="text-center space-y-3">
-              <div className="h-12 w-12 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto border border-red-500/20">
-                <AlertTriangle className="h-6 w-6" />
+              <div className="h-14 w-14 rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto border border-red-500/20 shadow-xs">
+                <AlertTriangle className="h-7 w-7" />
               </div>
-              <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-950 dark:text-white">
                 Disable SMS Two-Factor Authentication?
               </h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                This will remove SMS one-time passcodes as a second factor for your account.
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
+                This will remove SMS one-time passcodes as a second factor for your account. You will rely on your authenticator app or hardware keys.
               </p>
             </div>
 
-            <div className="flex gap-2.5 pt-6">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-2">
               <Button
                 type="button"
                 variant="outline"
+                size="default"
                 disabled={smsDisabling}
                 onClick={() => setIsDisableSmsDialogOpen(false)}
-                className="w-1/2 text-xs h-10 rounded-lg cursor-pointer"
+                className="h-11 sm:h-12 px-5 text-sm sm:text-base font-bold rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer"
               >
                 Cancel
               </Button>
               <Button
                 type="button"
+                variant="destructive"
                 disabled={smsDisabling}
                 onClick={handleDisableSmsMfa}
-                className="w-1/2 text-xs h-10 rounded-lg bg-red-600 hover:bg-red-700 text-white shadow-sm cursor-pointer"
+                className="h-11 sm:h-12 px-6 text-sm sm:text-base font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-md cursor-pointer active:scale-95 transition-all"
               >
                 {smsDisabling ? (
-                  <span className="flex items-center gap-1.5">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     <span>Disabling...</span>
                   </span>
                 ) : (

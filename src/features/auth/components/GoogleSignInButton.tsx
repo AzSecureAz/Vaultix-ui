@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Loader2, Link2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 declare global {
   interface Window {
@@ -190,26 +191,34 @@ export function GoogleSignInButton({
   const isLg = size === 'lg'
 
   return (
-    <div className={`relative overflow-hidden group ${isLg ? 'rounded-xl' : 'rounded-lg'} ${isCompact ? 'inline-block' : 'w-full'} ${className}`}>
+    <div
+      className={cn(
+        'relative overflow-hidden group',
+        isLg || isCompact ? 'rounded-xl' : 'rounded-lg',
+        isCompact ? 'inline-block' : 'w-full',
+        className
+      )}
+    >
       {/* 1. Custom Vaultix Button */}
       <Button
         type="button"
         variant="outline"
-        size={isCompact ? 'sm' : 'default'}
+        size={isCompact ? 'default' : isCompact ? 'sm' : 'default'}
         onClick={handleClickFallback}
         disabled={disabled || isLoading}
-        className={
+        className={cn(
           isCompact
-            ? `h-8 font-medium text-xs rounded-lg border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white flex items-center justify-center px-3 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50 ${buttonClassName}`
+            ? 'h-10 sm:h-11 px-4 sm:px-5 font-bold text-xs sm:text-sm rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 shadow-xs cursor-pointer transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center'
             : isLg
-              ? `w-full h-11 sm:h-12 font-semibold text-sm sm:text-base rounded-xl border-zinc-300 dark:border-zinc-700/80 bg-white dark:bg-zinc-900/80 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2.5 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50 ${buttonClassName}`
-              : `w-full h-10 font-medium text-xs sm:text-sm rounded-lg border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50 ${buttonClassName}`
-        }
+              ? 'w-full h-11 sm:h-12 font-semibold text-sm sm:text-base rounded-xl border border-zinc-300 dark:border-zinc-700/80 bg-white dark:bg-zinc-900/80 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2.5 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50'
+              : 'w-full h-10 font-medium text-xs sm:text-sm rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.99] disabled:opacity-50',
+          buttonClassName
+        )}
       >
         {isLoading ? (
-          <Loader2 className={`${isCompact ? 'h-3.5 w-3.5 mr-1.5' : isLg ? 'h-5 w-5' : 'h-4 w-4'} animate-spin text-zinc-500`} />
+          <Loader2 className={cn(isCompact ? 'h-4 w-4 mr-2' : isLg ? 'h-5 w-5 mr-2' : 'h-4 w-4 mr-2', 'animate-spin text-zinc-500 shrink-0')} />
         ) : (
-          icon || (isCompact ? <Link2 className="h-3.5 w-3.5 mr-1.5 text-zinc-500" /> : <GoogleIcon className={`${isLg ? 'h-5 w-5' : 'h-4 w-4'} shrink-0`} />)
+          icon || (isCompact ? <Link2 className="h-4 w-4 mr-2 text-zinc-500 shrink-0" /> : <GoogleIcon className={cn(isLg ? 'h-5 w-5' : 'h-4 w-4', 'shrink-0')} />)
         )}
         <span>{isLoading ? 'Verifying with Google...' : defaultLabel}</span>
       </Button>
@@ -217,11 +226,12 @@ export function GoogleSignInButton({
       {/* 2. Invisible Google Native Iframe overlay capturing clicks directly */}
       <div
         ref={containerRef}
-        className={`absolute inset-0 opacity-0 overflow-hidden ${isLg ? 'rounded-xl' : 'rounded-lg'} z-10 [&>div]:w-full [&>div]:h-full [&_iframe]:!w-full [&_iframe]:!h-full [&_iframe]:!scale-150 ${
-          isRendered ? 'block' : 'hidden'
-        } ${
+        className={cn(
+          'absolute inset-0 opacity-0 overflow-hidden z-10 [&>div]:w-full [&>div]:h-full [&_iframe]:!w-full [&_iframe]:!h-full [&_iframe]:!scale-150',
+          isLg || isCompact ? 'rounded-xl' : 'rounded-lg',
+          isRendered ? 'block' : 'hidden',
           isLoading || disabled ? 'pointer-events-none' : 'cursor-pointer pointer-events-auto'
-        }`}
+        )}
         title="Sign in with Google"
       />
     </div>

@@ -139,114 +139,116 @@ export function ConnectedAccountsPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-7 sm:space-y-8 max-w-5xl mx-auto pb-16">
       {/* Page Header */}
-      <div className="space-y-1">
-        <div className="flex items-center gap-2 text-xs font-semibold tracking-wider text-zinc-400 dark:text-zinc-500 uppercase">
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2 text-xs font-bold tracking-wider text-blue-600 dark:text-blue-400 uppercase">
           <Link2 className="h-4 w-4" />
-          <span>Security &bull; Identity</span>
+          <span>Security &bull; Identity &amp; Single Sign-On</span>
         </div>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-950 dark:text-white">
           Connected Accounts
         </h1>
-        <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
-          Link external social identities to enable single sign-on and instant authentication across Vaultix.
+        <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-300 font-medium">
+          Link external social identities to enable single sign-on, account recovery, and instant authentication across Vaultix.
         </p>
       </div>
 
       {/* Main Card */}
-      <Card className="overflow-hidden">
-        <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-3 border-b border-zinc-100 dark:border-zinc-800/60 flex flex-row items-center justify-between gap-4">
-          <div>
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <span>Social Connections</span>
+      <Card className="overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm rounded-3xl bg-white dark:bg-[#111116]">
+        <CardHeader className="p-6 sm:p-7 pb-4 sm:pb-5 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <CardTitle className="text-base sm:text-lg font-bold flex items-center gap-2.5 text-zinc-950 dark:text-white">
+              <span>Social &amp; Developer Connections</span>
               {accounts.length > 0 && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
-                  {accounts.length} {accounts.length === 1 ? 'account' : 'accounts'} connected
+                <Badge variant="default" className="text-xs px-2.5 py-0.5 font-bold font-mono">
+                  {accounts.length} {accounts.length === 1 ? 'connected' : 'connected'}
                 </Badge>
               )}
             </CardTitle>
-            <CardDescription className="text-xs">
-              Link your external accounts to sign in with one click without entering a password
+            <CardDescription className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 font-medium">
+              Link your external identity providers to sign in with one click without entering passwords.
             </CardDescription>
           </div>
         </CardHeader>
 
-        <CardContent className="p-4 sm:p-6 space-y-4">
+        <CardContent className="p-6 sm:p-8 space-y-4">
           {loading ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {[1, 2].map((i) => (
                 <div
                   key={i}
-                  className="p-4 rounded-xl border border-zinc-200/80 dark:border-white/[0.06] bg-zinc-50/50 dark:bg-white/[0.02] flex items-center justify-between gap-4 animate-pulse"
+                  className="p-5 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-white/[0.02] flex items-center justify-between gap-4 animate-pulse"
                 >
-                  <div className="flex items-center gap-3.5 flex-1 min-w-0">
-                    <Skeleton className="h-10 w-10 rounded-xl shrink-0" />
-                    <div className="space-y-1.5 flex-1 min-w-0">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-3 w-56" />
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <Skeleton className="h-12 w-12 rounded-2xl shrink-0" />
+                    <div className="space-y-2 flex-1 min-w-0">
+                      <Skeleton className="h-5 w-36" />
+                      <Skeleton className="h-4 w-60" />
                     </div>
                   </div>
-                  <Skeleton className="h-8 w-24 rounded-lg shrink-0" />
+                  <Skeleton className="h-10 w-28 rounded-xl shrink-0" />
                 </div>
               ))}
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {/* Google Account Row */}
-              <div className="p-3.5 sm:p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="h-10 w-10 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center shrink-0 shadow-xs">
-                    <GoogleIcon className="h-5 w-5" />
+              <div className="p-5 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 hover:bg-zinc-100/70 dark:hover:bg-zinc-900/60 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="h-12 w-12 rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shrink-0 shadow-xs">
+                    <GoogleIcon className="h-6 w-6" />
                   </div>
 
-                  <div className="space-y-0.5 min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <h4 className="text-base sm:text-lg font-bold text-zinc-950 dark:text-white">
                         Google
                       </h4>
                       {googleAccount ? (
-                        <Badge variant="success" dot pulse className="text-[10px] py-0 px-2 h-5">
+                        <Badge variant="success" dot pulse className="text-xs py-0.5 px-2.5 font-semibold">
                           Connected
                         </Badge>
                       ) : (
-                        <Badge variant="secondary" className="text-[10px] py-0 px-2 h-5">
+                        <Badge variant="secondary" className="text-xs py-0.5 px-2.5 font-semibold text-zinc-700 dark:text-zinc-300">
                           Not Connected
                         </Badge>
                       )}
                     </div>
 
                     {googleAccount ? (
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
-                        {googleAccount.email || googleAccount.display_name || googleAccount.provider_user_id}
+                      <p className="text-xs sm:text-sm text-zinc-700 dark:text-zinc-300 font-medium truncate flex items-center gap-2 flex-wrap">
+                        <span className="font-mono text-zinc-950 dark:text-zinc-100 font-semibold">
+                          {googleAccount.email || googleAccount.display_name || googleAccount.provider_user_id}
+                        </span>
                         {googleAccount.created_at && (
-                          <span className="text-zinc-400 dark:text-zinc-500 text-[11px] ml-1.5">
+                          <span className="text-zinc-500 dark:text-zinc-400 text-xs">
                             &bull; Linked {formatDate(googleAccount.created_at)}
                           </span>
                         )}
                       </p>
                     ) : (
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Sign in with your Google account seamlessly using OpenID Connect
+                      <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 font-medium">
+                        Sign in with your Google account seamlessly using OpenID Connect authentication.
                       </p>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 sm:shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-200/60 dark:border-zinc-800/60">
+                <div className="flex items-center gap-2 sm:shrink-0 self-end sm:self-center">
                   {googleAccount ? (
                     <Button
                       type="button"
                       variant="outline"
-                      size="sm"
+                      size="default"
                       onClick={() => handleUnlink('GOOGLE')}
                       disabled={actionLoading === 'unlink-GOOGLE'}
-                      className="h-8 text-xs px-3 cursor-pointer text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50/60 dark:hover:bg-red-950/20 border-red-200/60 dark:border-red-900/40"
+                      className="h-10 px-4 text-xs sm:text-sm font-bold rounded-xl border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer shadow-xs active:scale-95"
                     >
                       {actionLoading === 'unlink-GOOGLE' ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                        <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
                       ) : (
-                        <Unlink className="h-3.5 w-3.5 mr-1.5" />
+                        <Unlink className="h-4 w-4 mr-1.5" />
                       )}
                       <span>Disconnect</span>
                     </Button>
@@ -258,65 +260,70 @@ export function ConnectedAccountsPage() {
                       disabled={actionLoading !== null}
                       label="Connect Google"
                       mode="compact"
+                      size="default"
+                      className="shrink-0"
+                      buttonClassName="h-10 sm:h-11 px-4 sm:px-5 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 shadow-xs cursor-pointer active:scale-95"
                     />
                   )}
                 </div>
               </div>
 
               {/* GitHub Account Row */}
-              <div className="p-3.5 sm:p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="h-10 w-10 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center shrink-0 shadow-xs">
-                    <GitHubIcon className="h-5 w-5 text-zinc-900 dark:text-white" />
+              <div className="p-5 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 hover:bg-zinc-100/70 dark:hover:bg-zinc-900/60 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="h-12 w-12 rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shrink-0 shadow-xs">
+                    <GitHubIcon className="h-6 w-6 text-zinc-950 dark:text-white" />
                   </div>
 
-                  <div className="space-y-0.5 min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <h4 className="text-base sm:text-lg font-bold text-zinc-950 dark:text-white">
                         GitHub
                       </h4>
                       {githubAccount ? (
-                        <Badge variant="success" dot pulse className="text-[10px] py-0 px-2 h-5">
+                        <Badge variant="success" dot pulse className="text-xs py-0.5 px-2.5 font-semibold">
                           Connected
                         </Badge>
                       ) : (
-                        <Badge variant="secondary" className="text-[10px] py-0 px-2 h-5">
+                        <Badge variant="secondary" className="text-xs py-0.5 px-2.5 font-semibold text-zinc-700 dark:text-zinc-300">
                           Not Connected
                         </Badge>
                       )}
                     </div>
 
                     {githubAccount ? (
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
-                        {githubAccount.email || githubAccount.display_name || githubAccount.provider_user_id}
+                      <p className="text-xs sm:text-sm text-zinc-700 dark:text-zinc-300 font-medium truncate flex items-center gap-2 flex-wrap">
+                        <span className="font-mono text-zinc-950 dark:text-zinc-100 font-semibold">
+                          {githubAccount.email || githubAccount.display_name || githubAccount.provider_user_id}
+                        </span>
                         {githubAccount.created_at && (
-                          <span className="text-zinc-400 dark:text-zinc-500 text-[11px] ml-1.5">
+                          <span className="text-zinc-500 dark:text-zinc-400 text-xs">
                             &bull; Linked {formatDate(githubAccount.created_at)}
                           </span>
                         )}
                       </p>
                     ) : (
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Sign in and synchronize developer identities with GitHub OAuth2
+                      <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 font-medium">
+                        Sign in and synchronize developer identities with GitHub OAuth2 verification.
                       </p>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 sm:shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-200/60 dark:border-zinc-800/60">
+                <div className="flex items-center gap-2 sm:shrink-0 self-end sm:self-center">
                   {githubAccount ? (
                     <Button
                       type="button"
                       variant="outline"
-                      size="sm"
+                      size="default"
                       onClick={() => handleUnlink('GITHUB')}
                       disabled={actionLoading === 'unlink-GITHUB'}
-                      className="h-8 text-xs px-3 cursor-pointer text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50/60 dark:hover:bg-red-950/20 border-red-200/60 dark:border-red-900/40"
+                      className="h-10 px-4 text-xs sm:text-sm font-bold rounded-xl border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer shadow-xs active:scale-95"
                     >
                       {actionLoading === 'unlink-GITHUB' ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                        <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
                       ) : (
-                        <Unlink className="h-3.5 w-3.5 mr-1.5" />
+                        <Unlink className="h-4 w-4 mr-1.5" />
                       )}
                       <span>Disconnect</span>
                     </Button>
@@ -324,15 +331,15 @@ export function ConnectedAccountsPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      size="sm"
+                      size="default"
                       onClick={handleLinkGitHub}
                       disabled={actionLoading !== null}
-                      className="h-8 text-xs px-3 cursor-pointer text-zinc-800 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white"
+                      className="h-10 sm:h-11 px-4 sm:px-5 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 shadow-xs cursor-pointer active:scale-95"
                     >
                       {actionLoading === 'link-github' ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
                       ) : (
-                        <Link2 className="h-3.5 w-3.5 mr-1.5 text-zinc-500" />
+                        <Link2 className="h-4 w-4 mr-2 text-zinc-500" />
                       )}
                       <span>Connect GitHub</span>
                     </Button>

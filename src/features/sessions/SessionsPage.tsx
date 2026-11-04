@@ -29,9 +29,9 @@ import { sessionsApi, type SessionItem } from './api/sessionsApi'
 function getDeviceIcon(deviceInfo?: string) {
   const info = (deviceInfo || '').toLowerCase()
   if (info.includes('mobile') || info.includes('android') || info.includes('iphone') || info.includes('ipad')) {
-    return <Smartphone className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+    return <Smartphone className="h-6 w-6 text-blue-600 dark:text-blue-400" />
   }
-  return <Laptop className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+  return <Laptop className="h-6 w-6 text-blue-600 dark:text-blue-400" />
 }
 
 function formatDateTime(dateStr?: string): string {
@@ -206,69 +206,74 @@ export function SessionsPage() {
   const endRecord = Math.min((currentPage + 1) * pageSize, totalOtherSessions)
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12 w-full min-w-0 overflow-x-hidden sm:overflow-visible">
+    <div className="space-y-7 sm:space-y-8 max-w-5xl mx-auto pb-16 w-full min-w-0 overflow-x-hidden sm:overflow-visible">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-2.5">
-            <Smartphone className="h-6 w-6 text-blue-600 dark:text-blue-400 shrink-0" />
-            <span className="truncate">Active Sessions &amp; Device Ingress</span>
+        <div className="space-y-1.5 min-w-0">
+          <div className="flex items-center gap-2 text-xs font-bold tracking-wider text-blue-600 dark:text-blue-400 uppercase">
+            <Smartphone className="h-4 w-4" />
+            <span>Security &bull; Active Sessions &amp; Device Ingress</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-950 dark:text-white flex items-center gap-2.5">
+            <span className="truncate">Active Sessions &amp; Devices</span>
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-            Track and revoke active refresh tokens and device sessions validated by GeoIP
+          <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-300 font-medium">
+            Inspect, monitor, and revoke authenticated refresh tokens and active client device sessions resolved by GeoIP.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap shrink-0 self-start sm:self-auto">
           <Button
             variant="outline"
-            size="sm"
+            size="default"
             onClick={refreshAll}
             disabled={isRefreshing}
-            className="h-8 sm:h-9 gap-1.5 sm:gap-2 text-xs font-medium cursor-pointer"
+            className="h-10 px-4 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 shadow-xs cursor-pointer active:scale-95"
             title="Refresh session list"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </Button>
 
           <Button
             variant="outline"
-            size="sm"
+            size="default"
             onClick={() => setIsLogoutOtherOpen(true)}
             disabled={otherSessions.length === 0 && totalOtherSessions === 0}
-            className="h-8 sm:h-9 gap-1.5 sm:gap-2 text-xs font-medium cursor-pointer"
+            className="h-10 px-4 text-xs sm:text-sm font-bold rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 shadow-xs cursor-pointer active:scale-95 disabled:opacity-50"
           >
-            <Smartphone className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-            <span>Sign out other devices</span>
+            <Smartphone className="h-4 w-4 mr-2 text-blue-600 dark:text-blue-400" />
+            <span>Sign out others</span>
           </Button>
 
           <Button
             variant="destructive"
-            size="sm"
+            size="default"
             onClick={() => setIsLogoutAllOpen(true)}
-            className="h-8 sm:h-9 gap-1.5 sm:gap-2 text-xs font-medium bg-red-600 hover:bg-red-700 text-white cursor-pointer"
+            className="h-10 px-4 text-xs sm:text-sm font-bold rounded-xl border border-red-300 dark:border-red-800 bg-red-600 hover:bg-red-700 text-white shadow-xs cursor-pointer active:scale-95"
           >
-            <ShieldAlert className="h-3.5 w-3.5" />
-            <span>Sign out everywhere</span>
+            <ShieldAlert className="h-4 w-4 mr-2" />
+            <span>Sign out all</span>
           </Button>
         </div>
       </div>
 
       {/* Current Device Card */}
-      <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 backdrop-blur-xl">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="h-10 w-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+      <Card className="border border-blue-500/30 dark:border-blue-500/25 bg-gradient-to-br from-blue-500/[0.04] via-indigo-500/[0.02] to-transparent rounded-3xl shadow-sm overflow-hidden">
+        <CardHeader className="p-6 sm:p-7 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="h-12 w-12 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-xs">
                 {getDeviceIcon(currentSession?.device_info)}
               </div>
-              <div className="min-w-0">
-                <CardTitle className="text-base text-zinc-900 dark:text-white flex items-center gap-2 flex-wrap">
+              <div className="min-w-0 space-y-0.5">
+                <CardTitle className="text-base sm:text-lg font-bold text-zinc-950 dark:text-white flex items-center gap-2.5 flex-wrap">
                   <span>Current Active Session</span>
-                  <Badge variant="success" dot pulse className="text-[10px]">This Device</Badge>
+                  <Badge variant="success" dot pulse className="text-xs py-0.5 px-2.5 font-semibold">
+                    This Device
+                  </Badge>
                 </CardTitle>
-                <CardDescription className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                <CardDescription className="text-xs sm:text-sm text-zinc-700 dark:text-zinc-300 font-medium truncate">
                   {currentSession?.device_info || 'Authenticated Client'}
                 </CardDescription>
               </div>
@@ -276,50 +281,52 @@ export function SessionsPage() {
 
             <Button
               variant="outline"
-              size="sm"
+              size="default"
               onClick={handleLogoutCurrent}
-              className="text-xs gap-1.5 border-rose-300 dark:border-rose-500/30 text-rose-600 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/10 self-start sm:self-auto cursor-pointer"
+              className="h-10 px-4 text-xs sm:text-sm font-bold rounded-xl border border-rose-300 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 self-start sm:self-auto cursor-pointer shadow-xs active:scale-95"
             >
-              <LogOut className="h-3.5 w-3.5" />
+              <LogOut className="h-4 w-4 mr-1.5" />
               <span>Sign Out</span>
             </Button>
           </div>
         </CardHeader>
 
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-2">
-          <div className="p-3 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1 min-w-0 overflow-hidden">
-            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+        <CardContent className="p-6 sm:p-7 pt-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 sm:p-5 bg-white dark:bg-zinc-900/80 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-1.5 min-w-0 overflow-hidden shadow-2xs">
+            <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
               Ingress &amp; GeoIP
             </span>
-            <p className="text-sm font-semibold text-zinc-900 dark:text-white break-words">
+            <p className="text-sm sm:text-base font-bold text-zinc-950 dark:text-white break-words">
               {isLoadingCurrent ? 'Loading...' : currentSession?.location_info || 'Localhost / Unknown'}
             </p>
-            <p className="text-xs text-zinc-500 font-mono break-all">
+            <p className="text-xs text-zinc-700 dark:text-zinc-300 font-mono font-medium break-all">
               {isLoadingCurrent ? '...' : currentSession?.ip_address || '127.0.0.1'}
             </p>
           </div>
 
-          <div className="p-3 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1 min-w-0 overflow-hidden">
-            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
-              <Globe className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+          <div className="p-4 sm:p-5 bg-white dark:bg-zinc-900/80 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-1.5 min-w-0 overflow-hidden shadow-2xs">
+            <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+              <Globe className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
               Client Context
             </span>
-            <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate">
+            <p className="text-sm sm:text-base font-bold text-zinc-950 dark:text-white truncate">
               {isLoadingCurrent ? 'Loading...' : currentSession?.device_info || 'Web Browser'}
             </p>
-            <p className="text-xs text-zinc-500 font-mono">
+            <p className="text-xs text-zinc-700 dark:text-zinc-300 font-medium">
               Last active: {formatDateTime(currentSession?.last_active_at)}
             </p>
           </div>
 
-          <div className="p-3 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1 min-w-0 overflow-hidden">
-            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+          <div className="p-4 sm:p-5 bg-white dark:bg-zinc-900/80 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-1.5 min-w-0 overflow-hidden shadow-2xs">
+            <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+              <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
               Token Lifetime
             </span>
-            <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Automatic Rotation</p>
-            <p className="text-xs text-zinc-500 truncate" title={currentSession?.id || ''}>
+            <p className="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+              <span>Automatic Rotation Active</span>
+            </p>
+            <p className="text-xs text-zinc-700 dark:text-zinc-300 font-mono truncate" title={currentSession?.id || ''}>
               Session ID: {currentSession ? `${currentSession.id.slice(0, 16)}...` : 'active-session'}
             </p>
           </div>
@@ -327,35 +334,35 @@ export function SessionsPage() {
       </Card>
 
       {/* Other Active Sessions Card */}
-      <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 backdrop-blur-xl">
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-100 dark:border-zinc-800/60">
-          <div className="min-w-0">
-            <CardTitle className="text-base text-zinc-900 dark:text-white flex items-center gap-2">
+      <Card className="overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm rounded-3xl bg-white dark:bg-[#111116]">
+        <CardHeader className="p-6 sm:p-7 pb-4 sm:pb-5 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1 min-w-0">
+            <CardTitle className="text-base sm:text-lg font-bold text-zinc-950 dark:text-white flex items-center gap-2.5">
               <span>Other Active Devices &amp; Sessions</span>
-              <Badge variant="outline" className="text-xs font-mono">
+              <Badge variant="default" className="text-xs px-2.5 py-0.5 font-bold font-mono">
                 {totalOtherSessions}
               </Badge>
             </CardTitle>
-            <CardDescription className="text-xs text-zinc-500 dark:text-zinc-400">
-              Devices currently signed in with unexpired refresh tokens
+            <CardDescription className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 font-medium">
+              External devices currently authenticated with unexpired refresh tokens
             </CardDescription>
           </div>
 
           {/* Rows per page selector */}
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-              Rows per page:
+          <div className="flex items-center gap-2.5 shrink-0">
+            <span className="text-xs text-zinc-600 dark:text-zinc-400 font-bold uppercase tracking-wider">
+              Rows:
             </span>
-            <div className="inline-flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800 p-0.5 bg-zinc-50 dark:bg-zinc-900/80">
+            <div className="inline-flex items-center rounded-xl border border-zinc-300 dark:border-zinc-700 p-1 bg-zinc-50 dark:bg-zinc-900/80">
               {[10, 20, 50].map((sizeOption) => (
                 <button
                   key={sizeOption}
                   type="button"
                   onClick={() => handlePageSizeChange(sizeOption)}
-                  className={`text-[11px] px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
+                  className={`text-xs px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
                     pageSize === sizeOption
-                      ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs font-semibold'
-                      : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                      ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-xs'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
                   }`}
                 >
                   {sizeOption}
@@ -365,64 +372,66 @@ export function SessionsPage() {
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-3 pt-4">
+        <CardContent className="p-6 sm:p-8 space-y-4">
           {isLoadingOther ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="p-3.5 sm:p-4 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-white/[0.06] flex items-center justify-between gap-4 animate-pulse"
+                  className="p-5 sm:p-6 rounded-2xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-4 animate-pulse"
                 >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <Skeleton className="h-9 w-9 rounded-lg shrink-0" />
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <Skeleton className="h-12 w-12 rounded-2xl shrink-0" />
                     <div className="space-y-2 flex-1 min-w-0">
-                      <Skeleton className="h-4 w-40 sm:w-56" />
-                      <Skeleton className="h-3 w-48 sm:w-80" />
+                      <Skeleton className="h-5 w-44 sm:w-60" />
+                      <Skeleton className="h-4 w-52 sm:w-80" />
                     </div>
                   </div>
-                  <Skeleton className="h-8 w-18 rounded-lg shrink-0" />
+                  <Skeleton className="h-10 w-24 rounded-xl shrink-0" />
                 </div>
               ))}
             </div>
           ) : otherSessions.length === 0 ? (
-            <div className="py-10 px-4 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 text-center space-y-2">
-              <div className="inline-flex h-10 w-10 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 items-center justify-center">
-                <ShieldCheck className="h-5 w-5" />
+            <div className="py-12 px-6 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 text-center space-y-3">
+              <div className="inline-flex h-12 w-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 items-center justify-center border border-emerald-500/20 shadow-2xs">
+                <ShieldCheck className="h-6 w-6 stroke-[2]" />
               </div>
-              <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+              <p className="text-base font-bold text-zinc-950 dark:text-white">
                 No other active sessions
               </p>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">
-                Your account is currently signed in on this device only. Other sessions will appear here when authenticated.
+              <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 font-medium max-w-sm mx-auto">
+                Your account is currently signed in on this device only. Additional sessions will appear here when authenticated.
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {otherSessions.map((session) => {
                 const isRevoking = revokingSessionId === session.id
                 return (
                   <div
                     key={session.id}
-                    className="p-3.5 sm:p-4 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 transition-colors hover:border-zinc-300 dark:hover:border-zinc-700 min-w-0 overflow-hidden"
+                    className="p-5 sm:p-6 rounded-2xl bg-zinc-50/80 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:bg-zinc-100/70 dark:hover:bg-zinc-900/60 shadow-2xs min-w-0 overflow-hidden"
                   >
-                    <div className="flex items-start gap-3 min-w-0 flex-1">
-                      <div className="h-9 w-9 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="flex items-start gap-4 min-w-0 flex-1">
+                      <div className="h-12 w-12 rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shrink-0 shadow-xs mt-0.5">
                         {getDeviceIcon(session.device_info)}
                       </div>
-                      <div className="space-y-1 min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate">
+                      <div className="space-y-1.5 min-w-0 flex-1">
+                        <p className="text-base font-bold text-zinc-950 dark:text-white truncate">
                           {session.device_info || 'Unknown Device'}
                         </p>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
-                          <span className="flex items-center gap-1 min-w-0">
-                            <MapPin className="h-3 w-3 text-blue-500 shrink-0" />
+                        <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 font-medium">
+                          <span className="flex items-center gap-1.5 min-w-0">
+                            <MapPin className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
                             <span className="truncate">{session.location_info || 'Unknown Location'}</span>
                           </span>
-                          <span className="font-mono text-[11px] text-zinc-400">
+                          <span>&bull;</span>
+                          <span className="font-mono text-zinc-700 dark:text-zinc-300">
                             {session.ip_address}
                           </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3 text-zinc-400 shrink-0" />
+                          <span>&bull;</span>
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
                             <span>Last active: {formatDateTime(session.last_active_at || session.created_at)}</span>
                           </span>
                         </div>
@@ -432,15 +441,15 @@ export function SessionsPage() {
                     <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
                       <Button
                         variant="outline"
-                        size="sm"
+                        size="default"
                         onClick={() => setSessionToRevoke(session)}
                         disabled={isRevoking}
-                        className="text-xs h-8 gap-1.5 border-rose-200 dark:border-rose-900/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 cursor-pointer"
+                        className="h-10 px-4 text-xs sm:text-sm font-bold rounded-xl border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer shadow-xs active:scale-95"
                       >
                         {isRevoking ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
                         ) : (
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 className="h-4 w-4 mr-1.5" />
                         )}
                         <span>{isRevoking ? 'Revoking...' : 'Revoke'}</span>
                       </Button>
@@ -454,41 +463,41 @@ export function SessionsPage() {
 
         {/* Bottom Pagination Bar */}
         {totalOtherSessions > 0 && (
-          <div className="p-3.5 sm:px-6 border-t border-zinc-200/90 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-950/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <div className="text-zinc-500 dark:text-zinc-400 text-xs">
-              Showing <span className="font-semibold text-zinc-900 dark:text-zinc-100">{startRecord}</span> to{' '}
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{endRecord}</span> of{' '}
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{totalOtherSessions}</span> sessions
+          <div className="p-4 sm:px-8 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs sm:text-sm">
+            <div className="text-zinc-600 dark:text-zinc-400 font-medium">
+              Showing <span className="font-bold text-zinc-950 dark:text-white">{startRecord}</span> to{' '}
+              <span className="font-bold text-zinc-950 dark:text-white">{endRecord}</span> of{' '}
+              <span className="font-bold text-zinc-950 dark:text-white">{totalOtherSessions}</span> sessions
             </div>
 
-            <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
-              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono mr-1">
+            <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+              <span className="text-xs text-zinc-500 dark:text-zinc-400 font-mono font-medium mr-1">
                 Page {currentPage + 1} of {Math.max(1, totalPages)}
               </span>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  size="default"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={isFirst || isLoadingOther}
-                  className="h-8 px-2.5 text-xs cursor-pointer gap-1"
+                  className="h-9 px-3 text-xs font-bold rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer gap-1.5"
                 >
-                  <ChevronLeft className="h-3.5 w-3.5" />
+                  <ChevronLeft className="h-4 w-4" />
                   <span>Prev</span>
                 </Button>
 
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  size="default"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={isLast || isLoadingOther}
-                  className="h-8 px-2.5 text-xs cursor-pointer gap-1"
+                  className="h-9 px-3 text-xs font-bold rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer gap-1.5"
                 >
                   <span>Next</span>
-                  <ChevronRight className="h-3.5 w-3.5" />
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -498,49 +507,55 @@ export function SessionsPage() {
 
       {/* Confirmation Dialog for Revoking Individual Session */}
       {sessionToRevoke && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="relative w-full max-w-md p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-4 text-zinc-900 dark:text-zinc-100">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 flex items-center justify-center text-rose-600 shrink-0">
-                <Trash2 className="h-5 w-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-lg p-7 sm:p-8 rounded-3xl bg-white dark:bg-[#121216] border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-6 text-zinc-950 dark:text-zinc-50 animate-in zoom-in-95 duration-200">
+            <div className="space-y-3">
+              <div className="h-14 w-14 rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center border border-red-500/20 shadow-xs">
+                <Trash2 className="h-7 w-7" />
               </div>
-              <div>
-                <h3 className="text-base font-semibold">Revoke Session</h3>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Are you sure you want to sign out this device?
-                </p>
-              </div>
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-950 dark:text-white">
+                Revoke Session Access?
+              </h3>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
+                Are you sure you want to sign out this client device? All active refresh tokens will be immediately invalidated.
+              </p>
             </div>
 
-            <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-xs space-y-1">
-              <p className="font-semibold text-zinc-900 dark:text-white">
+            <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs sm:text-sm space-y-1.5">
+              <p className="font-bold text-zinc-950 dark:text-white">
                 {sessionToRevoke.device_info || 'Unknown Device'}
               </p>
-              <p className="text-zinc-500">
-                {sessionToRevoke.location_info || 'Localhost'} &bull; {sessionToRevoke.ip_address}
+              <p className="text-zinc-600 dark:text-zinc-400 font-medium">
+                {sessionToRevoke.location_info || 'Localhost'} &bull; <span className="font-mono">{sessionToRevoke.ip_address}</span>
               </p>
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-2">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-2">
               <Button
+                type="button"
                 variant="outline"
-                size="sm"
+                size="default"
                 onClick={() => setSessionToRevoke(null)}
-                className="text-xs cursor-pointer"
+                className="h-11 sm:h-12 px-5 text-sm sm:text-base font-bold rounded-xl border-zinc-300 dark:border-zinc-700 cursor-pointer"
               >
                 Cancel
               </Button>
               <Button
+                type="button"
                 variant="destructive"
-                size="sm"
+                size="default"
                 onClick={() => handleRevokeSingle(sessionToRevoke)}
                 disabled={revokingSessionId === sessionToRevoke.id}
-                className="text-xs gap-1.5 bg-rose-600 hover:bg-rose-700 text-white cursor-pointer"
+                className="h-11 sm:h-12 px-6 text-sm sm:text-base font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-md cursor-pointer active:scale-95 transition-all"
               >
-                {revokingSessionId === sessionToRevoke.id && (
-                  <Loader2 className="h-3 w-3 animate-spin" />
+                {revokingSessionId === sessionToRevoke.id ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Revoking...</span>
+                  </span>
+                ) : (
+                  <span>Revoke Session</span>
                 )}
-                <span>Revoke Session</span>
               </Button>
             </div>
           </div>

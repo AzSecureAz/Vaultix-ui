@@ -833,7 +833,7 @@ export function DashboardPage() {
           <CardContent className="p-6 sm:p-8 space-y-7">
             {/* Assigned Roles */}
             <div>
-              <span className="text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider block mb-3">
+              <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider block mb-3">
                 Assigned RBAC Roles
               </span>
               <div className="flex items-center gap-2.5 flex-wrap">
@@ -853,7 +853,7 @@ export function DashboardPage() {
             {user.permissions && user.permissions.length > 0 ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider block">
+                  <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider block">
                     Domain Capabilities ({user.permissions.length})
                   </span>
                 </div>
@@ -864,22 +864,23 @@ export function DashboardPage() {
                     return (
                       <div
                         key={group.domain}
-                        className="p-4 sm:p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 space-y-3"
+                        className="p-5 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 hover:bg-zinc-100/70 dark:hover:bg-zinc-900/60 transition-all space-y-3.5 shadow-2xs"
                       >
-                        <div className="flex items-center gap-2.5">
-                          <GroupIcon className={`h-4.5 w-4.5 ${group.color}`} />
-                          <span className="text-sm font-bold text-zinc-950 dark:text-white">
+                        <div className="flex items-center gap-3">
+                          <GroupIcon className={`h-5 w-5 ${group.color} shrink-0`} />
+                          <span className="text-base font-bold text-zinc-950 dark:text-white">
                             {group.label}
                           </span>
-                          <span className="text-xs text-zinc-500 font-mono font-medium ml-auto">
-                            {group.actions.length} action{group.actions.length > 1 ? 's' : ''}
+                          <span className="inline-flex items-center text-xs font-mono font-bold px-3 py-1 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-950 dark:text-white border border-zinc-300 dark:border-zinc-700 shadow-2xs ml-auto shrink-0">
+                            <span className="font-extrabold text-zinc-950 dark:text-white">{group.actions.length}</span>
+                            <span className="ml-1 text-zinc-800 dark:text-zinc-200">{group.actions.length === 1 ? 'action' : 'actions'}</span>
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap pt-0.5">
                           {group.actions.map((act) => (
                             <span
                               key={act}
-                              className={`text-xs font-mono font-bold px-2.5 py-1 rounded-md border ${group.badgeBg}`}
+                              className={`text-xs font-mono font-bold px-3 py-1 rounded-lg border shadow-2xs ${group.badgeBg}`}
                             >
                               {act}
                             </span>
