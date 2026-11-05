@@ -75,10 +75,8 @@ apiClient.interceptors.response.use(
         return Promise.reject(error)
       }
 
-      const refreshToken = useAuthStore.getState().refreshToken
-
-      // 2. If no refresh token or trying to refresh itself, log out
-      if (!refreshToken || originalRequest.url?.includes('/auth/public/refresh') || originalRequest.url?.includes('/auth/public/login')) {
+      // 2. If trying to refresh itself or login endpoint, reject and log out
+      if (originalRequest.url?.includes('/auth/public/refresh') || originalRequest.url?.includes('/auth/public/login')) {
         useAuthStore.getState().logout()
         return Promise.reject(error)
       }
@@ -98,9 +96,12 @@ apiClient.interceptors.response.use(
       isRefreshing = true
 
       try {
-        const response = await axios.post<ApiResponse<AuthTokens>>('/api/v1/auth/public/refresh', {
-          refresh_token: refreshToken,
-        })
+        const inMemoryRefreshToken = useAuthStore.getState().refreshToken
+        const response = await axios.post<ApiResponse<AuthTokens>>(
+          '/api/v1/auth/public/refresh',
+          inMemoryRefreshToken ? { refresh_token: inMemoryRefreshToken } : {},
+          { withCredentials: true }
+        )
 
         if (response.data.success && response.data.data?.access_token) {
           const newTokens = response.data.data

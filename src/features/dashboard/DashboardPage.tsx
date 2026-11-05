@@ -186,7 +186,7 @@ export function DashboardPage() {
         {/* Decorative glow */}
         <div className="absolute top-0 right-0 w-80 h-40 bg-gradient-to-bl from-blue-500/10 via-indigo-500/5 to-transparent blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="flex items-center gap-5 sm:gap-6 min-w-0">
             {/* Avatar with Status Ring */}
             <div className="relative shrink-0">
@@ -237,7 +237,7 @@ export function DashboardPage() {
               {/* User ID Quick Copy */}
               <div className="pt-1 flex items-center gap-2">
                 <span className="text-xs text-zinc-500 dark:text-zinc-400 font-mono font-semibold">ID:</span>
-                <span className="text-xs font-mono font-medium text-zinc-900 dark:text-zinc-100 bg-zinc-100 dark:bg-white/[0.06] px-2.5 py-1 rounded-lg border border-zinc-300 dark:border-white/15 truncate max-w-[220px] sm:max-w-sm">
+                <span className="text-xs font-mono font-medium text-zinc-900 dark:text-zinc-100 bg-zinc-100 dark:bg-white/[0.06] px-2.5 py-1 rounded-lg border border-zinc-300 dark:border-white/15 truncate max-w-[200px] sm:max-w-sm">
                   {user.id}
                 </span>
                 <button
@@ -257,7 +257,7 @@ export function DashboardPage() {
           </div>
 
           {/* Quick Profile Edit Actions */}
-          <div className="flex items-center gap-3 flex-wrap self-start md:self-center pt-3 md:pt-0 border-t md:border-t-0 border-zinc-200 dark:border-zinc-800">
+          <div className="flex items-center gap-3 flex-wrap self-start lg:self-center pt-3 lg:pt-0 border-t lg:border-t-0 border-zinc-200 dark:border-zinc-800 shrink-0">
             <Button
               type="button"
               variant="outline"
@@ -283,20 +283,20 @@ export function DashboardPage() {
 
       {/* Security Posture Health Score Banner */}
       <Card className="overflow-hidden border border-blue-500/25 bg-gradient-to-r from-blue-500/[0.05] via-indigo-500/[0.03] to-transparent shadow-sm">
-        <div className="p-6 sm:p-7 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="p-5 sm:p-7 flex flex-col xl:flex-row xl:items-center justify-between gap-5 sm:gap-6">
           <div className="space-y-2 flex-1 min-w-0">
             <div className="flex items-center gap-2.5">
-              <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0" />
               <h3 className="text-base sm:text-lg font-bold tracking-tight text-zinc-950 dark:text-white">
                 Security Posture Score: <span className={securityHealth.color}>{securityHealth.score}% ({securityHealth.level})</span>
               </h3>
             </div>
-            <p className="text-sm text-zinc-600 dark:text-zinc-300 font-medium">
+            <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 font-medium leading-relaxed">
               Evaluates hardware key compliance, multi-factor verification, and email ownership.
             </p>
 
             {/* Health Progress Track */}
-            <div className="w-full h-3 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden mt-3 max-w-lg">
+            <div className="w-full h-2.5 sm:h-3 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden mt-3 max-w-xl">
               <div
                 className={`h-full rounded-full transition-all duration-700 ${securityHealth.bg}`}
                 style={{ width: `${securityHealth.score}%` }}
@@ -305,7 +305,7 @@ export function DashboardPage() {
           </div>
 
           {/* Security Checklist Actions */}
-          <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap pt-1 xl:pt-0">
             <Button
               variant="outline"
               size="sm"
@@ -316,7 +316,7 @@ export function DashboardPage() {
               <span>Audit Breakdown</span>
             </Button>
             {user.email_verified ? (
-              <Badge variant="success" dot className="text-xs sm:text-sm px-3 py-1 font-semibold">Email Verified</Badge>
+              <Badge variant="success" dot className="text-xs sm:text-sm px-2.5 sm:px-3 py-1 font-semibold">Email Verified</Badge>
             ) : (
               <Button
                 variant="outline"
@@ -329,7 +329,7 @@ export function DashboardPage() {
             )}
 
             {(user.mfa_enabled || user.sms_mfa_enabled) ? (
-              <Badge variant="success" dot className="text-xs sm:text-sm px-3 py-1 font-semibold">2FA Guarded</Badge>
+              <Badge variant="success" dot className="text-xs sm:text-sm px-2.5 sm:px-3 py-1 font-semibold">2FA Guarded</Badge>
             ) : (
               <Button
                 variant="outline"
@@ -342,7 +342,7 @@ export function DashboardPage() {
             )}
 
             {user.passkey_enabled ? (
-              <Badge variant="success" dot className="text-xs sm:text-sm px-3 py-1 font-semibold">Passkey Active</Badge>
+              <Badge variant="success" dot className="text-xs sm:text-sm px-2.5 sm:px-3 py-1 font-semibold">Passkey Active</Badge>
             ) : (
               <Button
                 variant="outline"
@@ -358,7 +358,7 @@ export function DashboardPage() {
       </Card>
 
       {/* 4 Modern Stat / Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
         {/* Card 1: Identity State */}
         <Card glow className="p-5 sm:p-6 flex flex-col justify-between space-y-4 border border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center justify-between">
