@@ -26,6 +26,7 @@ import {
   AlertCircle,
   Search,
   KeyRound,
+  Eye,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -33,9 +34,10 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/stores/authStore'
-import { usersApi, type UserItem } from './api/usersApi'
+import { usersApi, type UserItem, type UserSearchFilterPayload } from './api/usersApi'
 import { rolesApi, type RoleItem } from '../admin-roles/api/rolesApi'
 import { cn } from '@/lib/utils'
+import { UserInspectionDrawer } from './components/UserInspectionDrawer'
 
 export function UsersPage() {
   const { user, hasPermission } = useAuthStore()
@@ -101,6 +103,9 @@ export function UsersPage() {
 
   /* Reset User MFA Confirmation Modal */
   const [userToResetMfa, setUserToResetMfa] = useState<UserItem | null>(null)
+  const [selectedUserForDrawer, setSelectedUserForDrawer] = useState<UserItem | null>(null)
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'DISABLED' | 'DELETED'>('ALL')
+  const [mfaFilter, setMfaFilter] = useState<'ALL' | 'MFA_ENABLED' | 'MFA_DISABLED'>('ALL')
   const [resetMfaLoading, setResetMfaLoading] = useState(false)
   const [resetMfaError, setResetMfaError] = useState<string | null>(null)
 
@@ -184,7 +189,11 @@ export function UsersPage() {
 
     try {
       const trimmed = search.trim()
-      const payload = trimmed ? { search: trimmed } : {}
+      const payload: UserSearchFilterPayload = {}
+      if (trimmed) payload.search = trimmed
+      if (statusFilter !== 'ALL') payload.statuses = [statusFilter]
+      if (mfaFilter === 'MFA_ENABLED') payload.mfaEnabled = true
+      if (mfaFilter === 'MFA_DISABLED') payload.mfaEnabled = false
       const res = await usersApi.searchUsers(payload, page, size)
       if (res.success && res.data) {
         setFetchError(null)
@@ -234,7 +243,7 @@ export function UsersPage() {
 
   useEffect(() => {
     fetchUsers(currentPage, pageSize, urlSearch)
-  }, [currentPage, pageSize, urlSearch, canRead])
+  }, [currentPage, pageSize, urlSearch, statusFilter, mfaFilter, canRead])
 
   /* Pagination navigation helpers */
   const handlePageChange = (newPage: number) => {
@@ -702,6 +711,38 @@ export function UsersPage() {
                 )}
               </div>
 
+              {/* Faceted Status & MFA Filters */}
+              <div className="flex items-center gap-2">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value as any)
+                    fetchUsers(0, pageSize, urlSearch)
+                  }}
+                  className="h-8 px-2.5 text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-medium cursor-pointer shadow-2xs"
+                  title="Filter by user status"
+                >
+                  <option value="ALL">All Statuses</option>
+                  <option value="ACTIVE">Active</option>
+                  <option value="DISABLED">Disabled</option>
+                  <option value="DELETED">Deleted</option>
+                </select>
+
+                <select
+                  value={mfaFilter}
+                  onChange={(e) => {
+                    setMfaFilter(e.target.value as any)
+                    fetchUsers(0, pageSize, urlSearch)
+                  }}
+                  className="h-8 px-2.5 text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-medium cursor-pointer shadow-2xs"
+                  title="Filter by 2FA security"
+                >
+                  <option value="ALL">All 2FA</option>
+                  <option value="MFA_ENABLED">2FA Protected</option>
+                  <option value="MFA_DISABLED">2FA Disabled</option>
+                </select>
+              </div>
+
               {/* Rows per page selector */}
               <div className="flex items-center gap-2 shrink-0">
                 <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
@@ -1019,6 +1060,19 @@ export function UsersPage() {
                       ) : (
                         isManageable && (
                           <>
+                            {/* Inspect / Audit Drawer Button */}
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedUserForDrawer(item)}
+                              title="Audit user security profile"
+                              className="h-8 text-xs px-2.5 gap-1.5 cursor-pointer font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/20 border-blue-200 dark:border-blue-900/40"
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                              <span>Audit</span>
+                            </Button>
+
                             {/* Edit Roles Button */}
                             {canUpdate && (
                               <Button
@@ -1573,6 +1627,29 @@ export function UsersPage() {
           </div>
         </div>
       )}
+
+      {/* User Inspection Drawer */}
+      <UserInspectionDrawer
+        user={selectedUserForDrawer}
+        isOpen={Boolean(selectedUserForDrawer)}
+        onClose={() => setSelectedUserForDrawer(null)}
+        onEdit={(u: UserItem) => openEditModal(u)}
+        onToggleStatus={(u: UserItem) => handleToggleStatus(u)}
+        onDeleteOrRestore={(u: UserItem) => {
+          if (u.status === 'DELETED') {
+            handleRestoreUser(u)
+          } else {
+            setUserToDelete(u)
+          }
+        }}
+        onResetMfa={(u: UserItem) => {
+          setUserToResetMfa(u)
+          setResetMfaError(null)
+        }}
+        canUpdate={canUpdate}
+        canDelete={canDelete}
+        canRestore={canRestore}
+      />
 
       {/* MODAL 4: Reset MFA Confirmation */}
       {userToResetMfa && (

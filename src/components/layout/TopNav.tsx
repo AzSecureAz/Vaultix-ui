@@ -1,9 +1,10 @@
 import { useLocation } from 'react-router-dom'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
-import { Bell, Menu, Search, ShieldCheck } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Menu, Search, ShieldCheck } from 'lucide-react'
 import { UserButton } from '@/components/ui/UserButton'
 import { useCommandStore } from '@/stores/commandStore'
+import { SudoStatusPill } from '@/components/layout/SudoStatusPill'
+import { NotificationCenter } from '@/components/layout/NotificationCenter'
 
 interface TopNavProps {
   onOpenMobileMenu?: () => void
@@ -66,7 +67,10 @@ export function TopNav({ onOpenMobileMenu }: TopNavProps) {
       </button>
 
       {/* Right Controls & Status */}
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+        {/* Dynamic Sudo Mode Status Pill */}
+        <SudoStatusPill />
+
         {/* Live Engine Status Pill */}
         <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
           <span className="relative flex h-2.5 w-2.5">
@@ -79,16 +83,10 @@ export function TopNav({ onOpenMobileMenu }: TopNavProps) {
 
         <ThemeToggle />
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white h-9 w-9 rounded-xl"
-          title="Notifications"
-        >
-          <Bell className="h-4.5 w-4.5" />
-        </Button>
+        {/* Security & Activity Notification Center */}
+        <NotificationCenter />
 
-        <div className="h-5 w-px bg-zinc-200 dark:border-white/[0.08]" />
+        <div className="h-5 w-px bg-zinc-200 dark:bg-white/[0.08]" />
 
         {/* UserButton */}
         <UserButton />

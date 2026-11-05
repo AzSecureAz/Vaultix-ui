@@ -35,6 +35,7 @@ import { ChangeFullNameModal } from './components/ChangeFullNameModal'
 import { ChangeEmailModal } from './components/ChangeEmailModal'
 import { ChangePhoneNumberModal } from './components/ChangePhoneNumberModal'
 import { DeleteAccountModal } from './components/DeleteAccountModal'
+import { SecurityHealthModal } from './components/SecurityHealthModal'
 import { LogoutAllModal } from '@/components/ui/LogoutAllModal'
 import { maskPhoneNumber } from '@/lib/utils'
 
@@ -54,6 +55,7 @@ export function DashboardPage() {
   const [isChangePhoneOpen, setIsChangePhoneOpen] = useState(false)
   const [isLogoutAllOpen, setIsLogoutAllOpen] = useState(false)
   const [isDeleteAccountOpen, setIsDeleteAccountOpen] = useState(false)
+  const [isSecurityHealthOpen, setIsSecurityHealthOpen] = useState(false)
   const [showPhoneNumber, setShowPhoneNumber] = useState(false)
 
   const handleCopyId = () => {
@@ -304,6 +306,15 @@ export function DashboardPage() {
 
           {/* Security Checklist Actions */}
           <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsSecurityHealthOpen(true)}
+              className="h-8 px-3 text-xs sm:text-sm font-semibold border-blue-500/40 text-blue-700 dark:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 cursor-pointer shadow-2xs"
+            >
+              <Sparkles className="h-3.5 w-3.5 mr-1 text-blue-500" />
+              <span>Audit Breakdown</span>
+            </Button>
             {user.email_verified ? (
               <Badge variant="success" dot className="text-xs sm:text-sm px-3 py-1 font-semibold">Email Verified</Badge>
             ) : (
@@ -984,6 +995,14 @@ export function DashboardPage() {
       <LogoutAllModal
         isOpen={isLogoutAllOpen}
         onClose={() => setIsLogoutAllOpen(false)}
+      />
+
+      <SecurityHealthModal
+        isOpen={isSecurityHealthOpen}
+        onClose={() => setIsSecurityHealthOpen(false)}
+        user={user}
+        onVerifyEmail={() => setIsVerifyModalOpen(true)}
+        onVerifyPhone={() => setIsVerifyPhoneOpen(true)}
       />
 
       {user.username && (

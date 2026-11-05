@@ -4,6 +4,8 @@ import {
   KeyRound,
   Copy,
   Check,
+  Download,
+  Printer,
   AlertCircle,
   Loader2,
   X,
@@ -247,6 +249,37 @@ export function MfaPage() {
     setTimeout(() => setCopiedKey(false), 2000)
   }
 
+
+  const downloadBackupSheet = () => {
+    if (recoveryCodes.length === 0) return
+    const text = `=====================================================
+VAULTIX ENTERPRISE IAM - EMERGENCY RECOVERY CODES
+=====================================================
+Account: ${user?.email || user?.username || 'Authenticated User'}
+Generated: ${new Date().toLocaleString()}
+Important: Each emergency recovery code can be used once. Keep
+this document strictly offline in a secure, confidential place.
+-----------------------------------------------------
+${recoveryCodes.map((c, i) => `[${i + 1 < 10 ? ' ' : ''}${i + 1}]  ${c}`).join('\n')}
+-----------------------------------------------------
+Security Note: If these codes are lost or exposed, immediately
+visit your Vaultix Account Console and regenerate them.
+=====================================================`
+
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `vaultix-recovery-codes-${new Date().toISOString().slice(0, 10)}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success('Emergency recovery codes downloaded as backup document.')
+  }
+
+  const printBackupSheet = () => {
+    window.print()
+  }
+
   const copyAllCodes = () => {
     if (recoveryCodes.length > 0) {
       navigator.clipboard.writeText(recoveryCodes.join('\n'))
@@ -295,7 +328,30 @@ export function MfaPage() {
                 </div>
               </div>
 
-              <Button
+              <div className="flex items-center gap-2 flex-wrap shrink-0">
+                <Button
+                  variant="outline"
+                  size="default"
+                  onClick={downloadBackupSheet}
+                  className="h-9 px-3.5 text-xs sm:text-sm font-bold border-amber-400 dark:border-amber-700 bg-white dark:bg-zinc-800 text-amber-950 dark:text-amber-100 hover:bg-amber-100/70 dark:hover:bg-amber-900/40 rounded-xl cursor-pointer shadow-xs"
+                  title="Download emergency codes document"
+                >
+                  <Download className="h-4 w-4 mr-1.5" />
+                  <span>Download</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="default"
+                  onClick={printBackupSheet}
+                  className="h-9 px-3.5 text-xs sm:text-sm font-bold border-amber-400 dark:border-amber-700 bg-white dark:bg-zinc-800 text-amber-950 dark:text-amber-100 hover:bg-amber-100/70 dark:hover:bg-amber-900/40 rounded-xl cursor-pointer shadow-xs"
+                  title="Print recovery codes sheet"
+                >
+                  <Printer className="h-4 w-4 mr-1.5" />
+                  <span>Print</span>
+                </Button>
+
+                <Button
                 variant="outline"
                 size="default"
                 onClick={copyAllCodes}
@@ -308,6 +364,7 @@ export function MfaPage() {
                 )}
                 <span>{copiedAllCodes ? 'Copied' : 'Copy All Codes'}</span>
               </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-6 sm:p-7">
@@ -791,8 +848,11 @@ export function MfaPage() {
                       Emergency recovery codes
                     </span>
                     {remainingCodes !== null && (
-                      <Badge variant="outline" className="text-xs py-0.5 px-2 font-mono font-bold">
-                        {remainingCodes} remaining
+                      <Badge
+                        variant={remainingCodes <= 3 ? 'destructive' : 'outline'}
+                        className="text-xs py-0.5 px-2 font-mono font-bold"
+                      >
+                        {remainingCodes <= 3 ? `⚠️ Low (${remainingCodes} remaining)` : `${remainingCodes} remaining`}
                       </Badge>
                     )}
                   </div>

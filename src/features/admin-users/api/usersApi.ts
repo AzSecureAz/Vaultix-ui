@@ -43,6 +43,16 @@ export interface UserItem {
   updatedBy?: string
 }
 
+export interface UserSearchFilterPayload {
+  search?: string
+  statuses?: ('ACTIVE' | 'DISABLED' | 'DELETED')[]
+  mfaEnabled?: boolean
+  minFailedLoginAttempts?: number
+  emailVerified?: boolean
+  phoneNumberVerified?: boolean
+  roles?: string[]
+}
+
 export interface CreateUserPayload {
   username: string
   email: string
@@ -64,7 +74,7 @@ export const usersApi = {
   },
 
   searchUsers: async (
-    payload: { search?: string } = {},
+    payload: UserSearchFilterPayload = {},
     page = 0,
     size = 10
   ): Promise<ApiResponse<PageResponse<UserItem>>> => {

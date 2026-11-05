@@ -116,7 +116,12 @@ export interface SocialAccountItem {
 }
 
 export interface SudoResponse {
-  active: boolean
+  elevated?: boolean
+  active?: boolean
+  expires_in_seconds?: number | null
+  expiresInSeconds?: number | null
+  expires_at?: string | null
+  expiresAt?: string | null
   remaining_seconds?: number | null
   remainingSeconds?: number | null
 }
@@ -131,3 +136,14 @@ export interface SudoVerifyRequest {
   github_redirect_uri?: string
 }
 
+export interface NotificationItem {
+  id: string
+  title: string
+  message: string
+  type: 'security' | 'session' | 'account' | 'system'
+  severity: 'info' | 'warning' | 'critical' | 'success'
+  timestamp: string
+  read: boolean
+  actionUrl?: string
+  actionLabel?: string
+}
