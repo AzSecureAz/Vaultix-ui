@@ -44,7 +44,7 @@ export const VerifyPhoneModal: React.FC<VerifyPhoneModalProps> = ({
     try {
       await authApi.sendPhoneNumberVerification()
       setCountdown(60)
-      toast.success(`Verification code dispatched to ${phoneNumber}`)
+      toast.success(`Verification code dispatched to ${maskPhoneNumber(phoneNumber)}`)
     } catch (err: any) {
       const errData = err?.response?.data
       const msg = errData?.message || 'Failed to dispatch SMS verification code. Please try again.'

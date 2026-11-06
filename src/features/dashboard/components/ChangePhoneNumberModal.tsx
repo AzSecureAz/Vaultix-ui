@@ -95,7 +95,7 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
       await authApi.requestPhoneNumberChange(clean)
       setStep('verify')
       setCountdown(60)
-      toast.success(`Verification code dispatched to ${clean}`)
+      toast.success(`Verification code dispatched to ${maskPhoneNumber(clean)}`)
     } catch (err: any) {
       const errData = err?.response?.data
       if (errData?.errors && typeof errData.errors === 'object') {
@@ -222,8 +222,23 @@ export const ChangePhoneNumberModal: React.FC<ChangePhoneNumberModalProps> = ({
               {isAdding ? 'Phone Number Added Successfully!' : 'Phone Number Changed Successfully!'}
             </h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
-              Your phone number has been updated to{' '}
-              <span className="font-mono font-bold text-zinc-950 dark:text-zinc-100">{newPhoneNumber}</span>.
+              Your phone number has been {isAdding ? 'set to' : 'updated to'}{' '}
+              <span className="inline-flex items-center gap-1 font-mono font-bold text-zinc-950 dark:text-zinc-100">
+                <span>{showNewPhone ? newPhoneNumber : maskPhoneNumber(newPhoneNumber)}</span>
+                <button
+                  type="button"
+                  onClick={() => setShowNewPhone(!showNewPhone)}
+                  className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer rounded"
+                  title={showNewPhone ? 'Hide phone number' : 'Show phone number'}
+                >
+                  {showNewPhone ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </span>
+              .
             </p>
           </div>
         ) : step === 'request' ? (
